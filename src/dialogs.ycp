@@ -17,69 +17,51 @@ import "IscsiClient";
 
 include "iscsi-client/helps.ycp";
 
-/**
- * Configure1 dialog
- * @return dialog result
- */
-any Configure1Dialog () {
+any GlobalDialog() {
 
-    /* IscsiClient configure1 dialog caption */
+    /* IscsiClient summary dialog caption */
     string caption = _("IscsiClient Configuration");
 
-    /* IscsiClient configure1 dialog contents */
-    term contents = `Label (_("First part of configuration of iscsi-client"));
+    /* FIXME */
+    list summary = IscsiClient::Summary();
+    list unconfigured = summary[1]:[];
+    string configured = summary[0]:"";
 
-    Wizard::SetContentsButtons(caption, contents, HELPS["c1"]:"",
-	    Label::BackButton(), Label::NextButton());
+    /* Frame label */
+    term contents = Wizard_hw::DetectedContent(_("IscsiClient to Configure"),
+            unconfigured, false, configured);
+
+    Wizard::SetContentsButtons(caption, contents, HELPS["summary"]:"",
+            Label::BackButton(), Label::FinishButton());
 
     any ret = nil;
     while(true) {
 
-	ret = UI::UserInput();
+        ret = UI::UserInput();
 
-	/* abort? */
-	if(ret == `abort || ret == `cancel) {
-	    if(ReallyAbort()) break;
-	    else continue;
-	}
-        else if(ret == `next || ret == `back) {
+        /* abort? */
+        if(ret == `abort || ret == `cancel || ret == `back) {
+            if(ReallyAbort()) break;
+            else continue;
+        }
+        /* overview dialog */
+        else if(ret == `edit_button) {
+            ret = `overview;
             break;
         }
-        else {
-            y2error("unexpected retcode: %1", ret);
-            continue;
+        /* configure the selected device */
+        else if(ret == `configure_button) {
+            // TODO FIXME: check for change of the configuration
+            any selected = UI::QueryWidget(`id(`detected_selbox), `CurrentItem);
+            if(selected == `other) {
+                ret = `other;
+            }
+            else {
+                ret = `configure;
+            }
+            break;
         }
-    }
-
-    return ret;
-}
-
-/**
- * Configure2 dialog
- * @return dialog result
- */
-any Configure2Dialog () {
-
-    /* IscsiClient configure2 dialog caption */
-    string caption = _("IscsiClient Configuration");
-
-    /* IscsiClient configure2 dialog contents */
-    term contents = `Label (_("Second part of configuration of iscsi-client"));
-
-    Wizard::SetContentsButtons(caption, contents, HELPS["c2"]:"",
-	    Label::BackButton(), Label::NextButton());
-
-    any ret = nil;
-    while(true) {
-
-	ret = UI::UserInput();
-
-	/* abort? */
-	if(ret == `abort || ret == `cancel) {
-	    if(ReallyAbort()) break;
-	    else continue;
-	}
-        else if(ret == `next || ret == `back) {
+        else if(ret == `next) {
             break;
         }
         else {

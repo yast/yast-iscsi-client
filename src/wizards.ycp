@@ -17,33 +17,6 @@ import "Wizard";
 include "iscsi-client/complex.ycp";
 include "iscsi-client/dialogs.ycp";
 
-/**
- * Add a configuration of iscsi-client
- * @return sequence result
- */
-any AddSequence() {
-
-    /* FIXME: adapt to your needs */
-    map aliases = $[
-	"config1"	: ``(Configure1Dialog()),
-	"config2"	: ``(Configure2Dialog()),
-    ];
-
-    /* FIXME: adapt to your needs */
-    map sequence = $[
-	"ws_start" : "config1",
-	"config1" : $[
-	    `abort	: `abort,
-	    `next	: "config2"
-	],
-	"config2" : $[
-	    `abort	: `abort,
-	    `next	: `next
-	]
-    ];
-
-    return Sequencer::Run(aliases, sequence);
-}
 
 /**
  * Main workflow of the iscsi-client configuration
@@ -53,41 +26,16 @@ any MainSequence() {
 
     /* FIXME: adapt to your needs */
     map aliases = $[
-	"summary"	:   ``( SummaryDialog() ),
-	"overview"	:   ``( OverviewDialog() ),
-	"configure"	: [ ``( AddSequence() ), true ],
-	"add"		: [ ``( AddSequence() ), true ],
-	"edit"		: [ ``( AddSequence() ), true ]
+	"global"	:   ``( GlobalDialog() ),
     ];
 
     /* FIXME: adapt to your needs */
     map sequence = $[
-	"ws_start" : "summary",
-	"summary" : $[
+	"ws_start" : "global",
+	"global" : $[
 	    `abort	: `abort,
 	    `next	: `next,
-	    `overview	: "overview",
-	    `configure	: "configure",
-	    `other	: "configure",
 	],
-	"overview" : $[
-	    `abort	: `abort,
-	    `next	: `next,
-	    `add	: "add",
-	    `edit	: "edit",
-	],
-	"configure" : $[
-	    `abort	: `abort,
-	    `next	: "summary",
-	],
-	"add" : $[
-	    `abort	: `abort,
-	    `next	: "overview",
-	],
-	"edit" : $[
-	    `abort	: `abort,
-	    `next	: "overview",
-	]
     ];
 
     any ret = Sequencer::Run(aliases, sequence);

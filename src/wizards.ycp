@@ -1,0 +1,157 @@
+/**
+ * File:	include/iscsi-client/wizards.ycp
+ * Package:	Configuration of iscsi-client
+ * Summary:	Wizards definitions
+ * Authors:	Michal Zugec <mzugec@suse.cz>
+ *
+ * $Id: wizards.ycp 13879 2004-02-05 11:29:30Z msvec $
+ */
+
+{
+
+textdomain "iscsi-client";
+
+import "Sequencer";
+import "Wizard";
+
+include "iscsi-client/complex.ycp";
+include "iscsi-client/dialogs.ycp";
+
+/**
+ * Add a configuration of iscsi-client
+ * @return sequence result
+ */
+any AddSequence() {
+
+    /* FIXME: adapt to your needs */
+    map aliases = $[
+	"config1"	: ``(Configure1Dialog()),
+	"config2"	: ``(Configure2Dialog()),
+    ];
+
+    /* FIXME: adapt to your needs */
+    map sequence = $[
+	"ws_start" : "config1",
+	"config1" : $[
+	    `abort	: `abort,
+	    `next	: "config2"
+	],
+	"config2" : $[
+	    `abort	: `abort,
+	    `next	: `next
+	]
+    ];
+
+    return Sequencer::Run(aliases, sequence);
+}
+
+/**
+ * Main workflow of the iscsi-client configuration
+ * @return sequence result
+ */
+any MainSequence() {
+
+    /* FIXME: adapt to your needs */
+    map aliases = $[
+	"summary"	:   ``( SummaryDialog() ),
+	"overview"	:   ``( OverviewDialog() ),
+	"configure"	: [ ``( AddSequence() ), true ],
+	"add"		: [ ``( AddSequence() ), true ],
+	"edit"		: [ ``( AddSequence() ), true ]
+    ];
+
+    /* FIXME: adapt to your needs */
+    map sequence = $[
+	"ws_start" : "summary",
+	"summary" : $[
+	    `abort	: `abort,
+	    `next	: `next,
+	    `overview	: "overview",
+	    `configure	: "configure",
+	    `other	: "configure",
+	],
+	"overview" : $[
+	    `abort	: `abort,
+	    `next	: `next,
+	    `add	: "add",
+	    `edit	: "edit",
+	],
+	"configure" : $[
+	    `abort	: `abort,
+	    `next	: "summary",
+	],
+	"add" : $[
+	    `abort	: `abort,
+	    `next	: "overview",
+	],
+	"edit" : $[
+	    `abort	: `abort,
+	    `next	: "overview",
+	]
+    ];
+
+    any ret = Sequencer::Run(aliases, sequence);
+
+    return ret;
+}
+
+/**
+ * Whole configuration of iscsi-client
+ * @return sequence result
+ */
+any IscsiClientSequence() {
+
+    map aliases = $[
+	"read"	: [ ``( ReadDialog() ), true ],
+	"main"	:   ``( MainSequence() ),
+	"write"	: [ ``( WriteDialog() ), true ]
+    ];
+
+    map sequence = $[
+	"ws_start" : "read",
+	"read" : $[
+	    `abort	: `abort,
+	    `next	: "main"
+	],
+	"main" : $[
+	    `abort	: `abort,
+	    `next	: "write"
+	],
+	"write" : $[
+	    `abort	: `abort,
+	    `next	: `next
+	]
+    ];
+
+    Wizard::CreateDialog();
+
+    any ret = Sequencer::Run(aliases, sequence);
+
+    UI::CloseDialog();
+    return ret;
+}
+
+/**
+ * Whole configuration of iscsi-client but without reading and writing.
+ * For use with autoinstallation.
+ * @return sequence result
+ */
+any IscsiClientAutoSequence() {
+
+    /* Initialization dialog caption */
+    string caption = _("IscsiClient Configuration");
+    /* Initialization dialog contents */
+    term contents = `Label(_("Initializing..."));
+
+    Wizard::CreateDialog();
+    Wizard::SetContentsButtons(caption, contents, "",
+	    Label::BackButton(), Label::NextButton());
+
+    any ret = MainSequence();
+
+    UI::CloseDialog();
+    return ret;
+}
+
+/* EOF */
+}

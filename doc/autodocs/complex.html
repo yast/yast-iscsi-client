@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+
+<html>
+ <head>
+  <title>
+Configuration of iscsi-client</title>
+  <style type="text/css">body { background-color: #c8c8c8 }
+h1 { color: #e00000 }
+table { width: 100%/ border: none }
+img { border: 0px }
+.sigbox { background-color: #ffc080; border: solid thin #f96500 }
+.sig { font: larger monospace }
+.padtbl { background-color: #ffc080; padding: 10px; margin: 10px }
+/* arrow */
+.a { color: #606060 }
+/* type, parameter */
+.t, .p { color: #c05000 }
+.pbox { width: 20% }
+.descbox { }
+.right { align: right }
+.header {}
+.footer { clear: both}
+.menu { width: 10%; float: left }
+.main { width: 90%; float: left }
+</style>
+ </head>
+ <body>
+  <div class="header">
+   <i>YaST2 Developers Documentation:</i>
+   <a href="index.html">
+    <b>
+Configuration of iscsi-client</b>
+   </a>
+   <img class="right" alt="" src="/usr/share/doc/packages/yast2-devtools/images/yast2-mini.png" />
+   <hr />
+  </div>
+  <div class="menu">
+   <img alt="YaST" src="/usr/share/doc/packages/yast2-devtools/images/yast2-half.png" />
+   <br />
+   <br />
+   <a href="index.html">functions</a>
+   <br />
+   <a href="files.html">files</a>
+   <br />
+   <a href="intro.html">intro</a>
+  </div>
+  <div class="main">
+   <div class="sigbox">
+    <table class="padtbl">
+     <tr>
+      <td>
+       <h1>
+Configuration of iscsi-client</h1>
+      </td>
+      <td class="filecell">include/iscsi-client/complex.ycp</td>
+     </tr>
+     <tr>
+      <td>Dialogs definitions</td>
+     </tr>
+     <tr>
+      <td>
+       <ul>
+        <li>Michal Zugec &lt;<a href="mailto:mzugec@suse.cz">mzugec@suse.cz</a>&gt;</li>
+       </ul>
+      </td>
+     </tr>
+     <tr>
+      <td>
+       <p>This module has an unstable interface.</p>
+      </td>
+     </tr>
+    </table>
+    <table class="padtbl">
+     <tr>
+      <td>
+
+       <h1>Imports</h1>
+       <ul>
+        <li>IscsiClient</li>
+        <li>Label</li>
+        <li>Popup</li>
+        <li>Wizard</li>
+        <li>Wizard_hw</li>
+       </ul>
+       <h1>Includes</h1>
+       <ul>
+        <li>iscsi-client/helps.ycp</li>
+       </ul>
+       <h1>Local Functions</h1>
+       <ul>
+        <li>
+         <a href="#GlobalDialog">GlobalDialog ()</a>
+        </li>
+        <li>
+         <a href="#Modified">Modified ()</a>
+        </li>
+        <li>
+         <a href="#OverviewDialog">OverviewDialog ()</a>
+        </li>
+        <li>
+         <a href="#ReadDialog">ReadDialog ()</a>
+        </li>
+        <li>
+         <a href="#WriteDialog">WriteDialog ()</a>
+        </li>
+       </ul>
+      </td>
+     </tr>
+    </table>
+   </div>
+   <p />
+   <div class="sigbox">
+    <span class="sig" id="Modified">local
+     <b>Modified ()
+      <span class="a"> -&gt; </span>
+      <span class="t">boolean</span>
+     </b>
+    </span>
+   </div>
+   <p>
+ Return a modification status</p>
+   <dl>
+    <dt>
+     <b>Return value:</b>
+    </dt>
+    <dd>
+     <table>
+      <tr>
+       <td class="pbox">
+        <span class="t" />
+       </td>
+       <td class="descbox">true if data was modified</td>
+      </tr>
+     </table>
+    </dd>
+   </dl>
+   <div class="sigbox">
+    <span class="sig" id="ReadDialog">local
+     <b>ReadDialog ()
+      <span class="a"> -&gt; </span>
+      <span class="t">symbol</span>
+     </b>
+    </span>
+   </div>
+   <p>
+ Read settings dialog</p>
+   <dl>
+    <dt>
+     <b>Return value:</b>
+    </dt>
+    <dd>
+     <table>
+      <tr>
+       <td class="pbox">
+        <span class="t" />
+       </td>
+       <td class="descbox">`abort if aborted and `next otherwise</td>
+      </tr>
+     </table>
+    </dd>
+   </dl>
+   <div class="sigbox">
+    <span class="sig" id="WriteDialog">local
+     <b>WriteDialog ()
+      <span class="a"> -&gt; </span>
+      <span class="t">symbol</span>
+     </b>
+    </span>
+   </div>
+   <p>
+ Write settings dialog</p>
+   <dl>
+    <dt>
+     <b>Return value:</b>
+    </dt>
+    <dd>
+     <table>
+      <tr>
+       <td class="pbox">
+        <span class="t" />
+       </td>
+       <td class="descbox">`abort if aborted and `next otherwise</td>
+      </tr>
+     </table>
+    </dd>
+   </dl>
+   <div class="sigbox">
+    <span class="sig" id="GlobalDialog">local
+     <b>GlobalDialog ()
+      <span class="a"> -&gt; </span>
+      <span class="t">any</span>
+     </b>
+    </span>
+   </div>
+   <p>
+ Summary dialog</p>
+   <dl>
+    <dt>
+     <b>Return value:</b>
+    </dt>
+    <dd>
+     <table>
+      <tr>
+       <td class="pbox">
+        <span class="t" />
+       </td>
+       <td class="descbox">dialog result</td>
+      </tr>
+     </table>
+    </dd>
+   </dl>
+   <div class="sigbox">
+    <span class="sig" id="OverviewDialog">local
+     <b>OverviewDialog ()
+      <span class="a"> -&gt; </span>
+      <span class="t">any</span>
+     </b>
+    </span>
+   </div>
+   <p>
+ Overview dialog</p>
+   <dl>
+    <dt>
+     <b>Return value:</b>
+    </dt>
+    <dd>
+     <table>
+      <tr>
+       <td class="pbox">
+        <span class="t" />
+       </td>
+       <td class="descbox">dialog result</td>
+      </tr>
+     </table>
+    </dd>
+   </dl>
+  </div>
+  <div class="footer">
+   <hr />
+   <i>YaST2 Developers Documentation</i>
+   <img class="right" alt="" src="/usr/share/doc/packages/yast2-devtools/images/yast2-mini.png" />
+  </div>
+ </body>
+</html>

@@ -1,0 +1,433 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+
+<html>
+ <head>
+  <title>
+Configuration of iscsi-client</title>
+  <style type="text/css">body { background-color: #c8c8c8 }
+h1 { color: #e00000 }
+table { width: 100%/ border: none }
+img { border: 0px }
+.sigbox { background-color: #ffc080; border: solid thin #f96500 }
+.sig { font: larger monospace }
+.padtbl { background-color: #ffc080; padding: 10px; margin: 10px }
+/* arrow */
+.a { color: #606060 }
+/* type, parameter */
+.t, .p { color: #c05000 }
+.pbox { width: 20% }
+.descbox { }
+.right { align: right }
+.header {}
+.footer { clear: both}
+.menu { width: 10%; float: left }
+.main { width: 90%; float: left }
+</style>
+ </head>
+ <body>
+  <div class="header">
+   <i>YaST2 Developers Documentation:</i>
+   <a href="index.html">
+    <b>
+Configuration of iscsi-client</b>
+   </a>
+   <img class="right" alt="" src="/usr/share/doc/packages/yast2-devtools/images/yast2-mini.png" />
+   <hr />
+  </div>
+  <div class="menu">
+   <img alt="YaST" src="/usr/share/doc/packages/yast2-devtools/images/yast2-half.png" />
+   <br />
+   <br />
+   <a href="index.html">functions</a>
+   <br />
+   <a href="files.html">files</a>
+   <br />
+   <a href="intro.html">intro</a>
+  </div>
+  <div class="main">
+   <div class="sigbox">
+    <table class="padtbl">
+     <tr>
+      <td>
+       <h1>
+Configuration of iscsi-client</h1>
+      </td>
+      <td class="filecell">modules/IscsiClient.ycp</td>
+     </tr>
+     <tr>
+      <td>IscsiClient settings, input and output functions</td>
+     </tr>
+     <tr>
+      <td>
+       <ul>
+        <li>Michal Zugec &lt;<a href="mailto:mzugec@suse.cz">mzugec@suse.cz</a>&gt;</li>
+       </ul>
+      </td>
+     </tr>
+     <tr>
+      <td>
+       <p>This module has an unstable interface.</p>
+      </td>
+     </tr>
+    </table>
+    <table class="padtbl">
+     <tr>
+      <td>
+
+ Representation of the configuration of iscsi-client.
+ Input and output routines.
+
+       <h1>Imports</h1>
+       <ul>
+        <li>Message</li>
+        <li>Progress</li>
+        <li>Report</li>
+        <li>Summary</li>
+       </ul>
+       <h1>Global Variables</h1>
+       <ul>
+        <li>
+         <a href="#modified">modified</a>
+        </li>
+        <li>
+         <a href="#proposal_valid">proposal_valid</a>
+        </li>
+        <li>
+         <a href="#write_only">write_only</a>
+        </li>
+       </ul>
+       <h1>Global Functions</h1>
+       <ul>
+        <li>
+         <a href="#Abort">Abort ()</a>
+        </li>
+        <li>
+         <a href="#AutoPackages">AutoPackages ()</a>
+        </li>
+        <li>
+         <a href="#Export">Export ()</a>
+        </li>
+        <li>
+         <a href="#Import">Import (map settings)</a>
+        </li>
+        <li>
+         <a href="#Modified">Modified ()</a>
+        </li>
+        <li>
+         <a href="#Modified">Modified ()</a>
+        </li>
+        <li>
+         <a href="#Overview">Overview ()</a>
+        </li>
+        <li>
+         <a href="#Read">Read ()</a>
+        </li>
+        <li>
+         <a href="#Summary">Summary ()</a>
+        </li>
+        <li>
+         <a href="#Write">Write ()</a>
+        </li>
+       </ul>
+      </td>
+     </tr>
+    </table>
+   </div>
+   <p />
+   <div class="sigbox">
+    <span class="sig" id="Modified">global
+     <b>Modified ()
+      <span class="a"> -&gt; </span>
+      <span class="t">boolean</span>
+     </b>
+    </span>
+   </div>
+   <p>
+ Prototypes</p>
+   <div class="sigbox">
+    <span class="sig" id="modified">global
+     <b>modified
+      <span class="a"> -&gt; </span>
+      <span class="t">boolean</span>
+     </b>
+    </span>
+   </div>
+   <p>
+ Data was modified?</p>
+   <div class="sigbox">
+    <span class="sig" id="proposal_valid">global
+     <b>proposal_valid
+      <span class="a"> -&gt; </span>
+      <span class="t">boolean</span>
+     </b>
+    </span>
+   </div>
+   <p></p>
+   <div class="sigbox">
+    <span class="sig" id="write_only">global
+     <b>write_only
+      <span class="a"> -&gt; </span>
+      <span class="t">boolean</span>
+     </b>
+    </span>
+   </div>
+   <p>
+ Write only, used during autoinstallation.
+ Don't run services and SuSEconfig, it's all done at one place.</p>
+   <div class="sigbox">Info:</div>
+   <p>
+ Abort function
+ return boolean return true if abort</p>
+   <div class="sigbox">
+    <span class="sig" id="Abort">global
+     <b>Abort ()
+      <span class="a"> -&gt; </span>
+      <span class="t">boolean</span>
+     </b>
+    </span>
+   </div>
+   <p>
+ Abort function</p>
+   <dl>
+    <dt>
+     <b>Return value:</b>
+    </dt>
+    <dd>
+     <table>
+      <tr>
+       <td class="pbox">
+        <span class="t" />
+       </td>
+       <td class="descbox">return true if abort</td>
+      </tr>
+     </table>
+    </dd>
+   </dl>
+   <div class="sigbox">
+    <span class="sig" id="Modified">global
+     <b>Modified ()
+      <span class="a"> -&gt; </span>
+      <span class="t">boolean</span>
+     </b>
+    </span>
+   </div>
+   <p>
+ Data was modified?</p>
+   <dl>
+    <dt>
+     <b>Return value:</b>
+    </dt>
+    <dd>
+     <table>
+      <tr>
+       <td class="pbox">
+        <span class="t" />
+       </td>
+       <td class="descbox">true if modified</td>
+      </tr>
+     </table>
+    </dd>
+   </dl>
+   <div class="sigbox">
+    <span class="sig" id="Read">global
+     <b>Read ()
+      <span class="a"> -&gt; </span>
+      <span class="t">boolean</span>
+     </b>
+    </span>
+   </div>
+   <p>
+ Read all iscsi-client settings</p>
+   <dl>
+    <dt>
+     <b>Return value:</b>
+    </dt>
+    <dd>
+     <table>
+      <tr>
+       <td class="pbox">
+        <span class="t" />
+       </td>
+       <td class="descbox">true on success</td>
+      </tr>
+     </table>
+    </dd>
+   </dl>
+   <div class="sigbox">
+    <span class="sig" id="Write">global
+     <b>Write ()
+      <span class="a"> -&gt; </span>
+      <span class="t">boolean</span>
+     </b>
+    </span>
+   </div>
+   <p>
+ Write all iscsi-client settings</p>
+   <dl>
+    <dt>
+     <b>Return value:</b>
+    </dt>
+    <dd>
+     <table>
+      <tr>
+       <td class="pbox">
+        <span class="t" />
+       </td>
+       <td class="descbox">true on success</td>
+      </tr>
+     </table>
+    </dd>
+   </dl>
+   <div class="sigbox">
+    <span class="sig" id="Import">global
+     <b>Import (map settings)
+      <span class="a"> -&gt; </span>
+      <span class="t">boolean</span>
+     </b>
+    </span>
+   </div>
+   <p>
+ Get all iscsi-client settings from the first parameter
+ (For use by autoinstallation.)</p>
+   <dl>
+    <dt>
+     <b>Parameters:</b>
+    </dt>
+    <dd>
+     <table>
+      <tr>
+       <td class="pbox">
+        <span class="p">settings</span>
+       </td>
+       <td class="descbox">The YCP structure to be imported.</td>
+      </tr>
+     </table>
+    </dd>
+   </dl>
+   <dl>
+    <dt>
+     <b>Return value:</b>
+    </dt>
+    <dd>
+     <table>
+      <tr>
+       <td class="pbox">
+        <span class="t" />
+       </td>
+       <td class="descbox">True on success</td>
+      </tr>
+     </table>
+    </dd>
+   </dl>
+   <div class="sigbox">
+    <span class="sig" id="Export">global
+     <b>Export ()
+      <span class="a"> -&gt; </span>
+      <span class="t">map</span>
+     </b>
+    </span>
+   </div>
+   <p>
+ Dump the iscsi-client settings to a single map
+ (For use by autoinstallation.)</p>
+   <dl>
+    <dt>
+     <b>Return value:</b>
+    </dt>
+    <dd>
+     <table>
+      <tr>
+       <td class="pbox">
+        <span class="t" />
+       </td>
+       <td class="descbox">Dumped settings (later acceptable by Import ())</td>
+      </tr>
+     </table>
+    </dd>
+   </dl>
+   <div class="sigbox">
+    <span class="sig" id="Summary">global
+     <b>Summary ()
+      <span class="a"> -&gt; </span>
+      <span class="t">list</span>
+     </b>
+    </span>
+   </div>
+   <p>
+ Create a textual summary and a list of unconfigured cards</p>
+   <dl>
+    <dt>
+     <b>Return value:</b>
+    </dt>
+    <dd>
+     <table>
+      <tr>
+       <td class="pbox">
+        <span class="t" />
+       </td>
+       <td class="descbox">summary of the current configuration</td>
+      </tr>
+     </table>
+    </dd>
+   </dl>
+   <div class="sigbox">
+    <span class="sig" id="Overview">global
+     <b>Overview ()
+      <span class="a"> -&gt; </span>
+      <span class="t">list</span>
+     </b>
+    </span>
+   </div>
+   <p>
+ Create an overview table with all configured cards</p>
+   <dl>
+    <dt>
+     <b>Return value:</b>
+    </dt>
+    <dd>
+     <table>
+      <tr>
+       <td class="pbox">
+        <span class="t" />
+       </td>
+       <td class="descbox">table items</td>
+      </tr>
+     </table>
+    </dd>
+   </dl>
+   <div class="sigbox">
+    <span class="sig" id="AutoPackages">global
+     <b>AutoPackages ()
+      <span class="a"> -&gt; </span>
+      <span class="t">map</span>
+     </b>
+    </span>
+   </div>
+   <p>
+ Return packages needed to be installed and removed during
+ Autoinstallation to insure module has all needed software
+ installed.</p>
+   <dl>
+    <dt>
+     <b>Return value:</b>
+    </dt>
+    <dd>
+     <table>
+      <tr>
+       <td class="pbox">
+        <span class="t" />
+       </td>
+       <td class="descbox">with 2 lists.</td>
+      </tr>
+     </table>
+    </dd>
+   </dl>
+  </div>
+  <div class="footer">
+   <hr />
+   <i>YaST2 Developers Documentation</i>
+   <img class="right" alt="" src="/usr/share/doc/packages/yast2-devtools/images/yast2-mini.png" />
+  </div>
+ </body>
+</html>

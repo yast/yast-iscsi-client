@@ -1,0 +1,6 @@
+IscsiClient.ybc: \
+	/usr/share/YaST2/modules/Progress.ybc \
+	/usr/share/YaST2/modules/Report.ybc \
+	/usr/share/YaST2/modules/Summary.ybc \
+	/usr/share/YaST2/modules/Message.ybc
+

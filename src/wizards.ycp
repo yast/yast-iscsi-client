@@ -27,6 +27,8 @@ any MainSequence() {
     /* FIXME: adapt to your needs */
     map aliases = $[
 	"global"	:   ``( GlobalDialog() ),
+	"discovery"	:   ``( DiscoveryDialog() ),
+	"add_session"	:   ``( AddSessionDialog() ),
     ];
 
     /* FIXME: adapt to your needs */
@@ -35,7 +37,17 @@ any MainSequence() {
 	"global" : $[
 	    `abort	: `abort,
 	    `next	: `next,
+	    `discovery  : "discovery"
 	],
+	"discovery" : $[
+	    `abort	: `abort,
+	    `back	: `back,
+	    `next	: "add_session"
+	],
+	"add_session" : $[
+	    `abort	: `abort,
+	    `next	: "global"
+	]
     ];
 
     any ret = Sequencer::Run(aliases, sequence);

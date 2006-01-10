@@ -19,6 +19,9 @@ import "Progress";
 import "Report";
 import "Summary";
 import "Message";
+import "Service";
+
+global list <string> sessions = [];
 
 /**
  * Prototypes
@@ -82,6 +85,20 @@ global boolean Modified() {
 //    */
 //   boolean additional_parameter = true;
 
+global boolean readSessions(){
+    map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -m session");
+    y2internal("retcode %1", retcode);
+//    list <string> sessions = [];
+//    if (retcode["exit"]:0 == 1) //reminder - must be 0, but returns 1 ;-(
+      sessions = filter(string row, splitstring(retcode["stdout"]:"", "\n"), {
+                        return ( size(row)>0 && (search(row, "session")==nil) );
+                        });
+      y2milestone("Return list from iscsiadm : %1", sessions);
+//else return false ...
+ return true;
+}
+
+
 /**
  * Read all iscsi-client settings
  * @return true on success
@@ -137,7 +154,7 @@ global boolean Read() {
     if(Abort()) return false;
     Progress::NextStage();
     /* Error message */
-    if(false) Report::Error(Message::CannotReadCurrentSettings());
+    if(readSessions()==false) Report::Error(Message::CannotReadCurrentSettings());
     sleep(sl);
 
     // detect devices
@@ -263,6 +280,19 @@ global map AutoPackages() {
     // TODO FIXME: your code here...
     return $[ "install":[], "remove":[] ];
 }
+
+global boolean GetStartService() {
+
+ return Service::Enabled("iscsi");
+}
+
+global void SetStartService(boolean status) {
+ y2internal("Set service status %1", status);
+ if (status == true) Service::Enable("iscsi");
+        else Service::Disable("iscsi");
+}
+
+
 
 /* EOF */
 }

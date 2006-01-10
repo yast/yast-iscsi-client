@@ -14,64 +14,336 @@ textdomain "iscsi-client";
 import "Label";
 import "Wizard";
 import "IscsiClient";
+import "CWMServiceStart";
+import "CWMFirewallInterfaces";
+import "CWMTab";
+import "CWM";
+import "TablePopup";
+
 
 include "iscsi-client/helps.ycp";
 
-any GlobalDialog() {
+void initTable (string key);
+string current_tab = "general";
+map <string, any> table_rows = $[];
+list valuesTable (map descr);
+string Id2Key( map desc, any option_id );
+string rowSummary(any option_id, string option_type);
+symbol handleTable(string key, map event );
+boolean validateDiscovery(string key, map event);
+boolean validateSession(string key, map event);
+void initSession(string key);
+list<string> keys = [];
+map<string, any> retcode = $[];
 
-    /* IscsiClient summary dialog caption */
-    string caption = _("IscsiClient Configuration");
+map<string, map <string, any> > widgets = $[
+            "auto_start_up" : CWMServiceStart::CreateAutoStartWidget ($[
+                "get_service_auto_start" : IscsiClient::GetStartService,
+                "set_service_auto_start" : IscsiClient::SetStartService,
+                // radio button (starting SLP service - option 1)
+                "start_auto_button" : _("When &Booting"),
+                // radio button (starting SLP service - option 2)
+                "start_manual_button" : _("&Manually"),
+                "help" : sformat (CWMServiceStart::AutoStartHelpTemplate (),
+                    // part of help text, used to describe radiobuttons (matching starting SLP service but without "&")
+                    _("When Booting"),
+                    // part of help text, used to describe radiobuttons (matching starting SLP service but without "&")
+                    _("Manually")
+                ),
+            ]),
 
-    /* FIXME */
-    list summary = IscsiClient::Summary();
-    list unconfigured = summary[1]:[];
-    string configured = summary[0]:"";
+    "firewall" : CWMFirewallInterfaces::CreateOpenFirewallWidget ($[
+        "services" : [ "slp-daemon" ],
+        "display_details" : true,
+      ]),
+       "client_table" :
+           TablePopup::CreateTableDescr (
+            $["add_delete_buttons" : true, "up_down_buttons" : false, "unique_keys" : true ],
+             $[
+              "init" : initTable,
+//              "store" : storeExpert,
+//              "options" : getServerOptions(),
+              "ids" : valuesTable,
+              "id2key" : Id2Key,
+              "fallback" : $[
+//                "init" : rowInit,
+//                "store" : rowStore,
+                "summary" : rowSummary,
+                        ],
+//              "option_delete" : rowDelete,
+	      "handle" : handleTable,
+//              "add_items" : maplist(string k1, any v1, (map<string,any>) getServerOptions(), ``(k1)),
+              "help" : HELPS["server_table"]:""
+             ]
+            ),
+	"discovery" : $[
+		"widget" : `custom,
+		"custom_widget"  : `VBox(
+				    `HBox(
+				     `TextEntry(`id(`hostname), _("Hostname : ")),
+				     `IntField(`id(`port), _("Port : "), 0,65535,3260)
+					),
+				     `VSpacing(2),
+				    `VBox(
+					`TextEntry(`id(`username), _("Username : ")),
+					`Password(`id(`password), _("Password : "))
+					)),
+		"validate_type"	: `function,
+		"validate_function"	: validateDiscovery
+	],
+	"add_session" : $[
+		"widget" : `custom,
+		"custom_widget"  : `VBox(
+				    `HBox(
+				     `ReplacePoint(`id(`nodes),
+					`SelectionBox(`id(`node), _("Nodes : "), [])
+					)
+					),
+				     `VSpacing(2),
+				    `VBox(
+					`TextEntry(`id(`username), _("Username : ")),
+					`Password(`id(`password), _("Password : "))
+					)),
+		"init"	: initSession,
+                "validate_type" : `function,
+                "validate_function"     : validateSession
+	]
+    ];
 
-    /* Frame label */
-    term contents = Wizard_hw::DetectedContent(_("IscsiClient to Configure"),
-            unconfigured, false, configured);
+define void initTable (string key) ``{
+    IscsiClient::readSessions();
+    keys = [];
+     table_rows=$[];
+     integer row = 0;
+     foreach(string s, IscsiClient::sessions, {
+      table_rows[tostring(row)] = splitstring(s, " ");
+      keys = add(keys, tostring(row));
+      row = row + 1;
+     });
+      y2milestone ("Table_rows : %1", table_rows );
 
-    Wizard::SetContentsButtons(caption, contents, HELPS["summary"]:"",
-            Label::BackButton(), Label::FinishButton());
-
-    any ret = nil;
-    while(true) {
-
-        ret = UI::UserInput();
-
-        /* abort? */
-        if(ret == `abort || ret == `cancel || ret == `back) {
-            if(ReallyAbort()) break;
-            else continue;
-        }
-        /* overview dialog */
-        else if(ret == `edit_button) {
-            ret = `overview;
-            break;
-        }
-        /* configure the selected device */
-        else if(ret == `configure_button) {
-            // TODO FIXME: check for change of the configuration
-            any selected = UI::QueryWidget(`id(`detected_selbox), `CurrentItem);
-            if(selected == `other) {
-                ret = `other;
-            }
-            else {
-                ret = `configure;
-            }
-            break;
-        }
-        else if(ret == `next) {
-            break;
-        }
-        else {
-            y2error("unexpected retcode: %1", ret);
-            continue;
-        }
-    }
-
-    return ret;
+    TablePopup::TableInit (CWM::GetProcessedWidget (), key);
 }
 
+define list valuesTable (map descr) {
+  return keys;
+}
+
+define string Id2Key( map desc, any option_id ) ``{
+ return table_rows[tostring(option_id), 1]:"";
+}
+
+define string rowSummary(any option_id, string option_type)``{
+ return table_rows[tostring(option_id), 2]:"";
+}
+
+define symbol handleTable(string key, map event ){
+ if (event["ID"]:nil == `_tp_add)
+  {
+    return `discovery;
+  }
+   else if (event["ID"]:nil == `_tp_delete)
+    {
+     string del = tostring( UI::QueryWidget(`_tp_table, `CurrentItem) );
+     keys = filter(string s, keys, { return (s!=del); });
+     TablePopup::TableInit (CWM::GetProcessedWidget (), key);
+    }
+ return nil;
+}
+
+define boolean validateDiscovery(string key, map event){
+ boolean ret = false;
+ string hostname = tostring(UI::QueryWidget(`id(`hostname), `Value));
+ string port = tostring(UI::QueryWidget(`id(`port), `Value));
+ string username = tostring(UI::QueryWidget(`id(`username), `Value));
+ string password = tostring(UI::QueryWidget(`id(`password), `Value));
+ if (size(hostname)==0)
+  {
+   Popup::Error(_("Hostname cannot be empty"));
+   UI::SetFocus(`id(`hostname));
+  } else {
+    y2internal("%1@%2:/%3:%4 ", username, password, hostname, port);
+     retcode = (map<string, any>)SCR::Execute(.target.bash_output,
+							sformat("iscsiadm -m discovery -t st -p %1:%2", hostname, port));
+    y2internal("retcode %1", retcode);
+    if ( retcode["exit"]:1 == 1 ){
+     Popup::Error(_("Problem occured during discovering"));
+    } else ret = true;
+   }
+ return ret;
+}
+
+define void initSession(string key){
+ y2internal("%1", retcode);
+ list <string> sessions = filter(string row, splitstring(retcode["stdout"]:"", "\n"), {
+                        return ( size(row)>0 && (search(row, "session")==nil) );
+                        });
+ y2milestone("Return list from iscsiadm : %1", sessions);
+ UI::ReplaceWidget(`id(`nodes),
+	`SelectionBox(`id(`node), _("Nodes : "), sessions)
+	);
+}
+
+define boolean validateSession(string key, map event){
+ boolean ret = false;
+ any sel_item = UI::QueryWidget(`id(`node), `CurrentItem);
+ if (sel_item == nil) {
+  Popup::Error(_("One Value Must Be Selected Or Press Back Button"));
+ } else {
+	 y2internal("%1", (splitstring(tostring(sel_item), " "))[2]:"");
+	 foreach(string row, IscsiClient::sessions, {
+	  if ((splitstring(tostring(sel_item), " "))[2]:"" == (splitstring(tostring(row), " "))[2]:""){
+	  Popup::Error(_("This Node Is Already Added"));
+	  return false;
+	 }
+        });
+	string username = tostring(UI::QueryWidget(`id(`username), `Value));
+	string password = tostring(UI::QueryWidget(`id(`password), `Value));
+
+	string tmp1 = (splitstring(tostring(sel_item), " "))[0]:"";
+	string tmp2 = substring(tmp1, 1, size(tmp1)-2);
+	y2internal("%1", tostring(tmp2));
+	retcode = (map<string, any>)SCR::Execute(.target.bash_output, 
+				sformat("iscsiadm -m node -r %1 --login", tmp2));
+	y2internal("retcode %1", retcode);
+     ret = true;
+   }
+ return ret;
+}
+
+
+map tabs_descr = $[
+        "general":$[
+         "header"       : _("Global iSCSI Client Configuration"),
+         "contents"     :
+                          `VBox(
+                          `VStretch(),
+                          `HBox(
+                           `HStretch(),
+                           `HSpacing (1),
+                            `VBox(
+                                "auto_start_up",
+                                `VSpacing (2),
+                                "firewall",
+                                `VSpacing (2)
+                                ),
+                           `HSpacing (1),
+                           `HStretch()
+                              ),
+                          `VStretch()
+                        ),
+         "widget_names" : [ "auto_start_up", "firewall" ]
+        ],
+
+        "client":$[
+         "header"       : _("iSCSI Client"),
+         "contents"     :
+                          `VBox(
+                          `VStretch(),
+                          `HBox(
+                           `HStretch(),
+                           `HSpacing (1),
+                            `VBox(
+                                "client_table",
+                                `VSpacing (2)
+                                ),
+                           `HSpacing (1),
+                           `HStretch()
+                               ),
+                          `VStretch()
+                        ),
+         "widget_names" : [ "client_table" ]
+        ]
+      ];
+
+
+
+
+any GlobalDialog() {
+    string caption = _("iSCSI Client Overview");
+
+    map widget_descr = $[
+        "tab": CWMTab::CreateWidget($[
+            "tab_order": [ "general", "client" ],
+            "tabs": tabs_descr,
+            "widget_descr": widgets,
+            "initial_tab" : current_tab,
+            "tab_help" : _("<h1>open iSCSI </h1>"),
+        ]),
+    ];
+    term contents = `VBox( "tab"/*, `VStretch ()*/);
+
+    list<map <string, any> > w = CWM::CreateWidgets (["tab"], (map <string, map <string, any> >)widget_descr);
+    string help = CWM::MergeHelps(w);
+    contents = CWM::PrepareDialog(contents, w);
+
+    Wizard::SetContentsButtons(caption, contents, help, Label::NextButton (), Label::FinishButton ());
+    Wizard::HideBackButton();
+
+    symbol ret = CWM::Run(w, $[`abort:ReallyAbort ]);
+
+    return ret;
+
+}
+
+any DiscoveryDialog(){
+     current_tab = "client";
+    string caption = _("iSCSI Client Discovery");
+    list<map <string, any> > w = CWM::CreateWidgets (["discovery"], (map <string, map <string, any> >)widgets);
+        term contents = 
+                          `VBox(
+                          `VStretch(),
+                          `HBox(
+                           `HStretch(),
+                           `HSpacing (1),
+                            `VBox(
+                                w[0, "widget"]:`VSpacing (1),
+				`VSpacing (2)
+                                ),
+                           `HSpacing (1),
+                           `HStretch()
+                               ),
+                          `VStretch()
+                        );
+
+    string help = CWM::MergeHelps(w);
+    contents = CWM::PrepareDialog(contents, w);
+    Wizard::SetContentsButtons(caption, contents, HELPS["discovery"]:"",
+            Label::BackButton(), Label::NextButton());
+
+    any ret = CWM::Run(w, $[`abort:ReallyAbort ]);
+    return ret;
+
+}
+
+any AddSessionDialog(){
+     current_tab = "client";
+    string caption = _("iSCSI Client Discovery");
+    list<map <string, any> > w = CWM::CreateWidgets (["add_session"], (map <string, map <string, any> >)widgets);
+        term contents = 
+                          `VBox(
+                          `VStretch(),
+                          `HBox(
+                           `HStretch(),
+                           `HSpacing (1),
+                            `VBox(
+                                w[0, "widget"]:`VSpacing (1),
+				`VSpacing (2)
+                                ),
+                           `HSpacing (1),
+                           `HStretch()
+                               ),
+                          `VStretch()
+                        );
+
+    string help = CWM::MergeHelps(w);
+    contents = CWM::PrepareDialog(contents, w);
+    Wizard::SetContentsButtons(caption, contents, HELPS["add_session"]:"",
+            Label::BackButton(), Label::NextButton());
+
+    any ret = CWM::Run(w, $[`abort:ReallyAbort ]);
+    return ret;
+
+}
 /* EOF */
 }

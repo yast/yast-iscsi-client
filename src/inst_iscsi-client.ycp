@@ -27,16 +27,6 @@ import "Summary";
 
 include "iscsi-client/wizards.ycp";
 
-/* is this proposal or not? */
-boolean propose = false;
-list args = WFM::Args();
-if(size(args) > 0) {
-    if(is(WFM::Args(0), path) && WFM::Args(0) == .propose) {
-        y2milestone("Using PROPOSE mode");
-        propose = true;
-    }
-}
-
 /* main ui function */
 any ret = nil;
 

@@ -1,0 +1,53 @@
+/**
+ * File:	clients/iscsi-client.ycp
+ * Package:	Configuration of iscsi-client
+ * Summary:	Main file
+ * Authors:	Michal Zugec <mzugec@suse.cz>
+ *
+ * $Id: iscsi-client.ycp 18198 2004-07-23 13:42:29Z jsuchome $
+ *
+ * Main file for iscsi-client configuration. Uses all other files.
+ */
+
+{
+
+/***
+ * <h3>Configuration of iscsi-client</h3>
+ */
+
+textdomain "iscsi-client";
+
+/* The main () */
+y2milestone ("----------------------------------------");
+y2milestone ("IscsiClient module started");
+
+import "Progress";
+import "Report";
+import "Summary";
+
+include "iscsi-client/wizards.ycp";
+
+/* is this proposal or not? */
+boolean propose = false;
+list args = WFM::Args();
+if(size(args) > 0) {
+    if(is(WFM::Args(0), path) && WFM::Args(0) == .propose) {
+        y2milestone("Using PROPOSE mode");
+        propose = true;
+    }
+}
+
+/* main ui function */
+any ret = nil;
+
+ret = MainSequence();
+y2debug("ret=%1", ret);
+
+/* Finish */
+y2milestone("IscsiClient module finished");
+y2milestone("----------------------------------------");
+
+return ret;
+
+/* EOF */
+}

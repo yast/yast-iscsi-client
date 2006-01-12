@@ -5,7 +5,9 @@ yncludedir = @yncludedir@/iscsi-client
 client_DATA =			\
 	iscsi-client.ycp		\
 	iscsi-client_auto.ycp	\
-	iscsi-client_proposal.ycp
+	iscsi-client_proposal.ycp	\
+	iscsi-client_finish.ycp		\
+	inst_iscsi-client.ycp
 
 ynclude_DATA =			\
 	helps.ycp		\

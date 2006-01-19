@@ -93,6 +93,11 @@ _("<p><b><big>Selecting Something</big></b><br>
 It is not possible. You must code it first. :-)
 </p>"),
 
+ "server_table" : _("List of current sessions. To add new session, press Add. To remove any, select item and press Delete"),
+
+ "discovery"	: _("<h1>open iSCSI</h1>") + _("Fill IP address of discovered server. 
+Port number change only if need. For autentification use username/password"),
+ "add_session" : _("help for add_session"),
 ];
 
 /* EOF */

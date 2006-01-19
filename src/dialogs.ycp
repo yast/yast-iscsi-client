@@ -34,7 +34,8 @@ boolean validateDiscovery(string key, map event);
 boolean validateSession(string key, map event);
 void initSession(string key);
 list<string> keys = [];
-map<string, any> retcode = $[];
+//map<string, any> retcode = $[];
+list <string> stdout = [];
 
 map<string, map <string, any> > widgets = $[
             "auto_start_up" : CWMServiceStart::CreateAutoStartWidget ($[
@@ -80,7 +81,7 @@ map<string, map <string, any> > widgets = $[
 		"widget" : `custom,
 		"custom_widget"  : `VBox(
 				    `HBox(
-				     `TextEntry(`id(`hostname), _("Hostname : ")),
+				     `TextEntry(`id(`hostname), _("IP Address : ")),
 				     `IntField(`id(`port), _("Port : "), 0,65535,3260)
 					),
 				     `VSpacing(2),
@@ -146,6 +147,7 @@ define symbol handleTable(string key, map event ){
     {
      string del = tostring( UI::QueryWidget(`_tp_table, `CurrentItem) );
      string node_id = table_rows[tostring(del), 2]:"";
+map<string, any> retcode = $[];
      retcode = (map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -m node");
      foreach (string s, splitstring(retcode["stdout"]:"", "\n"), {
       if ((splitstring(s, " "))[2]:"" == node_id)
@@ -173,25 +175,69 @@ define boolean validateDiscovery(string key, map event){
  string password = tostring(UI::QueryWidget(`id(`password), `Value));
  if (size(hostname)==0)
   {
-   Popup::Error(_("Hostname cannot be empty"));
+   Popup::Error(_("IP Address cannot be empty"));
    UI::SetFocus(`id(`hostname));
   } else {
+
+
     y2internal("%1@%2:/%3:%4 ", username, password, hostname, port);
-     retcode = (map<string, any>)SCR::Execute(.target.bash_output,
+
+    integer return_code = nil;
+    boolean started = (boolean)SCR::Execute(.background.run_output_err,
 							sformat("iscsiadm -m discovery -t st -p %1:%2", hostname, port));
-    y2internal("retcode %1", retcode);
-    if ( retcode["exit"]:1 == 1 ){
-     Popup::Error(_("Problem occured during discovering"));
-    } else ret = true;
+
+    if (!started) {
+        y2error("Cannot run command");
+        return false;
+    }
+    y2debug("Running: command");
+
+    list<string> script_out = [];
+    integer time_spent = 0;
+    boolean cont_loop = true;
+    integer script_time_out = 10000;
+    integer sleep_step = 20;
+
+    while (cont_loop && ((boolean) SCR::Read(.background.output_open))) {
+        if (time_spent >= script_time_out) {
+            Popup::Error("Command timed-out");
+            cont_loop = false;
+        }
+
+        // sleep a little while
+        time_spent = time_spent + sleep_step;
+        sleep(sleep_step);
+    }
+    y2milestone("Time spent: %1 msec", time_spent);
+
+//y2internal("stdout list %1", SCR::Read(.background.newout));
+
+    stdout = (list<string>)(SCR::Read(.background.newout));
+y2internal("stdout %1", stdout);
+//    stdout = deletechars(stdout, "[\"]");
+//							);
+    if (cont_loop) {
+        return_code = (integer) SCR::Read(.background.status);
+	ret = true;
+    } else {
+        // killing the process if it still runs
+        if ((boolean) SCR::Read(.background.output_open))
+            SCR::Execute(.background.kill, "");
+    }
+
    }
+y2internal("return %1", ret);
  return ret;
 }
 
 define void initSession(string key){
- y2internal("%1", retcode);
- list <string> sessions = filter(string row, splitstring(retcode["stdout"]:"", "\n"), {
+// y2internal("%1", retcode);
+ list <string> sessions = stdout ;
+/*
+filter(string row, splitstring(stdout, ","), {
                         return ( size(row)>0 && (search(row, "session")==nil) );
                         });
+*/
  y2milestone("Return list from iscsiadm : %1", sessions);
  UI::ReplaceWidget(`id(`nodes),
 	`SelectionBox(`id(`node), _("Nodes : "), sessions)
@@ -216,10 +262,9 @@ define boolean validateSession(string key, map event){
 
 	string tmp1 = (splitstring(tostring(sel_item), " "))[0]:"";
 	string tmp2 = substring(tmp1, 1, size(tmp1)-2);
-	y2internal("%1", tostring(tmp2));
-	retcode = (map<string, any>)SCR::Execute(.target.bash_output, 
-				sformat("iscsiadm -m node -r %1 --login", tmp2));
-	y2internal("retcode %1", retcode);
+	y2internal("node number %1", tostring(tmp2));
+
+	SCR::Execute(.target.bash_output, sformat("iscsiadm -m node -r %1 --login", tmp2));
      ret = true;
    }
  return ret;
@@ -228,7 +273,7 @@ define boolean validateSession(string key, map event){
 
 map tabs_descr = $[
         "general":$[
-         "header"       : _("Global iSCSI Client Configuration"),
+         "header"       : _("Global"),
          "contents"     :
                           `VBox(
                           `VStretch(),
@@ -250,7 +295,7 @@ map tabs_descr = $[
         ],
 
         "client":$[
-         "header"       : _("iSCSI Client"),
+         "header"       : _("Sessions"),
          "contents"     :
                           `VBox(
                           `VStretch(),
@@ -282,7 +327,7 @@ any GlobalDialog() {
             "tabs": tabs_descr,
             "widget_descr": widgets,
             "initial_tab" : current_tab,
-            "tab_help" : _("<h1>open iSCSI </h1>"),
+            "tab_help" : _("<h1>open iSCSI</h1>"),
         ]),
     ];
     term contents = `VBox( "tab"/*, `VStretch ()*/);

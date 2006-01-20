@@ -20,6 +20,8 @@ import "Report";
 import "Summary";
 import "Message";
 import "Service";
+import "Package";
+import "Popup";
 
 global list <string> sessions = [];
 
@@ -98,6 +100,17 @@ global boolean readSessions(){
  return true;
 }
 
+boolean installed_packages(){
+ boolean ret = false;
+  if( !Package::InstallMsg( "open-iscsi",
+            _("<p>To configure the iSCSI client, the <b>%1</b> packages must be installed.</p>") +
+            _("<p>Do you want to install it now?</p>")) )
+        {
+        Popup::Error( Message::CannotContinueWithoutPackagesInstalled() );
+    } else ret = true;
+
+ return ret;
+}
 
 /**
  * Read all iscsi-client settings
@@ -160,8 +173,7 @@ global boolean Read() {
     // detect devices
     if(Abort()) return false;
     Progress::NextStage();
-    /* Error message */
-    if(false) Report::Warning(_("Cannot detect devices."));
+    if(!installed_packages()) return false;
     sleep(sl);
 
     if(Abort()) return false;

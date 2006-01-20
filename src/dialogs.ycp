@@ -146,23 +146,27 @@ define symbol handleTable(string key, map event ){
    else if (event["ID"]:nil == `_tp_delete)
     {
      string del = tostring( UI::QueryWidget(`_tp_table, `CurrentItem) );
-     string node_id = table_rows[tostring(del), 2]:"";
-map<string, any> retcode = $[];
-     retcode = (map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -m node");
-     foreach (string s, splitstring(retcode["stdout"]:"", "\n"), {
-      if ((splitstring(s, " "))[2]:"" == node_id)
-	{
-	 string del_node =  (splitstring(s, " "))[0]:"";
-	 del_node = substring(del_node, 1, size(del_node)-2);
-	 y2milestone("Delete node with record %1", del_node);
-    retcode = (map<string, any>)SCR::Execute(.target.bash_output, sformat("iscsiadm -m node -r %1 --logout", del_node));
-    y2internal("retcode %1", retcode);
+     if (del == nil) Popup::Error(_("No Item Selected"));
+	else
+	 if (Popup::ContinueCancel(_("Are You Sure to Delete Selected Item?")))
+	  {
+	     string node_id = table_rows[tostring(del), 2]:"";
+	     map<string, any> retcode = $[];
+	     retcode = (map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -m node");
+	     foreach (string s, splitstring(retcode["stdout"]:"", "\n"), {
+	      if ((splitstring(s, " "))[2]:"" == node_id)
+		{
+		 string del_node =  (splitstring(s, " "))[0]:"";
+		 del_node = substring(del_node, 1, size(del_node)-2);
+		 y2milestone("Delete node with record %1", del_node);
+	    retcode = (map<string, any>)SCR::Execute(.target.bash_output, sformat("iscsiadm -m node -r %1 --logout", del_node));
+	    y2internal("retcode %1", retcode);
 
-     keys = filter(string s, keys, { return (s!=del); });
-     TablePopup::TableInit (CWM::GetProcessedWidget (), key);
-
+	     keys = filter(string s, keys, { return (s!=del); });
+	     TablePopup::TableInit (CWM::GetProcessedWidget (), key);
 	}
      });
+    }
     }
  return nil;
 }

@@ -12,7 +12,7 @@
 
 {
 
-textdomain "installation";
+textdomain "iscsi-client";
 
 import "Directory";
 include "installation/misc.ycp";
@@ -37,7 +37,7 @@ if (func == "Info")
     return (any)$[
 	"steps" : 1,
 	// progress step title
-	"title" : _("Mounting iscsi disc..."),
+	"title" : _("Mounting iscsi disk..."),
 	"when" : [ `installation, `update, `autoinst ],
     ];
 }

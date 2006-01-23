@@ -112,7 +112,7 @@ map<string, map <string, any> > widgets = $[
     ];
 
 define void initTable (string key) ``{
-    IscsiClient::readSessions();
+    if (IscsiClient::readSessions()== false) Popup::Error("Error While Connecting iscsid");
     keys = [];
      table_rows=$[];
      integer row = 0;

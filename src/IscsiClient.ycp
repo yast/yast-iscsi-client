@@ -90,6 +90,7 @@ global boolean Modified() {
 global boolean readSessions(){
     map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -m session");
     y2internal("retcode %1", retcode);
+	if (size(retcode["stderr"]:"")>0) return false;
 //    list <string> sessions = [];
 //    if (retcode["exit"]:0 == 1) //reminder - must be 0, but returns 1 ;-(
       sessions = filter(string row, splitstring(retcode["stdout"]:"", "\n"), {

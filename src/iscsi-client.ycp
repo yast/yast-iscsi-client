@@ -31,7 +31,7 @@ include "iscsi-client/wizards.ycp";
 map cmdline_description = $[
     "id" 	: "iscsi-client",
     /* Command line help text for the Xiscsi-client module */
-    "help"	: _("Configuration of iscsi-client"),
+    "help"	: _("Configuration of an iSCSI client"),
     "guihandler"        : IscsiClientSequence,
     "initialize"        : IscsiClient::Read,
     "finish"            : IscsiClient::Write,

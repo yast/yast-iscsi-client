@@ -81,13 +81,13 @@ map<string, map <string, any> > widgets = $[
 		"widget" : `custom,
 		"custom_widget"  : `VBox(
 				    `HBox(
-				     `TextEntry(`id(`hostname), _("IP Address : ")),
-				     `IntField(`id(`port), _("Port : "), 0,65535,3260)
+				     `TextEntry(`id(`hostname), _("IP Address")),
+				     `IntField(`id(`port), _("Port"), 0,65535,3260)
 					),
 				     `VSpacing(2),
 				    `VBox(
 					`TextEntry(`id(`username), _("Username : ")),
-					`Password(`id(`password), _("Password : "))
+					`Password(`id(`password), _("Password"))
 					)),
 		"validate_type"	: `function,
 		"validate_function"	: validateDiscovery
@@ -97,13 +97,13 @@ map<string, map <string, any> > widgets = $[
 		"custom_widget"  : `VBox(
 				    `HBox(
 				     `ReplacePoint(`id(`nodes),
-					`SelectionBox(`id(`node), _("Nodes : "), [])
+					`SelectionBox(`id(`node), _("Nodes"), [])
 					)
 					),
 				     `VSpacing(2),
 				    `VBox(
-					`TextEntry(`id(`username), _("Username : ")),
-					`Password(`id(`password), _("Password : "))
+					`TextEntry(`id(`username), _("Username")),
+					`Password(`id(`password), _("Password"))
 					)),
 		"init"	: initSession,
                 "validate_type" : `function,
@@ -146,9 +146,9 @@ define symbol handleTable(string key, map event ){
    else if (event["ID"]:nil == `_tp_delete)
     {
      string del = tostring( UI::QueryWidget(`_tp_table, `CurrentItem) );
-     if (del == nil) Popup::Error(_("No Item Selected"));
+     if (del == nil) Popup::Error(_("No item selected"));
 	else
-	 if (Popup::ContinueCancel(_("Are You Sure to Delete Selected Item?")))
+	 if (Popup::ContinueCancel(_("Really delete the selected item?")))
 	  {
 	     string node_id = table_rows[tostring(del), 2]:"";
 	     map<string, any> retcode = $[];
@@ -179,7 +179,7 @@ define boolean validateDiscovery(string key, map event){
  string password = tostring(UI::QueryWidget(`id(`password), `Value));
  if (size(hostname)==0)
   {
-   Popup::Error(_("IP Address cannot be empty"));
+   Popup::Error(_("The IP address cannot be empty."));
    UI::SetFocus(`id(`hostname));
   } else {
 
@@ -252,7 +252,7 @@ define boolean validateSession(string key, map event){
  boolean ret = false;
  any sel_item = UI::QueryWidget(`id(`node), `CurrentItem);
  if (sel_item == nil) {
-  Popup::Error(_("One Value Must Be Selected Or Press Back Button"));
+  Popup::Error(_("Select one value or press Back."));
  } else {
 	 y2internal("%1", (splitstring(tostring(sel_item), " "))[2]:"");
 	 foreach(string row, IscsiClient::sessions, {
@@ -331,7 +331,7 @@ any GlobalDialog() {
             "tabs": tabs_descr,
             "widget_descr": widgets,
             "initial_tab" : (Stage::initial()) ? "client" : current_tab,
-            "tab_help" : _("<h1>open iSCSI</h1>"),
+            "tab_help" : _("<h1>iSCSI Client</h1>"),
         ]),
     ];
 

@@ -1,0 +1,63 @@
+/**
+ * File:	include/iscsi-client/complex.ycp
+ * Package:	Configuration of iscsi-client
+ * Summary:	Dialogs definitions
+ * Authors:	Michal Zugec <mzugec@suse.cz>
+ *
+ * $Id: complex.ycp 13891 2004-02-05 15:16:57Z msvec $
+ */
+
+{
+
+textdomain "iscsi-client";
+
+import "Label";
+import "Popup";
+import "Wizard";
+import "Wizard_hw";
+import "IscsiClient";
+
+include "iscsi-client/helps.ycp";
+
+/**
+ * Return a modification status
+ * @return true if data was modified
+ */
+boolean Modified() {
+    return IscsiClient::Modified();
+}
+
+boolean ReallyAbort() {
+    return !IscsiClient::Modified() || Popup::ReallyAbort(true);
+}
+
+boolean PollAbort() {
+    return UI::PollInput() == `abort;
+}
+
+/**
+ * Read settings dialog
+ * @return `abort if aborted and `next otherwise
+ */
+symbol ReadDialog() {
+    Wizard::RestoreHelp(HELPS["read"]:"");
+    // IscsiClient::AbortFunction = PollAbort;
+    boolean ret = IscsiClient::Read();
+    return ret ? `next : `abort;
+}
+
+/**
+ * Write settings dialog
+ * @return `abort if aborted and `next otherwise
+ */
+symbol WriteDialog() {
+    Wizard::RestoreHelp(HELPS["write"]:"");
+    // IscsiClient::AbortFunction = PollAbort;
+    boolean ret = IscsiClient::Write();
+    return ret ? `next : `abort;
+}
+
+
+
+/* EOF */
+}

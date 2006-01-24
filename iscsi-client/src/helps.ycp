@@ -1,0 +1,106 @@
+/**
+ * File:	include/iscsi-client/helps.ycp
+ * Package:	Configuration of iscsi-client
+ * Summary:	Help texts of all the dialogs
+ * Authors:	Michal Zugec <mzugec@suse.cz>
+ *
+ * $Id: helps.ycp 23442 2005-05-18 07:46:28Z visnov $
+ */
+
+{
+
+textdomain "iscsi-client";
+
+/**
+ * All helps are here
+ */
+map HELPS = $[
+
+    /* Read dialog help 1/2 */
+    "read" : _("<p><b><big>Initializing iscsi-client Configuration</big></b><br>
+Please wait...<br></p>
+") +
+
+    /* Read dialog help 2/2 */
+    _("<p><b><big>Aborting Initialization:</big></b><br>
+Safely abort the configuration utility by pressing <b>Abort</b> now.</p>
+"),
+
+    /* Write dialog help 1/2 */
+    "write" : _("<p><b><big>Saving iscsi-client Configuration</big></b><br>
+Please wait...<br></p>
+") +
+
+    /* Write dialog help 2/2 */
+_("<p><b><big>Aborting Saving:</big></b><br>
+Abort the save procedure by pressing <b>Abort</b>.
+An additional dialog informs whether it is safe to do so.
+</p>
+"),
+
+    /* Summary dialog help 1/3 */
+    "summary" : _("<p><b><big>IscsiClient Configuration</big></b><br>
+Configure iscsi-client here.<br></p>
+") +
+
+    /* Summary dialog help 2/3 */
+    _("<p><b><big>Adding a iscsi-client:</big></b><br>
+Choose an iscsi-client from the list of detected iscsi-clients.
+If your iscsi-client was not detected, use <b>Other (not detected)</b>.
+Then press <b>Configure</b>.</p>
+") +
+
+    /* Summary dialog help 3/3 */
+    _("<p><b><big>Editing or Deleting:</big></b><br>
+If you press <b>Edit</b>, an additional dialog in which to change
+the configuration opens.</p>
+"),
+
+    /* Ovreview dialog help 1/3 */
+    "overview" : _("<p><b><big>IscsiClient Configuration Overview</big></b><br>
+Obtain an overview of installed iscsi-clients. Additionally
+edit their configurations.<br></p>
+") +
+
+    /* Ovreview dialog help 2/3 */
+_("<p><b><big>Adding a iscsi-client:</big></b><br>
+Press <b>Add</b> to configure a iscsi-client.</p>") +
+
+    /* Ovreview dialog help 3/3 */
+_("<p><b><big>Editing or Deleting:</big></b><br>
+Choose a iscsi-client to change or remove.
+Then press <b>Edit</b> or <b>Delete</b> as desired.</p>
+"),
+
+    /* Configure1 dialog help 1/2 */
+    "c1" : _("<p><b><big>Configuration Part One</big></b><br>
+Press <b>Next</b> to continue.
+<br></p>") +
+
+    /* Configure1 dialog help 2/2 */
+_("<p><b><big>Selecting Something</big></b><br>
+It is not possible. You must code it first. :-)
+</p>"),
+
+    /* Configure2 dialog help 1/2 */
+    "c2" : _("<p><b><big>Configuration Part Two</big></b><br>
+Press <b>Next</b> to continue.
+<br></p>
+") +
+
+    /* Configure2 dialog help 2/2 */
+_("<p><b><big>Selecting Something</big></b><br>
+It is not possible. You must code it first. :-)
+</p>"),
+
+ "server_table" : _("List of current sessions. To add new session, press <b>Add</b>. 
+To remove any, select item and press <b>Delete</b>"),
+
+ "discovery"	: _("<h1>open iSCSI</h1>") + _("Fill <b>IP Address</b> of discovered server. 
+<b>Port</b> number change only if need. For autentification use <b>Username</b>/<b>Password</b>"),
+ "add_session" : _("<h1>open iSCSI</h1>") + _("List of nodes offered by iscsi-target. Select one item and click next. 
+For autentification use <b>Username</b>/<b>Password</b>"),
+];
+
+/* EOF */
+}

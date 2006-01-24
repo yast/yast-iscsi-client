@@ -37,13 +37,13 @@ if (func == "Info")
     return (any)$[
 	"steps" : 1,
 	// progress step title
-	"title" : _("Mounting iscsi disk..."),
+	"title" : _("Saving iSCSI configuration..."),
 	"when" : [ `installation, `update, `autoinst ],
     ];
 }
 else if (func == "Write")
 {
- // TODO - mount initiate disc
+  WFM::Execute (.local.bash,"/bin/cp -a /var/lib/open-iscsi/* " + Installation::destdir + "/var/lib/open-iscsi/");
 }
 else
 {

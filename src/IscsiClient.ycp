@@ -22,6 +22,7 @@ import "Message";
 import "Service";
 import "Package";
 import "Popup";
+import "Stage";
 
 global list <string> sessions = [];
 
@@ -88,6 +89,12 @@ global boolean Modified() {
 //   boolean additional_parameter = true;
 
 global boolean readSessions(){
+//Stage::Set("initial");
+    if ((Stage::initial()) && (!(boolean)SCR::Execute(.background.run_output_err, "iscsid"))) {
+	y2error("Cannot start iscsid!");
+	return false;
+	}
+
     map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -m session");
     y2internal("retcode %1", retcode);
 	if (size(retcode["stderr"]:"")>0) return false;
@@ -168,7 +175,11 @@ global boolean Read() {
     if(Abort()) return false;
     Progress::NextStage();
     /* Error message */
-    if(readSessions()==false) Report::Error(Message::CannotReadCurrentSettings());
+    if(readSessions()==false)
+	{
+	Report::Error(Message::CannotReadCurrentSettings());
+	return false;
+	}
     sleep(sl);
 
     // detect devices

@@ -19,7 +19,7 @@ import "CWMFirewallInterfaces";
 import "CWMTab";
 import "CWM";
 import "TablePopup";
-
+import "Stage";
 
 include "iscsi-client/helps.ycp";
 
@@ -326,14 +326,16 @@ any GlobalDialog() {
     string caption = _("iSCSI Client Overview");
 
     map widget_descr = $[
-        "tab": CWMTab::CreateWidget($[
-            "tab_order": [ "general", "client" ],
+	"tab": CWMTab::CreateWidget($[
+            "tab_order": (Stage::initial()) ? ["client"] : [ "general", "client" ],
             "tabs": tabs_descr,
             "widget_descr": widgets,
-            "initial_tab" : current_tab,
+            "initial_tab" : (Stage::initial()) ? "client" : current_tab,
             "tab_help" : _("<h1>open iSCSI</h1>"),
         ]),
     ];
+
+
     term contents = `VBox( "tab"/*, `VStretch ()*/);
 
     list<map <string, any> > w = CWM::CreateWidgets (["tab"], (map <string, map <string, any> >)widget_descr);

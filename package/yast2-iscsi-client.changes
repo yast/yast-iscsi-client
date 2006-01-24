@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Jan 24 11:49:09 CET 2006 - mzugec@suse.cz
+
+- handle for init stage
+
+-------------------------------------------------------------------
 Tue Jan 24 10:39:54 CET 2006 - jsrain@suse.cz
 
 - added copying configuration to system during installation

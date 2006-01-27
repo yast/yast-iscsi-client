@@ -1,0 +1,65 @@
+{
+// module "iscsi-client-widgets";
+ textdomain "iscsi-client";
+
+
+// connected table
+void initConnectedTable(string key){
+    if (IscsiClient::readSessions()== false) Popup::Error("Error While Connecting iscsid");
+     list <term> items = [];
+     integer row = 0;
+     foreach(string s, IscsiClient::sessions, {
+     list<string> row_in_string = splitstring(s, " ");
+	string record = deletechars(row_in_string[0]:"", "[]");
+	items = add(items, `item(`id(row), row_in_string[1]:"", row_in_string[2]:"", IscsiClient::getStartupStatus(record)));
+//	y2internal("row %1", s);
+      row = row + 1;
+     });
+        UI::ChangeWidget (`id (`discovered), `Items, items);
+        UI::SetFocus (`id (`discovered));
+
+}
+
+string getRecord(){
+ string record = "";
+ any sel_item = UI::QueryWidget(`id(`discovered), `CurrentItem);
+ if (sel_item != nil){
+	 integer current = tointeger(sel_item);
+	 record = (splitstring(IscsiClient::sessions[current]:"", " " ))[0]:"";
+	 record = deletechars(record, "[]");
+	}
+ return record;
+}
+
+symbol handleConnectedTable (string key, map event){
+ if (event["EventReason"]:"" == "Activated"){
+ string record = "";
+ switch((symbol)event["ID"]:nil){
+  case(`add):
+		return `add;
+  case(`del):
+		record = getRecord();
+		if (size( record )>0){
+		  if (Popup::ContinueCancel(_("Really delete the selected item?")))
+		    if ( !(IscsiClient::deleteRecord( record )) ) Popup::Error(_("Error Ocured while Deleting Selected Item"));
+			else initConnectedTable("");
+		} else Popup::Error(_("No Record Found"));
+		break;
+  case(`toggle):
+		record = getRecord();
+		if (size( record )>0){
+		y2internal("toggle record %1", record);
+		string startup = IscsiClient::getStartupStatus(record);
+		if (size(startup)>0){
+		 if (startup == "manual") IscsiClient::setStartupStatus(record, "automatic");
+			else IscsiClient::setStartupStatus(record, "manual");
+		  initConnectedTable("");
+		 }
+		} else Popup::Error(_("No Record Found"));
+		break;
+  }
+ }
+ return nil;
+}
+
+}

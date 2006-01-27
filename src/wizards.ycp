@@ -27,6 +27,7 @@ any MainSequence() {
     /* FIXME: adapt to your needs */
     map aliases = $[
 	"global"	:   ``( GlobalDialog() ),
+	"disc_auth"	:   ``( DiscAuthDialog() ),
 	"discovery"	:   ``( DiscoveryDialog() ),
 	"add_session"	:   ``( AddSessionDialog() ),
     ];
@@ -37,7 +38,12 @@ any MainSequence() {
 	"global" : $[
 	    `abort	: `abort,
 	    `next	: `next,
-	    `discovery  : "discovery"
+	    `add  : "disc_auth"
+	],
+	"disc_auth" : $[
+	    `abort      : `abort,
+            `back       : `back,
+	    `next	: `next
 	],
 	"discovery" : $[
 	    `abort	: `abort,

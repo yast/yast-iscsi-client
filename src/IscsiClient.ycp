@@ -73,6 +73,7 @@ global boolean Modified() {
     return modified;
 }
 
+
 // Settings: Define all variables needed for configuration of iscsi-client
 // TODO FIXME: Define all the variables necessary to hold
 // TODO FIXME: the configuration here (with the appropriate
@@ -119,6 +120,47 @@ boolean installed_packages(){
 
  return ret;
 }
+
+
+global boolean deleteRecord(string record){
+ boolean ret = true;
+ y2milestone("Deleting record %1", record);
+
+    map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, sformat("iscsiadm -m node -r %1 --logout", record));
+    y2internal("retcode %1", retcode);
+        if (size(retcode["stderr"]:"")>0) return false;
+
+ readSessions();
+ return ret;
+}
+
+
+global string getStartupStatus(string record){
+ string status = "";
+ y2milestone("Getting status of record %1", record);
+     map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, sformat("iscsiadm -m node -r %1 ", record));
+//    y2internal("retcode %1", retcode);
+    if (size(retcode["stderr"]:"")>0) return "";
+    foreach(string row, splitstring(retcode["stdout"]:"", "\n"), {
+     if (issubstring(row, "node.conn[0].startup")){
+	status = (splitstring(row, " "))[2]:"";
+       break;
+      }
+    });
+ return status;
+}
+
+
+global boolean setStartupStatus(string record, string status){
+ boolean ret = true;
+       map<string, any> retcode = (map<string, any>) SCR::Execute(.target.bash_output, 
+			sformat("iscsiadm -m node -r %1 --op=update --name=node.conn[0].startup --value=%2", record, status));
+    if (size(retcode["stderr"]:"")>0) return false;
+
+ return ret;
+}
+
+
 
 /**
  * Read all iscsi-client settings

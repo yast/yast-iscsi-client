@@ -18,24 +18,13 @@ import "CWMServiceStart";
 import "CWMFirewallInterfaces";
 import "CWMTab";
 import "CWM";
-import "TablePopup";
 import "Stage";
+//import "iscsi-client-widgets";
 
 include "iscsi-client/helps.ycp";
-
-void initTable (string key);
+include "iscsi-client/widgets.ycp";
+//void initConnectedTable(string key);
 string current_tab = "general";
-map <string, any> table_rows = $[];
-list valuesTable (map descr);
-string Id2Key( map desc, any option_id );
-string rowSummary(any option_id, string option_type);
-symbol handleTable(string key, map event );
-boolean validateDiscovery(string key, map event);
-boolean validateSession(string key, map event);
-void initSession(string key);
-list<string> keys = [];
-//map<string, any> retcode = $[];
-list <string> stdout = [];
 
 map<string, map <string, any> > widgets = $[
             "auto_start_up" : CWMServiceStart::CreateAutoStartWidget ($[
@@ -57,222 +46,56 @@ map<string, map <string, any> > widgets = $[
         "services" : [ "slp-daemon" ],
         "display_details" : true,
       ]),
-       "client_table" :
-           TablePopup::CreateTableDescr (
-            $["add_delete_buttons" : true, "edit_button" : false, "up_down_buttons" : false, "unique_keys" : true ],
-             $[
-              "init" : initTable,
-//              "store" : storeExpert,
-//              "options" : getServerOptions(),
-              "ids" : valuesTable,
-              "id2key" : Id2Key,
-              "fallback" : $[
-//                "init" : rowInit,
-//                "store" : rowStore,
-                "summary" : rowSummary,
-                        ],
-//              "option_delete" : rowDelete,
-	      "handle" : handleTable,
-//              "add_items" : maplist(string k1, any v1, (map<string,any>) getServerOptions(), ``(k1)),
-              "help" : HELPS["server_table"]:""
-             ]
-            ),
-	"discovery" : $[
+       "connected_table" : $[
 		"widget" : `custom,
-		"custom_widget"  : `VBox(
-				    `HBox(
-				     `TextEntry(`id(`hostname), _("IP Address")),
-				     `IntField(`id(`port), _("Port"), 0,65535,3260)
-					),
-				     `VSpacing(2),
-				    `VBox(
-					`TextEntry(`id(`username), _("Username : ")),
-					`Password(`id(`password), _("Password"))
-					)),
-		"validate_type"	: `function,
-		"validate_function"	: validateDiscovery
-	],
-	"add_session" : $[
+		"custom_widget"	:
+		 `VBox(
+		  `Table(`id(`discovered),
+			`header(_("Portal Address"), _("Target Name"), _("Startup")),
+			[]
+			),
+		  `Left(`HBox(
+			`PushButton(`id(`add), _("Add")),
+			`PushButton(`id(`del), _("Delete")),
+			`PushButton(`id(`toggle), _("Toggle Startup"))
+			))
+		  ),
+		"init"	: initConnectedTable,
+		"handle" : handleConnectedTable
+		],
+       "discovered_table" : $[
 		"widget" : `custom,
-		"custom_widget"  : `VBox(
-				    `HBox(
-				     `ReplacePoint(`id(`nodes),
-					`SelectionBox(`id(`node), _("Nodes"), [])
-					)
-					),
-				     `VSpacing(2),
-				    `VBox(
-					`TextEntry(`id(`username), _("Username")),
-					`Password(`id(`password), _("Password"))
-					)),
-		"init"	: initSession,
-                "validate_type" : `function,
-                "validate_function"     : validateSession
+		"custom_widget"	:
+		 `VBox(
+		  `Table(
+			`header(_("Portal Address"), _("Target Name"), _("Connected")),
+			[]
+			),
+		  `Left(`HBox(
+			`PushButton(_("Discovery")),
+			`PushButton(_("Connect"))
+
+			))
+		  )
+		],
+	"discovery_auth" : $[
+               "widget" : `custom,
+                "custom_widget" :
+                 `VBox(
+			`Left( `CheckBox(_("None Autentification")) ),
+			`VSpacing(2),
+			`Left( `CheckBox(_("Incoming Autentification")) ),
+			`HBox(
+				`TextEntry(_("Username")), `TextEntry(_("Password"))
+			  ),
+			`VSpacing(2),
+			`Left( `CheckBox(_("Outgoing Autentification")) ),
+			`HBox(
+				`TextEntry(_("Username")), `TextEntry(_("Password"))
+			  )
+                  )
 	]
     ];
-
-define void initTable (string key) ``{
-    if (IscsiClient::readSessions()== false) Popup::Error("Error While Connecting iscsid");
-    keys = [];
-     table_rows=$[];
-     integer row = 0;
-     foreach(string s, IscsiClient::sessions, {
-      table_rows[tostring(row)] = splitstring(s, " ");
-      keys = add(keys, tostring(row));
-      row = row + 1;
-     });
-      y2milestone ("Table_rows : %1", table_rows );
-
-    TablePopup::TableInit (CWM::GetProcessedWidget (), key);
-}
-
-define list valuesTable (map descr) {
-  return keys;
-}
-
-define string Id2Key( map desc, any option_id ) ``{
- return table_rows[tostring(option_id), 1]:"";
-}
-
-define string rowSummary(any option_id, string option_type)``{
- return table_rows[tostring(option_id), 2]:"";
-}
-
-define symbol handleTable(string key, map event ){
- if (event["ID"]:nil == `_tp_add)
-  {
-    return `discovery;
-  }
-   else if (event["ID"]:nil == `_tp_delete)
-    {
-     string del = tostring( UI::QueryWidget(`_tp_table, `CurrentItem) );
-     if (del == nil) Popup::Error(_("No item selected"));
-	else
-	 if (Popup::ContinueCancel(_("Really delete the selected item?")))
-	  {
-	     string node_id = table_rows[tostring(del), 2]:"";
-	     map<string, any> retcode = $[];
-	     retcode = (map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -m node");
-	     foreach (string s, splitstring(retcode["stdout"]:"", "\n"), {
-	      if ((splitstring(s, " "))[2]:"" == node_id)
-		{
-		 string del_node =  (splitstring(s, " "))[0]:"";
-		 del_node = substring(del_node, 1, size(del_node)-2);
-		 y2milestone("Delete node with record %1", del_node);
-	    retcode = (map<string, any>)SCR::Execute(.target.bash_output, sformat("iscsiadm -m node -r %1 --logout", del_node));
-	    y2internal("retcode %1", retcode);
-
-	     keys = filter(string s, keys, { return (s!=del); });
-	     TablePopup::TableInit (CWM::GetProcessedWidget (), key);
-	}
-     });
-    }
-    }
- return nil;
-}
-
-define boolean validateDiscovery(string key, map event){
- boolean ret = false;
- string hostname = tostring(UI::QueryWidget(`id(`hostname), `Value));
- string port = tostring(UI::QueryWidget(`id(`port), `Value));
- string username = tostring(UI::QueryWidget(`id(`username), `Value));
- string password = tostring(UI::QueryWidget(`id(`password), `Value));
- if (size(hostname)==0)
-  {
-   Popup::Error(_("The IP address cannot be empty."));
-   UI::SetFocus(`id(`hostname));
-  } else {
-
-
-    y2internal("%1@%2:/%3:%4 ", username, password, hostname, port);
-
-    integer return_code = nil;
-    boolean started = (boolean)SCR::Execute(.background.run_output_err,
-							sformat("iscsiadm -m discovery -t st -p %1:%2", hostname, port));
-
-    if (!started) {
-        y2error("Cannot run command");
-        return false;
-    }
-    y2debug("Running: command");
-
-    list<string> script_out = [];
-    integer time_spent = 0;
-    boolean cont_loop = true;
-    integer script_time_out = 10000;
-    integer sleep_step = 20;
-
-    while (cont_loop && ((boolean) SCR::Read(.background.output_open))) {
-        if (time_spent >= script_time_out) {
-            Popup::Error("Command timed-out");
-            cont_loop = false;
-        }
-
-        // sleep a little while
-        time_spent = time_spent + sleep_step;
-        sleep(sleep_step);
-    }
-    y2milestone("Time spent: %1 msec", time_spent);
-
-//y2internal("stdout list %1", SCR::Read(.background.newout));
-
-    stdout = (list<string>)(SCR::Read(.background.newout));
-y2internal("stdout %1", stdout);
-//    stdout = deletechars(stdout, "[\"]");
-//							);
-    if (cont_loop) {
-        return_code = (integer) SCR::Read(.background.status);
-	ret = true;
-    } else {
-        // killing the process if it still runs
-        if ((boolean) SCR::Read(.background.output_open))
-            SCR::Execute(.background.kill, "");
-    }
-
-   }
-y2internal("return %1", ret);
- return ret;
-}
-
-define void initSession(string key){
-// y2internal("%1", retcode);
- list <string> sessions = stdout ;
-/*
-filter(string row, splitstring(stdout, ","), {
-                        return ( size(row)>0 && (search(row, "session")==nil) );
-                        });
-*/
- y2milestone("Return list from iscsiadm : %1", sessions);
- UI::ReplaceWidget(`id(`nodes),
-	`SelectionBox(`id(`node), _("Nodes : "), sessions)
-	);
-}
-
-define boolean validateSession(string key, map event){
- boolean ret = false;
- any sel_item = UI::QueryWidget(`id(`node), `CurrentItem);
- if (sel_item == nil) {
-  Popup::Error(_("Select one value or press Back."));
- } else {
-	 y2internal("%1", (splitstring(tostring(sel_item), " "))[2]:"");
-	 foreach(string row, IscsiClient::sessions, {
-	  if ((splitstring(tostring(sel_item), " "))[2]:"" == (splitstring(tostring(row), " "))[2]:""){
-	  Popup::Error(_("This Node Is Already Added"));
-	  return false;
-	 }
-        });
-	string username = tostring(UI::QueryWidget(`id(`username), `Value));
-	string password = tostring(UI::QueryWidget(`id(`password), `Value));
-
-	string tmp1 = (splitstring(tostring(sel_item), " "))[0]:"";
-	string tmp2 = substring(tmp1, 1, size(tmp1)-2);
-	y2internal("node number %1", tostring(tmp2));
-
-	SCR::Execute(.target.bash_output, sformat("iscsiadm -m node -r %1 --login", tmp2));
-     ret = true;
-   }
- return ret;
-}
 
 
 map tabs_descr = $[
@@ -299,7 +122,7 @@ map tabs_descr = $[
         ],
 
         "client":$[
-         "header"       : _("Sessions"),
+         "header"       : _("Connected Targets"),
          "contents"     :
                           `VBox(
                           `VStretch(),
@@ -307,7 +130,7 @@ map tabs_descr = $[
                            `HStretch(),
                            `HSpacing (1),
                             `VBox(
-                                "client_table",
+                                "connected_table",
                                 `VSpacing (2)
                                 ),
                            `HSpacing (1),
@@ -315,7 +138,26 @@ map tabs_descr = $[
                                ),
                           `VStretch()
                         ),
-         "widget_names" : [ "client_table" ]
+         "widget_names" : [ "connected_table" ]
+        ],
+        "discovered":$[
+         "header"       : _("Discovered Targets"),
+         "contents"     :
+                          `VBox(
+                          `VStretch(),
+                          `HBox(
+                           `HStretch(),
+                           `HSpacing (1),
+                            `VBox(
+                                "discovered_table",
+                                `VSpacing (2)
+                                ),
+                           `HSpacing (1),
+                           `HStretch()
+                               ),
+                          `VStretch()
+                        ),
+         "widget_names" : [ "discovered_table" ]
         ]
       ];
 
@@ -327,7 +169,7 @@ any GlobalDialog() {
 
     map widget_descr = $[
 	"tab": CWMTab::CreateWidget($[
-            "tab_order": (Stage::initial()) ? ["client"] : [ "general", "client" ],
+            "tab_order": (Stage::initial()) ? ["client"] : [ "general", "client", "discovered" ],
             "tabs": tabs_descr,
             "widget_descr": widgets,
             "initial_tab" : (Stage::initial()) ? "client" : current_tab,
@@ -380,6 +222,37 @@ any DiscoveryDialog(){
     return ret;
 
 }
+
+any DiscAuthDialog (){
+     current_tab = "client";
+    string caption = _("iSCSI Client Discovery");
+    list<map <string, any> > w = CWM::CreateWidgets (["discovery_auth"], (map <string, map <string, any> >)widgets);
+        term contents =
+                          `VBox(
+                          `VStretch(),
+                          `HBox(
+                           `HStretch(),
+                           `HSpacing (1),
+                            `VBox(
+                                w[0, "widget"]:`VSpacing (1),
+                                `VSpacing (2)
+                                ),
+                           `HSpacing (1),
+                           `HStretch()
+                               ),
+                          `VStretch()
+                        );
+
+    string help = CWM::MergeHelps(w);
+    contents = CWM::PrepareDialog(contents, w);
+    Wizard::SetContentsButtons(caption, contents, HELPS["discovery"]:"",
+            Label::BackButton(), Label::NextButton());
+
+    any ret = CWM::Run(w, $[`abort:ReallyAbort ]);
+    return ret;
+
+}
+
 
 any AddSessionDialog(){
      current_tab = "client";

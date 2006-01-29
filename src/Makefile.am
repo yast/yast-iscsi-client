@@ -13,7 +13,8 @@ ynclude_DATA =			\
 	helps.ycp		\
 	wizards.ycp		\
 	dialogs.ycp		\
-	complex.ycp
+	complex.ycp		\
+	widgets.ycp
 
 desktop_DATA =			\
 	iscsi-client.desktop

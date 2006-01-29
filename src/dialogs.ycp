@@ -50,7 +50,7 @@ map<string, map <string, any> > widgets = $[
 		"widget" : `custom,
 		"custom_widget"	:
 		 `VBox(
-		  `Table(`id(`discovered),
+		  `Table(`id(`connected),
 			`header(_("Portal Address"), _("Target Name"), _("Startup")),
 			[]
 			),
@@ -67,7 +67,7 @@ map<string, map <string, any> > widgets = $[
 		"widget" : `custom,
 		"custom_widget"	:
 		 `VBox(
-		  `Table(
+		  `Table(`id(`discovered),
 			`header(_("Portal Address"), _("Target Name"), _("Connected")),
 			[]
 			),
@@ -76,24 +76,53 @@ map<string, map <string, any> > widgets = $[
 			`PushButton(_("Connect"))
 
 			))
-		  )
+		  ),
+		"init" : initDiscoveredTable
+		],
+       "targets_table" : $[
+		"widget" : `custom,
+		"custom_widget"	:
+		 `VBox(
+		  `Table(`id(`targets),
+			`header(_("Portal Address"), _("Target Name"), _("Connected")),
+			[]
+			),
+		  `Left(`HBox(
+			`PushButton(_("Discovery")),
+			`PushButton(_("Connect"))
+
+			))
+		  ),
+		"init" : initTargetTable
 		],
 	"discovery_auth" : $[
                "widget" : `custom,
                 "custom_widget" :
                  `VBox(
-			`Left( `CheckBox(_("None Autentification")) ),
+			`Left( `CheckBox(`id(`auth_none),`opt(`notify), _("None Autentification")) ),
 			`VSpacing(2),
-			`Left( `CheckBox(_("Incoming Autentification")) ),
+			`Left( `CheckBox(`id(`auth_in),`opt(`notify), _("Incoming Autentification"), true) ),
 			`HBox(
-				`TextEntry(_("Username")), `TextEntry(_("Password"))
+				`TextEntry(`id(`user_in), _("Username")), `TextEntry(`id(`pass_in), _("Password"))
 			  ),
 			`VSpacing(2),
-			`Left( `CheckBox(_("Outgoing Autentification")) ),
+			`Left( `CheckBox(`id(`auth_out),`opt(`notify), _("Outgoing Autentification"), true) ),
 			`HBox(
-				`TextEntry(_("Username")), `TextEntry(_("Password"))
+				`TextEntry(`id(`user_out), _("Username")), `TextEntry(`id(`pass_out), _("Password"))
 			  )
-                  )
+                  ),
+		"handle" : handleDiscAuth,
+//		"validate_type" : `function,
+//		"validate_function" : validateDiscAuth
+	],
+	"server_location" : $[
+		"widget" : `custom,
+		"custom_widget" : `HBox(
+		`TextEntry(`id(`hostname), _("IP Address")),
+                `IntField(`id(`port), _("Port"), 0,65535,3260)
+		),
+                   "validate_type" : `function,
+                   "validate_function" : validateServerLocation
 	]
     ];
 
@@ -193,40 +222,11 @@ any GlobalDialog() {
 
 }
 
-any DiscoveryDialog(){
-     current_tab = "client";
-    string caption = _("iSCSI Client Discovery");
-    list<map <string, any> > w = CWM::CreateWidgets (["discovery"], (map <string, map <string, any> >)widgets);
-        term contents = 
-                          `VBox(
-                          `VStretch(),
-                          `HBox(
-                           `HStretch(),
-                           `HSpacing (1),
-                            `VBox(
-                                w[0, "widget"]:`VSpacing (1),
-				`VSpacing (2)
-                                ),
-                           `HSpacing (1),
-                           `HStretch()
-                               ),
-                          `VStretch()
-                        );
-
-    string help = CWM::MergeHelps(w);
-    contents = CWM::PrepareDialog(contents, w);
-    Wizard::SetContentsButtons(caption, contents, HELPS["discovery"]:"",
-            Label::BackButton(), Label::NextButton());
-
-    any ret = CWM::Run(w, $[`abort:ReallyAbort ]);
-    return ret;
-
-}
-
 any DiscAuthDialog (){
      current_tab = "client";
     string caption = _("iSCSI Client Discovery");
-    list<map <string, any> > w = CWM::CreateWidgets (["discovery_auth"], (map <string, map <string, any> >)widgets);
+    list<map <string, any> > w = CWM::CreateWidgets (["server_location", "discovery_auth"],
+								(map <string, map <string, any> >)widgets);
         term contents =
                           `VBox(
                           `VStretch(),
@@ -235,6 +235,8 @@ any DiscAuthDialog (){
                            `HSpacing (1),
                             `VBox(
                                 w[0, "widget"]:`VSpacing (1),
+                                `VSpacing (2),
+                                w[1, "widget"]:`VSpacing (1),
                                 `VSpacing (2)
                                 ),
                            `HSpacing (1),
@@ -250,15 +252,14 @@ any DiscAuthDialog (){
 
     any ret = CWM::Run(w, $[`abort:ReallyAbort ]);
     return ret;
-
 }
 
 
-any AddSessionDialog(){
+any TargetsDialog(){
      current_tab = "client";
     string caption = _("iSCSI Client Discovery");
-    list<map <string, any> > w = CWM::CreateWidgets (["add_session"], (map <string, map <string, any> >)widgets);
-        term contents = 
+    list<map <string, any> > w = CWM::CreateWidgets (["targets_table"], (map <string, map <string, any> >)widgets);
+        term contents =
                           `VBox(
                           `VStretch(),
                           `HBox(
@@ -276,12 +277,13 @@ any AddSessionDialog(){
 
     string help = CWM::MergeHelps(w);
     contents = CWM::PrepareDialog(contents, w);
-    Wizard::SetContentsButtons(caption, contents, HELPS["add_session"]:"",
+    Wizard::SetContentsButtons(caption, contents, HELPS["discovery"]:"",
             Label::BackButton(), Label::NextButton());
 
     any ret = CWM::Run(w, $[`abort:ReallyAbort ]);
     return ret;
 
 }
+
 /* EOF */
 }

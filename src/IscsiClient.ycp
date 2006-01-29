@@ -25,7 +25,8 @@ import "Popup";
 import "Stage";
 
 global list <string> sessions = [];
-
+global list <string> discovered = [];
+global list <string> targets = [];
 /**
  * Prototypes
  */
@@ -88,6 +89,20 @@ global boolean Modified() {
 //    * Some additional parameter needed for the configuration.
 //    */
 //   boolean additional_parameter = true;
+
+
+global list<string> getDiscovered(){
+    map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -m node");
+    y2internal("retcode %1", retcode);
+	if (size(retcode["stderr"]:"")>0) {
+	 discovered=[];
+	} else
+	      discovered = filter(string row, splitstring(retcode["stdout"]:"", "\n"), {
+                        return ( size(row)>0 && (search(row, "session")==nil) );
+                        });
+ return discovered;
+}
+
 
 global boolean readSessions(){
 //Stage::Set("initial");
@@ -219,7 +234,7 @@ global boolean Read() {
     /* Error message */
     if(readSessions()==false)
 	{
-	Report::Error(Message::CannotReadCurrentSettings());
+	Report::Error( Message::CannotReadCurrentSettings() );
 	return false;
 	}
     sleep(sl);

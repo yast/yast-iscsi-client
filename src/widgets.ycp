@@ -1,6 +1,40 @@
 {
-// module "iscsi-client-widgets";
  textdomain "iscsi-client";
+ boolean stat = false;
+
+list <string> runInBg(string command){
+    list <string> stdout = [];
+    integer return_code = nil;
+    boolean started = (boolean)SCR::Execute(.background.run_output_err, command);
+    if (!started) {
+        y2error("Cannot run command");
+	stat = false;
+        return [];
+    }
+    integer time_spent = 0;
+    boolean cont_loop = true;
+    integer script_time_out = 10000;
+    integer sleep_step = 20;
+    while (cont_loop && ((boolean) SCR::Read(.background.output_open))) {
+        if (time_spent >= script_time_out) {
+            Popup::Error("Command timed-out");
+            cont_loop = false;
+        }
+        time_spent = time_spent + sleep_step;
+        sleep(sleep_step);
+    }
+    y2milestone("Time spent: %1 msec", time_spent);
+    stdout = (list<string>)(SCR::Read(.background.newout));
+    if (cont_loop) {
+	return_code = (integer) SCR::Read(.background.status);
+	stat = true;
+	}
+      else {
+        // killing the process if it still runs
+        if ((boolean) SCR::Read(.background.output_open)) SCR::Execute(.background.kill, "");
+    }
+ return stdout;
+}
 
 
 // connected table
@@ -12,17 +46,16 @@ void initConnectedTable(string key){
      list<string> row_in_string = splitstring(s, " ");
 	string record = deletechars(row_in_string[0]:"", "[]");
 	items = add(items, `item(`id(row), row_in_string[1]:"", row_in_string[2]:"", IscsiClient::getStartupStatus(record)));
-//	y2internal("row %1", s);
       row = row + 1;
      });
-        UI::ChangeWidget (`id (`discovered), `Items, items);
-        UI::SetFocus (`id (`discovered));
+        UI::ChangeWidget (`id (`connected), `Items, items);
+        UI::SetFocus (`id (`connected));
 
 }
 
 string getRecord(){
  string record = "";
- any sel_item = UI::QueryWidget(`id(`discovered), `CurrentItem);
+ any sel_item = UI::QueryWidget(`id(`connected), `CurrentItem);
  if (sel_item != nil){
 	 integer current = tointeger(sel_item);
 	 record = (splitstring(IscsiClient::sessions[current]:"", " " ))[0]:"";
@@ -60,6 +93,100 @@ symbol handleConnectedTable (string key, map event){
   }
  }
  return nil;
+}
+
+// ***************** add table ***************************
+
+void setAuthIn(boolean status){
+ UI::ChangeWidget(`id(`user_in),`Enabled, status );
+ UI::ChangeWidget(`id(`pass_in),`Enabled, status );
+ UI::ChangeWidget(`id(`auth_in),`Value, status );
+ if(status) UI::ChangeWidget(`id(`auth_none),`Value, !status );
+}
+
+void setAuthOut(boolean status){
+ UI::ChangeWidget(`id(`user_out),`Enabled, status );
+ UI::ChangeWidget(`id(`pass_out),`Enabled, status );
+ UI::ChangeWidget(`id(`auth_out),`Value, status );
+ if(status) UI::ChangeWidget(`id(`auth_none),`Value, !status );
+}
+
+symbol handleDiscAuth(string key, map event){
+ if (event["EventReason"]:"" == "ValueChanged"){
+ boolean status = false;
+ switch((symbol)event["ID"]:nil){
+  case(`auth_none):
+		status = (boolean)UI::QueryWidget(`id(`auth_none), `Value);
+		setAuthIn(!status);
+		setAuthOut(!status);
+		break;
+  case(`auth_in):
+		status = (boolean)UI::QueryWidget(`id(`auth_in), `Value);
+		setAuthIn(status);
+		break;
+  case(`auth_out):
+		status = (boolean)UI::QueryWidget(`id(`auth_out), `Value);
+		setAuthOut(status);
+		break;
+  }
+ }
+ return nil;
+}
+
+boolean validateDiscAuth(any key, map event){
+ boolean ret = true;
+ y2internal("validate autentification");
+ return ret;
+}
+// *******************Server Location ***********************
+boolean validateServerLocation(any key, map event){
+ boolean ret = true;
+ y2internal("validate location");
+ string ip = tostring(UI::QueryWidget(`hostname, `Value));
+ string port = tostring(UI::QueryWidget(`port, `Value));
+ y2internal("ip %1 : %2", ip, port);
+ y2internal("%1", UI::QueryWidget(`user_in, `Value));
+ if (size(ip)==0) {
+		Popup::Error(_("Zadaj IP-cku"));
+		UI::SetFocus(`hostname);
+		return false;
+		}
+ if (size(port)==0) {
+		Popup::Error(_("Zadaj port"));
+		UI::SetFocus(`port);
+		return false;
+		}
+ IscsiClient::targets = runInBg( sformat("iscsiadm -m discovery -t st -p %1:%2", ip, port) );
+ return stat;
+}
+
+
+// ********************* discovered table *******************
+void initDiscoveredTable(string key){
+     list <term> items = [];
+     integer row = 0;
+     foreach(string s, IscsiClient::getDiscovered(), {
+     list<string> row_in_string = splitstring(s, " ");
+        string record = deletechars(row_in_string[0]:"", "[]");
+        items = add(items, `item(`id(row), row_in_string[1]:"", row_in_string[2]:"", true));
+      row = row + 1;
+     });
+        UI::ChangeWidget (`id (`discovered), `Items, items);
+        UI::SetFocus (`id (`discovered));
+}
+
+//******************* target table *************************
+void initTargetTable(string key){
+     list <term> items = [];
+     integer row = 0;
+     foreach(string s, IscsiClient::targets, {
+     list<string> row_in_string = splitstring(s, " ");
+        string record = deletechars(row_in_string[0]:"", "[]");
+        items = add(items, `item(`id(row), row_in_string[1]:"", row_in_string[2]:"", true));
+      row = row + 1;
+     });
+        UI::ChangeWidget (`id (`targets), `Items, items);
+        UI::SetFocus (`id (`targets));
 }
 
 }

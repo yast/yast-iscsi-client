@@ -27,6 +27,7 @@ import "Stage";
 global list <string> sessions = [];
 global list <string> discovered = [];
 global list <string> targets = [];
+//boolean daemon_run = false;
 /**
  * Prototypes
  */
@@ -106,11 +107,13 @@ global list<string> getDiscovered(){
 
 global boolean readSessions(){
 //Stage::Set("initial");
-    if ((Stage::initial()) && (!(boolean)SCR::Execute(.background.run_output_err, "iscsid"))) {
+/*
+    if ((Stage::initial()) && (!daemon_run)&&(!(boolean)SCR::Execute(.background.run_output_err, "iscsid"))) {
 	y2error("Cannot start iscsid!");
 	return false;
 	}
-
+    daemon_run = true;
+*/
     map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -m session");
     y2internal("retcode %1", retcode);
 	if (size(retcode["stderr"]:"")>0) return false;

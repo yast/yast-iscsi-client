@@ -165,6 +165,32 @@ global string getStartupStatus(string record){
  return status;
 }
 
+global boolean setValue(string record, string name, string value){
+ y2milestone("set %1 = %2 for record %3", name, value, record);
+ string command = sformat("iscsiadm -m node -r %1 --op=update --name=%2 --value=%3", record, name, value);
+ y2milestone("execute command - %1", command );
+ boolean ret = true;
+        map<string, any> retcode = (map<string, any>) SCR::Execute(.target.bash_output, command);
+    if (size(retcode["stderr"]:"")>0) {
+				y2error("%1", retcode["stderr"]:"");
+				ret =  false;
+					}
+y2milestone("return value %1", ret);
+ return ret;
+}
+
+global boolean connected(string ip, string target){
+ boolean ret = false;
+//y2internal("sessions %1", sessions);
+ foreach(string row, sessions, {
+  if (issubstring(row, ip) && issubstring(row, target)){
+   ret = true;
+   break;
+  }
+ });
+ return ret;
+}
+
 
 global boolean setStartupStatus(string record, string status){
  boolean ret = true;

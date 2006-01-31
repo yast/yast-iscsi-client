@@ -60,7 +60,8 @@ map<string, map <string, any> > widgets = $[
 			))
 		  ),
 		"init"	: initConnectedTable,
-		"handle" : handleConnectedTable
+		"handle" : handleConnectedTable,
+		"help"	: HELPS["server_table"]:""
 		],
        "discovered_table" : $[
 		"widget" : `custom,
@@ -76,6 +77,7 @@ map<string, map <string, any> > widgets = $[
 
 			))
 		  ),
+		"help"	: HELPS["discovered"]:"",
 		"init" : initDiscoveredTable,
 		"handle" : handleDiscoveredTable
 		],
@@ -104,17 +106,18 @@ map<string, map <string, any> > widgets = $[
 			`VSpacing(2),
 			`Left( `CheckBox(`id(`auth_in),`opt(`notify), _("Incoming Authentication"), true) ),
 			`HBox(
-				`TextEntry(`id(`user_in), _("Username")), `TextEntry(`id(`pass_in), _("Password"))
+				`TextEntry(`id(`user_in), _("Username")), `Password(`id(`pass_in), _("Password"))
 			  ),
 			`VSpacing(2),
 			`Left( `CheckBox(`id(`auth_out),`opt(`notify), _("Outgoing Authentication"), true) ),
 			`HBox(
-				`TextEntry(`id(`user_out), _("Username")), `TextEntry(`id(`pass_out), _("Password"))
+				`TextEntry(`id(`user_out), _("Username")), `Password(`id(`pass_out), _("Password"))
 			  )
                   ),
 		"handle" : handleDiscAuth,
 		"validate_type" : `function,
-		"validate_function" : validateDiscAuth
+		"validate_function" : validateDiscAuth,
+		"help"	:	HELPS["conn_auth"]:""
 	],
 	"conn_auth" : $[
                "widget" : `custom,
@@ -124,17 +127,18 @@ map<string, map <string, any> > widgets = $[
 			`VSpacing(2),
 			`Left( `CheckBox(`id(`auth_in),`opt(`notify), _("Incoming Authentication"), true) ),
 			`HBox(
-				`TextEntry(`id(`user_in), _("Username")), `TextEntry(`id(`pass_in), _("Password"))
+				`TextEntry(`id(`user_in), _("Username")), `Password(`id(`pass_in), _("Password"))
 			  ),
 			`VSpacing(2),
 			`Left( `CheckBox(`id(`auth_out),`opt(`notify), _("Outgoing Authentication"), true) ),
 			`HBox(
-				`TextEntry(`id(`user_out), _("Username")), `TextEntry(`id(`pass_out), _("Password"))
+				`TextEntry(`id(`user_out), _("Username")), `Password(`id(`pass_out), _("Password"))
 			  )
                   ),
 		"handle" : handleDiscAuth,
 		"validate_type" : `function,
-		"validate_function" : validateConnAuth
+		"validate_function" : validateConnAuth,
+		"help"	: HELPS["conn_auth"]:""
 	],
 	"server_location" : $[
 		"widget" : `custom,

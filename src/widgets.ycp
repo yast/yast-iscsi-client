@@ -195,12 +195,12 @@ boolean validateServerLocation(any key, map event){
  y2internal("ip %1 : %2", ip, port);
  y2internal("%1", UI::QueryWidget(`user_in, `Value));
  if (size(ip)==0) {
-		Popup::Error(_("Zadaj IP-cku"));
+		Popup::Error(_("Insert IP Address"));
 		UI::SetFocus(`hostname);
 		return false;
 		}
  if (size(port)==0) {
-		Popup::Error(_("Zadaj port"));
+		Popup::Error(_("Insert Port"));
 		UI::SetFocus(`port);
 		return false;
 		}

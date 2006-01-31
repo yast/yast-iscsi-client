@@ -393,13 +393,13 @@ global map AutoPackages() {
 
 global boolean GetStartService() {
 
- return Service::Enabled("iscsi");
+ return Service::Enabled("open-iscsi");
 }
 
 global void SetStartService(boolean status) {
  y2internal("Set service status %1", status);
- if (status == true) Service::Enable("iscsi");
-        else Service::Disable("iscsi");
+ if (status == true) Service::Enable("open-iscsi");
+        else Service::Disable("open-iscsi");
 }
 
 

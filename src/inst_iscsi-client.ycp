@@ -25,6 +25,7 @@ import "Progress";
 import "Report";
 import "Summary";
 import "ModuleLoading";
+import "Packages";
 include "iscsi-client/wizards.ycp";
 
 /* main ui function */
@@ -35,6 +36,7 @@ ModuleLoading::Load("iscsi_tcp", "", "", "", false, true);
 SCR::Execute(.background.run_output_err, "iscsid");
 ret = MainSequence();
 y2debug("ret=%1", ret);
+Packages::addAdditionalPackage("open-iscsi");
 
 /* Finish */
 y2milestone("IscsiClient module finished");

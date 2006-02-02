@@ -50,13 +50,13 @@ map<string, map <string, any> > widgets = $[
 		"custom_widget"	:
 		 `VBox(
 		  `Table(`id(`connected),
-			`header(_("Portal Address"), _("Target Name"), _("Startup")),
+			`header(_("Portal Address"), _("Target Name"), _("Start-up")),
 			[]
 			),
 		  `Left(`HBox(
 			`PushButton(`id(`add), _("Add")),
 			`PushButton(`id(`del), _("Delete")),
-			`PushButton(`id(`toggle), _("Toggle Startup"))
+			`PushButton(`id(`toggle), _("Toggle Start-up"))
 			))
 		  ),
 		"init"	: initConnectedTable,

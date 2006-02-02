@@ -131,7 +131,7 @@ boolean installed_packages(){
  boolean ret = false;
   if( !Package::InstallMsg( "open-iscsi",
             _("<p>To configure the iSCSI client, the <b>%1</b> packages must be installed.</p>") +
-            _("<p>Do you want to install it now?</p>")) )
+            _("<p>Install it now?</p>")) )
         {
         Popup::Error( Message::CannotContinueWithoutPackagesInstalled() );
     } else ret = true;

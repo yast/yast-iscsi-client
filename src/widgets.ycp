@@ -57,24 +57,24 @@ boolean checkAuthEntry(){
   else {
    if  (auth_in){
     if (size(user_in)==0) {
-     Popup::Error(_("Insert Username"));
+     Popup::Error(_("Insert the Username"));
      UI::SetFocus(`id(`user_in));
      return false;
     }
     if(size(pass_in)==0) {
-     Popup::Error(_("Insert Password"));
+     Popup::Error(_("Insert the Password"));
      UI::SetFocus(`id(`pass_in));
      return false;
     }
    }
    if  (auth_out){
     if (size(user_out)==0) {
-     Popup::Error(_("Insert Username"));
+     Popup::Error(_("Insert the Username"));
      UI::SetFocus(`id(`user_out));
      return false;
     }
     if(size(pass_out)==0) {
-     Popup::Error(_("Insert Password"));
+     Popup::Error(_("Insert the Password"));
      UI::SetFocus(`id(`pass_out));
      return false;
     }
@@ -231,7 +231,7 @@ symbol handleDiscoveredTable (string key, map event){
    list <string> params = splitstring( IscsiClient::discovered[(integer)UI::QueryWidget(`discovered, `CurrentItem)]:"", " " );
    curr_rec = deletechars(params[0]:"", "[]");
    if ( IscsiClient::connected(params[1]:"", params[2]:"") == true){
-     Popup::Error(_("Target is already Connected"));
+     Popup::Error(_("The target is already Connected"));
      return nil;
     }
    return `conn;
@@ -263,7 +263,7 @@ symbol handleTargetTable (string key, map event){
   if ( event["ID"]:nil == `connect) {
    list <string> params = splitstring( IscsiClient::targets[(integer)UI::QueryWidget(`targets, `CurrentItem)]:"", " " );
    if ( IscsiClient::connected(params[1]:"", params[2]:"") == true){
-    Popup::Error(_("Target is already Connected"));
+    Popup::Error(_("The target is already Connected"));
    } else {
 	 curr_rec = deletechars(params[0]:"", "[]");
 	 return `conn_auth;

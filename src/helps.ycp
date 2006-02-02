@@ -22,7 +22,7 @@ Please wait...<br></p>
 ") +
 
     /* Read dialog help 2/2 */
-    _("<p><b><big>Aborting Initialization:</big></b><br>
+    _("<p><b><big>Aborting Initialization</big></b><br>
 Safely abort the configuration utility by pressing <b>Abort</b> now.</p>
 "),
 
@@ -32,7 +32,7 @@ Please wait...<br></p>
 ") +
 
     /* Write dialog help 2/2 */
-_("<p><b><big>Aborting Saving:</big></b><br>
+_("<p><b><big>Aborting Saving</big></b><br>
 Abort the save procedure by pressing <b>Abort</b>.
 An additional dialog informs whether it is safe to do so.
 </p>
@@ -51,7 +51,7 @@ Then press <b>Configure</b>.</p>
 ") +
 
     /* Summary dialog help 3/3 */
-    _("<p><b><big>Editing or Deleting:</big></b><br>
+    _("<p><b><big>Editing or Deleting</big></b><br>
 If you press <b>Edit</b>, an additional dialog in which to change
 the configuration opens.</p>
 "),
@@ -76,17 +76,17 @@ Then press <b>Edit</b> or <b>Delete</b> as desired.</p>
 
  "server_table" : _("List of current sessions. To add a new target, press <b>Add</b>.
 To remove one, select it and press <b>Delete</b>.
-To change startup status, press <b>Toggle</b>
+To change start-up status, press <b>Toggle</b>
 "),
 
  "discovery"	: _("<h1>iSCSI Client</h1>") + _("Enter the <b>IP Address</b> of the discovered server.
-Only change <b>Port</b> if needed. For authentication, use <b>Username</b> and <b>Password</b>. If don't need authentication,
-select None
+Only change <b>Port</b> if needed. For authentication, use <b>Username</b> and <b>Password</b>. If do not need authentication,
+select <b>None</b>
 "),
  "targets_table" : _("<h1>iSCSI Client</h1>") 
 			+ _("List of nodes offered by the iSCSI target. Select one item and click <b>Connect</b>.  "),
 
- "conn_auth"	: _("<h1>iSCSI Client</h1>") +_("Select type of authentication and fill <b>Username</b> and <b>Password</b>"),
+ "conn_auth"	: _("<h1>iSCSI Client</h1>") +_("Select the type of authentication and enter the <b>Username</b> and <b>Password</b>"),
 
  "discovered"	: _("<h1>iSCSI Client</h1>") +_("List of discovered targets. Start a new <b>Discovery</b> or <b>Connect</b> any of target."),
 

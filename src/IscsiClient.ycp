@@ -254,7 +254,7 @@ global boolean Read() {
     if(Abort()) return false;
     Progress::NextStep();
     /* Error message */
-    if(false) Report::Error(_("Cannot read database2."));
+    if(!installed_packages()) return false;
     sleep(sl);
 
     // read current settings
@@ -271,7 +271,7 @@ global boolean Read() {
     // detect devices
     if(Abort()) return false;
     Progress::NextStage();
-    if(!installed_packages()) return false;
+    if(false) return false;
     sleep(sl);
 
     if(Abort()) return false;

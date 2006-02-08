@@ -102,7 +102,7 @@ map<string, map <string, any> > widgets = $[
                "widget" : `custom,
                 "custom_widget" :
                  `VBox(
-			`Left( `CheckBox(`id(`auth_none),`opt(`notify), _("None Authentication"), true) ),
+			`Left( `CheckBox(`id(`auth_none),`opt(`notify), _("No Authentication"), true) ),
 			`VSpacing(2),
 			`Left( `CheckBox(`id(`auth_in),`opt(`notify), _("Incoming Authentication"), false) ),
 			`HBox(
@@ -238,7 +238,7 @@ any GlobalDialog() {
 
 any DiscAuthDialog (string return_to){
      current_tab = return_to;
-    string caption = _("iSCSI Client Discovery");
+    string caption = _("iSCSI Client Discovery"); // bug #148963 _("iSCSI Target Login");
     list<map <string, any> > w = CWM::CreateWidgets (["server_location", "discovery_auth"],
 								(map <string, map <string, any> >)widgets);
         term contents =

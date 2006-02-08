@@ -102,18 +102,19 @@ map<string, map <string, any> > widgets = $[
                "widget" : `custom,
                 "custom_widget" :
                  `VBox(
-			`Left( `CheckBox(`id(`auth_none),`opt(`notify), _("None Authentication")) ),
+			`Left( `CheckBox(`id(`auth_none),`opt(`notify), _("None Authentication"), true) ),
 			`VSpacing(2),
-			`Left( `CheckBox(`id(`auth_in),`opt(`notify), _("Incoming Authentication"), true) ),
+			`Left( `CheckBox(`id(`auth_in),`opt(`notify), _("Incoming Authentication"), false) ),
 			`HBox(
 				`TextEntry(`id(`user_in), _("Username")), `Password(`id(`pass_in), _("Password"))
 			  ),
 			`VSpacing(2),
-			`Left( `CheckBox(`id(`auth_out),`opt(`notify), _("Outgoing Authentication"), true) ),
+			`Left( `CheckBox(`id(`auth_out),`opt(`notify), _("Outgoing Authentication"), false) ),
 			`HBox(
 				`TextEntry(`id(`user_out), _("Username")), `Password(`id(`pass_out), _("Password"))
 			  )
                   ),
+		"init"	: initDiscAuth,
 		"handle" : handleDiscAuth,
 		"validate_type" : `function,
 		"validate_function" : validateDiscAuth,

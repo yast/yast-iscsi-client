@@ -158,6 +158,11 @@ void setAuthOut(boolean status){
  if(status) UI::ChangeWidget(`id(`auth_none),`Value, !status );
 }
 
+void initDiscAuth(string key){
+ setAuthIn(false);
+ setAuthOut(false);
+}
+
 symbol handleDiscAuth(string key, map event){
  if (event["EventReason"]:"" == "ValueChanged"){
  boolean status = false;

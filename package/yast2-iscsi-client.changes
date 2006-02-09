@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Thu Feb  9 11:39:19 CET 2006 - mzugec@suse.cz
+
+- fixed #149060 - remove firewall component 
+
+-------------------------------------------------------------------
+Thu Feb  9 11:38:11 CET 2006 - mzugec@suse.cz
+
+- fixed #148672 - start init.d script 
+
+-------------------------------------------------------------------
 Tue Feb  7 17:24:08 CET 2006 - mzugec@suse.cz
 
 - fixed #148665 - ask to install open-iscsi 

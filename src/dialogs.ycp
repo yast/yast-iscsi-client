@@ -164,16 +164,16 @@ map tabs_descr = $[
                            `HSpacing (1),
                             `VBox(
                                 "auto_start_up",
-                                `VSpacing (2),
-                                "firewall",
                                 `VSpacing (2)
+//                                "firewall",
+//                                `VSpacing (2)
                                 ),
                            `HSpacing (1),
                            `HStretch()
                               ),
                           `VStretch()
                         ),
-         "widget_names" : [ "auto_start_up", "firewall" ]
+         "widget_names" : [ "auto_start_up" /*, "firewall"*/ ]
         ],
 
         "client":$[

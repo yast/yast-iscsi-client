@@ -23,10 +23,12 @@ import "Service";
 import "Package";
 import "Popup";
 import "Stage";
+import "Service";
 
 global list <string> sessions = [];
 global list <string> discovered = [];
 global list <string> targets = [];
+boolean serviceStatus = false;
 //boolean daemon_run = false;
 /**
  * Prototypes
@@ -76,22 +78,6 @@ global boolean Modified() {
 }
 
 
-// Settings: Define all variables needed for configuration of iscsi-client
-// TODO FIXME: Define all the variables necessary to hold
-// TODO FIXME: the configuration here (with the appropriate
-// TODO FIXME: description)
-// TODO FIXME: For example:
-//   /**
-//    * List of the configured cards.
-//    */
-//   list cards = [];
-//
-//   /**
-//    * Some additional parameter needed for the configuration.
-//    */
-//   boolean additional_parameter = true;
-
-
 global list<string> getDiscovered(){
     map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -m node");
     y2internal("retcode %1", retcode);
@@ -106,24 +92,14 @@ global list<string> getDiscovered(){
 
 
 global boolean readSessions(){
-//Stage::Set("initial");
-/*
-    if ((Stage::initial()) && (!daemon_run)&&(!(boolean)SCR::Execute(.background.run_output_err, "iscsid"))) {
-	y2error("Cannot start iscsid!");
-	return false;
-	}
-    daemon_run = true;
-*/
+y2milestone("reading current settings");
     map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -m session");
     y2internal("retcode %1", retcode);
 	if (size(retcode["stderr"]:"")>0) return false;
-//    list <string> sessions = [];
-//    if (retcode["exit"]:0 == 1) //reminder - must be 0, but returns 1 ;-(
       sessions = filter(string row, splitstring(retcode["stdout"]:"", "\n"), {
                         return ( size(row)>0 && (search(row, "session")==nil) );
                         });
       y2milestone("Return list from iscsiadm : %1", sessions);
-//else return false ...
  return true;
 }
 
@@ -204,7 +180,19 @@ global boolean setStartupStatus(string record, string status){
  return ret;
 }
 
+boolean getServiceStatus(){
+ boolean ret = true;
+ if (Service::Status("open-iscsi") == 0) serviceStatus=true;
+y2internal("Service status = %1", serviceStatus);
+ if (!serviceStatus) Service::Start("open-iscsi");
+ return ret;
+}
 
+boolean setServiceStatus(){
+ boolean ret = true;
+ if (!serviceStatus) Service::Stop("open-iscsi");
+ return ret;
+}
 
 /**
  * Read all iscsi-client settings
@@ -247,14 +235,14 @@ global boolean Read() {
     if(Abort()) return false;
     Progress::NextStage();
     /* Error message */
-    if(false) Report::Error(_("Cannot read database1."));
+    if(!installed_packages()) return false;
     sleep(sl);
 
     // read another database
     if(Abort()) return false;
     Progress::NextStep();
     /* Error message */
-    if(!installed_packages()) return false;
+    if(!getServiceStatus()) return false;
     sleep(sl);
 
     // read current settings
@@ -336,7 +324,7 @@ global boolean Write() {
     Progress::NextStage();
     sleep(sl);
 
-    if(Abort()) return false;
+    if(!setServiceStatus()) return false;
     return true;
 }
 

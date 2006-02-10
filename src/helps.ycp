@@ -75,7 +75,7 @@ Then press <b>Edit</b> or <b>Delete</b> as desired.</p>
 
 
  "server_table" : _("List of current sessions. To add a new target, press <b>Add</b>.
-To remove one, select it and press <b>Delete</b>.
+To remove one, select it and press <b>Logout</b>.
 To change start-up status, press <b>Toggle</b>
 "),
 

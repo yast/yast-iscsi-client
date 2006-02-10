@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Feb 10 13:30:37 CET 2006 - mzugec@suse.cz
+
+- fixed #148960 - rename button labels 
+
+-------------------------------------------------------------------
 Thu Feb  9 11:39:19 CET 2006 - mzugec@suse.cz
 
 - fixed #149060 - remove firewall component 

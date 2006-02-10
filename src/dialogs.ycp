@@ -55,7 +55,7 @@ map<string, map <string, any> > widgets = $[
 			),
 		  `Left(`HBox(
 			`PushButton(`id(`add), _("Add")),
-			`PushButton(`id(`del), _("Delete")),
+			`PushButton(`id(`del), _("Logout")),
 			`PushButton(`id(`toggle), _("Toggle Start-up"))
 			))
 		  ),
@@ -73,7 +73,7 @@ map<string, map <string, any> > widgets = $[
 			),
 		  `Left(`HBox(
 			`PushButton(`id(`discovery), _("Discovery")),
-			`PushButton(`id(`connect), _("Connect"))
+			`PushButton(`id(`connect), _("Login"))
 
 			))
 		  ),

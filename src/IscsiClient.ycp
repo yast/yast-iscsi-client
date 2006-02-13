@@ -4,7 +4,7 @@
  * Summary:	IscsiClient settings, input and output functions
  * Authors:	Michal Zugec <mzugec@suse.cz>
  *
- * $Id: IscsiClient.ycp 23442 2005-05-18 07:46:28Z visnov $
+ * $Id$
  *
  * Representation of the configuration of iscsi-client.
  * Input and output routines.

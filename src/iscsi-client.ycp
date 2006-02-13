@@ -4,7 +4,7 @@
  * Summary:	Main file
  * Authors:	Michal Zugec <mzugec@suse.cz>
  *
- * $Id: iscsi-client.ycp 18198 2004-07-23 13:42:29Z jsuchome $
+ * $Id$
  *
  * Main file for iscsi-client configuration. Uses all other files.
  */

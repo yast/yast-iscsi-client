@@ -4,7 +4,7 @@
  * Summary:	Client for autoinstallation
  * Authors:	Michal Zugec <mzugec@suse.cz>
  *
- * $Id: iscsi-client_auto.ycp 20583 2004-12-16 10:26:30Z mvidner $
+ * $Id$
  *
  * This is a client for autoinstallation. It takes its arguments,
  * goes through the configuration and return the setting.

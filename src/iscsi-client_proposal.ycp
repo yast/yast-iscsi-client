@@ -4,7 +4,7 @@
  * Summary:	Proposal function dispatcher.
  * Authors:	Michal Zugec <mzugec@suse.cz>
  *
- * $Id: iscsi-client_proposal.ycp 20583 2004-12-16 10:26:30Z mvidner $
+ * $Id$
  *
  * Proposal function dispatcher for iscsi-client configuration.
  * See source/installation/proposal/proposal-API.txt

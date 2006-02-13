@@ -29,4 +29,5 @@ Summary:	Configuration of iscsi-client
 @clientdir@/inst_iscsi-client.ycp
 @moduledir@/IscsiClient.*
 @desktopdir@/iscsi-client.desktop
+@scrconfdir@/iscsid.scr
 %doc @docdir@

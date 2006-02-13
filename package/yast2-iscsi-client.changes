@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Feb 13 16:46:36 CET 2006 - mzugec@suse.cz
+
+- fixed #149934 - authentication in discovery 
+
+-------------------------------------------------------------------
 Fri Feb 10 13:30:37 CET 2006 - mzugec@suse.cz
 
 - fixed #148960 - rename button labels 

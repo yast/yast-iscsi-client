@@ -29,7 +29,81 @@ global list <string> sessions = [];
 global list <string> discovered = [];
 global list <string> targets = [];
 boolean serviceStatus = false;
-//boolean daemon_run = false;
+map<string, any> config = $[];
+
+global list <map<string, any> > getConfig(){
+ config = (map<string, any>) SCR::Read(.etc.iscsid.all);
+ return config["value"]:[];
+}
+
+global void oldConfig(){
+ SCR::Write(.etc.iscsid.all, config);
+}
+
+map<string, any> createMap(map<string, any> old_map, list<string> comments)
+{
+ string comment = "";
+ foreach(string row, comments, {
+  comment = sformat("%1%2", comment, row);
+  });
+ return $[ "name":old_map["KEY"]:"",
+           "value":old_map["VALUE"]:"",
+           "kind":"value",
+           "type":1,
+           "comment":comment
+         ];
+}
+
+
+list <map<string, any> > setOrAdd(list <map<string, any> > old_list, string key, string value){
+ list <map<string, any> > new_list = [];
+ boolean found = false;
+ foreach(map<string, any> row, old_list, {
+  if (row["name"]:"" == key){
+   found = true;
+   row["value"] = value;
+  }
+  new_list = add(new_list, row);
+ });
+ if (!found) new_list = add(new_list, createMap($["KEY":key, "VALUE":value], []) );
+ return new_list;
+}
+
+list <map<string, any> > delete(list <map<string, any> > old_list, string key){
+ list <map<string, any> > new_list = [];
+ foreach(map<string, any> row, old_list, {
+  if (row["name"]:"" != key) new_list = add(new_list, row);
+ });
+ return new_list;
+}
+
+global void saveConfig(string user_in, string pass_in, string user_out, string pass_out){
+ map<string, any> tmp_conf = config;
+ list <map<string, any> > tmp_val = tmp_conf["value"]:[];
+ if ((size(user_in)>0)&&(size(pass_in)>0)) {
+	tmp_val = setOrAdd(tmp_val, "discovery.sendtargets.auth.authmethod", "CHAP");
+	tmp_val = setOrAdd(tmp_val, "discovery.sendtargets.auth.username", user_in);
+	tmp_val = setOrAdd(tmp_val, "discovery.sendtargets.auth.password", pass_in);
+	}
+  else {
+	tmp_val = delete(tmp_val, "discovery.sendtargets.auth.authmethod");
+	tmp_val = delete(tmp_val, "discovery.sendtargets.auth.username");
+	tmp_val = delete(tmp_val, "discovery.sendtargets.auth.password");
+	}
+
+ if ((size(user_out)>0)&&(size(pass_out)>0)) {
+	tmp_val = setOrAdd(tmp_val, "node.session.auth.username", user_out);
+	tmp_val = setOrAdd(tmp_val, "node.session.auth.password", pass_out);
+	}
+  else {
+	tmp_val = delete(tmp_val, "node.session.auth.username");
+	tmp_val = delete(tmp_val, "node.session.auth.password");
+	}
+ tmp_conf["value"] = tmp_val;
+ SCR::Write(.etc.iscsid.all, tmp_conf);
+ SCR::Write(.etc.iscsid, nil);
+}
+
 /**
  * Prototypes
  */
@@ -133,7 +207,7 @@ global string getStartupStatus(string record){
  string status = "";
  y2milestone("Getting status of record %1", record);
      map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, sformat("iscsiadm -m node -r %1 ", record));
-//    y2internal("retcode %1", retcode);
+    y2internal("retcode %1", retcode);
     if (size(retcode["stderr"]:"")>0) return "";
     foreach(string row, splitstring(retcode["stdout"]:"", "\n"), {
      if (issubstring(row, "node.conn[0].startup")){
@@ -160,7 +234,6 @@ y2milestone("return value %1", ret);
 
 global boolean connected(string ip, string target){
  boolean ret = false;
-//y2internal("sessions %1", sessions);
  foreach(string row, sessions, {
   if (issubstring(row, ip) && issubstring(row, target)){
    ret = true;
@@ -385,7 +458,6 @@ global boolean GetStartService() {
 }
 
 global void SetStartService(boolean status) {
- y2internal("Set service status %1", status);
  if (status == true) Service::Enable("open-iscsi");
         else Service::Disable("open-iscsi");
 }

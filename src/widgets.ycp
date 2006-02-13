@@ -3,8 +3,11 @@
 
  boolean stat = false;
  string curr_rec = "";
+ boolean bg_finish = false;
+
 
 list <string> runInBg(string command){
+    bg_finish=false;
     y2milestone("Start command %1 in background", command);
     list <string> stdout = [];
     integer return_code = nil;
@@ -12,6 +15,7 @@ list <string> runInBg(string command){
     if (!started) {
         y2error("Cannot run command");
 	stat = false;
+//        bg_finish=true;
         return [];
     }
     integer time_spent = 0;
@@ -41,6 +45,7 @@ list <string> runInBg(string command){
         // killing the process if it still runs
         if ((boolean) SCR::Read(.background.output_open)) SCR::Execute(.background.kill, "");
     }
+ bg_finish=true;
  return stdout;
 }
 
@@ -128,7 +133,7 @@ symbol handleConnectedTable (string key, map event){
   case(`toggle):
 		record = getRecord();
 		if (size( record )>0){
-		y2internal("toggle record %1", record);
+		y2milestone("toggle record %1", record);
 		string startup = IscsiClient::getStartupStatus(record);
 		if (size(startup)>0){
 		 if (startup == "manual") IscsiClient::setStartupStatus(record, "automatic");
@@ -187,18 +192,14 @@ symbol handleDiscAuth(string key, map event){
 
 boolean validateDiscAuth(any key, map event){
  boolean ret = true;
- y2internal("validate autentification");
  if (!checkAuthEntry()) ret = false;
  return ret;
 }
 // *******************Server Location ***********************
 boolean validateServerLocation(any key, map event){
  boolean ret = true;
- y2internal("validate location");
  string ip = tostring(UI::QueryWidget(`hostname, `Value));
  string port = tostring(UI::QueryWidget(`port, `Value));
- y2internal("ip %1 : %2", ip, port);
- y2internal("%1", UI::QueryWidget(`user_in, `Value));
  if (size(ip)==0) {
 		Popup::Error(_("Insert IP Address"));
 		UI::SetFocus(`hostname);
@@ -209,7 +210,39 @@ boolean validateServerLocation(any key, map event){
 		UI::SetFocus(`port);
 		return false;
 		}
+
+ IscsiClient::getConfig();
+
+ boolean auth_none = (boolean) UI::QueryWidget(`id(`auth_none), `Value);
+ boolean auth_in = (boolean) UI::QueryWidget(`id(`auth_in), `Value);
+ boolean auth_out = (boolean) UI::QueryWidget(`id(`auth_out), `Value);
+ string user_in = tostring( UI::QueryWidget(`id(`user_in), `Value) );
+ string pass_in = tostring( UI::QueryWidget(`id(`pass_in), `Value) );
+ string user_out = tostring( UI::QueryWidget(`id(`user_out), `Value) );
+ string pass_out = tostring( UI::QueryWidget(`id(`pass_out), `Value) );
+
+ if (auth_none){
+  user_in  = "";
+  pass_in  = "";
+  user_out = "";
+  pass_out = "";
+ }
+ if (!auth_in){
+  user_in  = "";
+  pass_in  = "";
+ }
+ if (!auth_out){
+  user_out  = "";
+  pass_out  = "";
+ }
+
+ IscsiClient::saveConfig(user_in, pass_in, user_out, pass_out);
+
+ bg_finish=false;
  IscsiClient::targets = runInBg( sformat("iscsiadm -m discovery -t st -p %1:%2", ip, port) );
+ while(!bg_finish){};
+ IscsiClient::oldConfig();
+
  return stat;
 }
 
@@ -293,7 +326,6 @@ boolean validateConnAuth(any key, map event){
   if(!checkAuthEntry()) return false;
 
   IscsiClient::setValue(curr_rec, "node.session.auth.authmethod", "CHAP");
-//y2internal("CHAP");
   if (auth_in){
    IscsiClient::setValue(curr_rec, "node.session.auth.username_in", user_in);
    IscsiClient::setValue(curr_rec, "node.session.auth.password_in", pass_in);

@@ -2,6 +2,6 @@
 
 agent_SCRIPTS =
 
-scrconf_DATA =
+scrconf_DATA = iscsid.scr
 
 EXTRA_DIST = $(agent_SCRIPTS) $(scrconf_DATA)

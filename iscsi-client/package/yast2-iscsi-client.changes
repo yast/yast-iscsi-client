@@ -1,0 +1,79 @@
+-------------------------------------------------------------------
+Wed Feb 15 12:38:14 CET 2006 - mzugec@suse.cz
+
+- correction of #149934 (ingoing vs outgoing) 
+
+-------------------------------------------------------------------
+Mon Feb 13 16:46:36 CET 2006 - mzugec@suse.cz
+
+- fixed #149934 - authentication in discovery 
+
+-------------------------------------------------------------------
+Fri Feb 10 13:30:37 CET 2006 - mzugec@suse.cz
+
+- fixed #148960 - rename button labels 
+
+-------------------------------------------------------------------
+Thu Feb  9 11:39:19 CET 2006 - mzugec@suse.cz
+
+- fixed #149060 - remove firewall component 
+
+-------------------------------------------------------------------
+Thu Feb  9 11:38:11 CET 2006 - mzugec@suse.cz
+
+- fixed #148672 - start init.d script 
+
+-------------------------------------------------------------------
+Tue Feb  7 17:24:08 CET 2006 - mzugec@suse.cz
+
+- fixed #148665 - ask to install open-iscsi 
+
+-------------------------------------------------------------------
+Tue Feb  7 15:39:15 CET 2006 - mzugec@suse.cz
+
+- proofread 
+
+-------------------------------------------------------------------
+Tue Jan 31 09:56:48 CET 2006 - mzugec@suse.cz
+
+- add helps
+
+-------------------------------------------------------------------
+Mon Jan 30 19:23:40 CET 2006 - mzugec@suse.cz
+
+- fixed authentication problems 
+
+-------------------------------------------------------------------
+Tue Jan 24 11:49:09 CET 2006 - mzugec@suse.cz
+
+- handle for init stage
+
+-------------------------------------------------------------------
+Tue Jan 24 10:39:54 CET 2006 - jsrain@suse.cz
+
+- added copying configuration to system during installation
+
+-------------------------------------------------------------------
+Mon Jan 23 18:09:49 CET 2006 - mzugec@suse.cz
+
+- check exceptions 
+
+-------------------------------------------------------------------
+Fri Jan 20 17:50:44 CET 2006 - mzugec@suse.cz
+
+- clean subversion 
+
+-------------------------------------------------------------------
+Fri Jan 20 17:31:57 CET 2006 - mzugec@suse.cz
+
+- install package 
+
+-------------------------------------------------------------------
+Thu Jan 12 11:30:03 CET 2006 - mzugec@suse.cz
+
+- change version number
+
+-------------------------------------------------------------------
+Fri Jan  6 18:10:10 2006 - mzugec@suse.cz
+
+- initial version

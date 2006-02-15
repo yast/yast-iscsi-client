@@ -1,0 +1,33 @@
+@HEADER-COMMENT@
+
+
+@HEADER@
+BuildRequires:	yast2-devel-packages
+Requires:	yast2
+
+BuildArchitectures:	noarch
+
+Summary:	Configuration of iscsi-client
+
+%description
+-
+
+@PREP@
+
+@BUILD@
+
+@INSTALL@
+
+@CLEAN@
+
+%files
+%defattr(-,root,root)
+%dir @yncludedir@/iscsi-client
+@yncludedir@/iscsi-client/*
+@clientdir@/iscsi-client.ycp
+@clientdir@/iscsi-client_*.ycp
+@clientdir@/inst_iscsi-client.ycp
+@moduledir@/IscsiClient.*
+@desktopdir@/iscsi-client.desktop
+@scrconfdir@/iscsid.scr
+%doc @docdir@

@@ -1,0 +1,48 @@
+/**
+ * File:	clients/iscsi-client.ycp
+ * Package:	Configuration of iscsi-client
+ * Summary:	Main file
+ * Authors:	Michal Zugec <mzugec@suse.cz>
+ *
+ * $Id$
+ *
+ * Main file for iscsi-client configuration. Uses all other files.
+ */
+
+{
+
+/***
+ * <h3>Configuration of iscsi-client</h3>
+ */
+
+textdomain "iscsi-client";
+
+/* The main () */
+y2milestone ("----------------------------------------");
+y2milestone ("IscsiClient module started");
+
+import "Progress";
+import "Report";
+import "Summary";
+import "ModuleLoading";
+import "Packages";
+include "iscsi-client/wizards.ycp";
+
+/* main ui function */
+any ret = nil;
+
+//SCR::Execute(.background.run_output_err, "modprobe iscsi_tcp");
+ModuleLoading::Load("iscsi_tcp", "", "", "", false, true);
+SCR::Execute(.background.run_output_err, "iscsid");
+ret = MainSequence();
+y2debug("ret=%1", ret);
+Packages::addAdditionalPackage("open-iscsi");
+
+/* Finish */
+y2milestone("IscsiClient module finished");
+y2milestone("----------------------------------------");
+
+return ret;
+
+/* EOF */
+}

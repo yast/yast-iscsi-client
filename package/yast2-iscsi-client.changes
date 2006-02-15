@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Feb 15 12:38:14 CET 2006 - mzugec@suse.cz
+
+- correction of #149934 (ingoing vs outgoing) 
+
+-------------------------------------------------------------------
 Mon Feb 13 16:46:36 CET 2006 - mzugec@suse.cz
 
 - fixed #149934 - authentication in discovery 

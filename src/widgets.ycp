@@ -327,12 +327,12 @@ boolean validateConnAuth(any key, map event){
 
   IscsiClient::setValue(curr_rec, "node.session.auth.authmethod", "CHAP");
   if (auth_in){
-   IscsiClient::setValue(curr_rec, "node.session.auth.username_in", user_in);
-   IscsiClient::setValue(curr_rec, "node.session.auth.password_in", pass_in);
+   IscsiClient::setValue(curr_rec, "node.session.auth.username", user_in);
+   IscsiClient::setValue(curr_rec, "node.session.auth.password", pass_in);
   }
   if (auth_out){
-   IscsiClient::setValue(curr_rec, "node.session.auth.username", user_out);
-   IscsiClient::setValue(curr_rec, "node.session.auth.password", pass_out);
+   IscsiClient::setValue(curr_rec, "node.session.auth.username_in", user_out);
+   IscsiClient::setValue(curr_rec, "node.session.auth.password_in", pass_out);
   }
  } else IscsiClient::setValue(curr_rec, "node.session.auth.authmethod", "None");
 

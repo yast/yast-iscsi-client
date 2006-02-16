@@ -77,12 +77,20 @@ Then press <b>Edit</b> or <b>Delete</b> as desired.</p>
  "server_table" : _("List of current sessions. To add a new target, press <b>Add</b>.
 To remove one, select it and press <b>Logout</b>.
 To change start-up status, press <b>Toggle</b>
+") +
+
+	/* Warning */
+_("<h1>Warning</h1>") + _("<p>When accessing a iSCSI-device <b>READ</b>/<b>WRITE</b>please make sure that this access is exclusive. Otherwise the potential risk of data corruption is there.</p>
 "),
 
  "discovery"	: _("<h1>iSCSI Client</h1>") + _("Enter the <b>IP Address</b> of the discovered server.
 Only change <b>Port</b> if needed. For authentication, use <b>Username</b> and <b>Password</b>. If do not need authentication,
 select <b>None</b>
+") +
+	/* Warning */
+_("<h1>Warning</h1>") + _("<p>When accessing a iSCSI-device <b>READ</b>/<b>WRITE</b>please make sure that this access is exclusive. Otherwise the potential risk of data corruption is there.</p>
 "),
+
  "targets_table" : _("<h1>iSCSI Client</h1>") 
 			+ _("List of nodes offered by the iSCSI target. Select one item and click <b>Connect</b>.  "),
 

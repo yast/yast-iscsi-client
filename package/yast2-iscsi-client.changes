@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Feb 17 18:02:22 CET 2006 - mzugec@suse.cz
+
+- fixed #151868 - authentication into target 
+
+-------------------------------------------------------------------
 Fri Feb 17 07:18:02 CET 2006 - ihno@suse.de
 
 - Adding warning in help according to feature 300437

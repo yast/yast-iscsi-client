@@ -80,24 +80,25 @@ list <map<string, any> > delete(list <map<string, any> > old_list, string key){
 global void saveConfig(string user_in, string pass_in, string user_out, string pass_out){
  map<string, any> tmp_conf = config;
  list <map<string, any> > tmp_val = tmp_conf["value"]:[];
+
  if ((size(user_in)>0)&&(size(pass_in)>0)) {
-	tmp_val = setOrAdd(tmp_val, "discovery.sendtargets.auth.authmethod", "CHAP");
 	tmp_val = setOrAdd(tmp_val, "node.session.auth.username", user_in);
 	tmp_val = setOrAdd(tmp_val, "node.session.auth.password", pass_in);
+	}
+  else {
+	tmp_val = delete(tmp_val, "node.session.auth.username");
+	tmp_val = delete(tmp_val, "node.session.auth.password");
+	}
+
+ if ((size(user_out)>0)&&(size(pass_out)>0)) {
+	tmp_val = setOrAdd(tmp_val, "discovery.sendtargets.auth.authmethod", "CHAP");
+	tmp_val = setOrAdd(tmp_val, "discovery.sendtargets.auth.username", user_out);
+	tmp_val = setOrAdd(tmp_val, "discovery.sendtargets.auth.password", pass_out);
 	}
   else {
 	tmp_val = delete(tmp_val, "discovery.sendtargets.auth.authmethod");
 	tmp_val = delete(tmp_val, "discovery.sendtargets.auth.username");
 	tmp_val = delete(tmp_val, "discovery.sendtargets.auth.password");
-	}
-
- if ((size(user_out)>0)&&(size(pass_out)>0)) {
-	tmp_val = setOrAdd(tmp_val, "discovery.sendtargets.auth.username", user_out);
-	tmp_val = setOrAdd(tmp_val, "discovery.sendtargets.auth.password", pass_out);
-	}
-  else {
-	tmp_val = delete(tmp_val, "node.session.auth.username");
-	tmp_val = delete(tmp_val, "node.session.auth.password");
 	}
  tmp_conf["value"] = tmp_val;
  SCR::Write(.etc.iscsid.all, tmp_conf);

@@ -321,19 +321,26 @@ boolean validateConnAuth(any key, map event){
  string pass_in = tostring( UI::QueryWidget(`id(`pass_in), `Value) );
  string user_out = tostring( UI::QueryWidget(`id(`user_out), `Value) );
  string pass_out = tostring( UI::QueryWidget(`id(`pass_out), `Value) );
- if (!auth_none){
 
+ if (!auth_none){
   if(!checkAuthEntry()) return false;
 
-  IscsiClient::setValue(curr_rec, "node.session.auth.authmethod", "CHAP");
   if (auth_in){
-   IscsiClient::setValue(curr_rec, "node.session.auth.username", user_in);
-   IscsiClient::setValue(curr_rec, "node.session.auth.password", pass_in);
-  }
+   IscsiClient::setValue(curr_rec, "node.session.auth.username_in", user_in);
+   IscsiClient::setValue(curr_rec, "node.session.auth.password_in", pass_in);
+  } else{
+	   IscsiClient::setValue(curr_rec, "node.session.auth.username_in", "");
+	   IscsiClient::setValue(curr_rec, "node.session.auth.password_in", "");
+   }
   if (auth_out){
-   IscsiClient::setValue(curr_rec, "node.session.auth.username_in", user_out);
-   IscsiClient::setValue(curr_rec, "node.session.auth.password_in", pass_out);
-  }
+   IscsiClient::setValue(curr_rec, "node.session.auth.username", user_out);
+   IscsiClient::setValue(curr_rec, "node.session.auth.password", pass_out);
+   IscsiClient::setValue(curr_rec, "node.session.auth.authmethod", "CHAP");
+  } else {
+	   IscsiClient::setValue(curr_rec, "node.session.auth.username", "");
+	   IscsiClient::setValue(curr_rec, "node.session.auth.password", "");
+	   IscsiClient::setValue(curr_rec, "node.session.auth.authmethod", "");
+    }
  } else IscsiClient::setValue(curr_rec, "node.session.auth.authmethod", "None");
 
   runInBg(sformat("iscsiadm -m node -r %1 --login", curr_rec));

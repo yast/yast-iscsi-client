@@ -62,19 +62,19 @@ boolean checkAuthEntry(){
   else {
    if  (auth_in){
     if (size(user_in)==0) {
-     Popup::Error(_("Insert the Username"));
+     Popup::Error(_("Insert the username"));
      UI::SetFocus(`id(`user_in));
      return false;
     }
     if(size(pass_in)==0) {
-     Popup::Error(_("Insert the Password"));
+     Popup::Error(_("Insert the password"));
      UI::SetFocus(`id(`pass_in));
      return false;
     }
    }
    if  (auth_out){
     if (size(user_out)==0) {
-     Popup::Error(_("Insert the Username"));
+     Popup::Error(_("Insert the username"));
      UI::SetFocus(`id(`user_out));
      return false;
     }
@@ -125,10 +125,10 @@ symbol handleConnectedTable (string key, map event){
   case(`del):
 		record = getRecord();
 		if (size( record )>0){
-		  if (Popup::ContinueCancel(_("Really logout from the selected target?")))
-		    if ( !(IscsiClient::deleteRecord( record )) ) Popup::Error(_("Error Ocured while logout from the selected target"));
+		  if (Popup::ContinueCancel(_("Really log out from the selected target?")))
+		    if ( !(IscsiClient::deleteRecord( record )) ) Popup::Error(_("Error ocured while logging out from the selected target"));
 			else initConnectedTable("");
-		} else Popup::Error(_("No Record Found"));
+		} else Popup::Error(_("No record Found"));
 		break;
   case(`toggle):
 		record = getRecord();
@@ -201,12 +201,12 @@ boolean validateServerLocation(any key, map event){
  string ip = tostring(UI::QueryWidget(`hostname, `Value));
  string port = tostring(UI::QueryWidget(`port, `Value));
  if (size(ip)==0) {
-		Popup::Error(_("Insert IP Address"));
+		Popup::Error(_("Insert the IP address"));
 		UI::SetFocus(`hostname);
 		return false;
 		}
  if (size(port)==0) {
-		Popup::Error(_("Insert Port"));
+		Popup::Error(_("Insert the port"));
 		UI::SetFocus(`port);
 		return false;
 		}
@@ -256,7 +256,7 @@ void initDiscoveredTable(string key){
      list<string> row_in_string = splitstring(s, " ");
         string record = deletechars(row_in_string[0]:"", "[]");
         items = add(items, `item(`id(row), row_in_string[1]:"", row_in_string[2]:"", 
-		(IscsiClient::connected(row_in_string[1]:"", row_in_string[2]:""))?_("true"):_("false") ));
+		(IscsiClient::connected(row_in_string[1]:"", row_in_string[2]:""))?_("True"):_("False") ));
       row = row + 1;
      });
         UI::ChangeWidget (`id (`discovered), `Items, items);
@@ -269,7 +269,7 @@ symbol handleDiscoveredTable (string key, map event){
    list <string> params = splitstring( IscsiClient::discovered[(integer)UI::QueryWidget(`discovered, `CurrentItem)]:"", " " );
    curr_rec = deletechars(params[0]:"", "[]");
    if ( IscsiClient::connected(params[1]:"", params[2]:"") == true){
-     Popup::Error(_("The target is already Connected"));
+     Popup::Error(_("The target is already connected"));
      return nil;
     }
    return `conn;
@@ -289,7 +289,7 @@ void initTargetTable(string key){
      list<string> row_in_string = splitstring(s, " ");
         string record = deletechars(row_in_string[0]:"", "[]");
         items = add(items, `item(`id(row), row_in_string[1]:"", row_in_string[2]:"",
-		(IscsiClient::connected(row_in_string[1]:"", row_in_string[2]:""))?_("true"):_("false") ));
+		(IscsiClient::connected(row_in_string[1]:"", row_in_string[2]:""))?_("True"):_("False") ));
       row = row + 1;
      });
         UI::ChangeWidget (`id (`targets), `Items, items);
@@ -301,7 +301,7 @@ symbol handleTargetTable (string key, map event){
   if ( event["ID"]:nil == `connect) {
    list <string> params = splitstring( IscsiClient::targets[(integer)UI::QueryWidget(`targets, `CurrentItem)]:"", " " );
    if ( IscsiClient::connected(params[1]:"", params[2]:"") == true){
-    Popup::Error(_("The target is already Connected"));
+    Popup::Error(_("The target is already connected"));
    } else {
 	 curr_rec = deletechars(params[0]:"", "[]");
 	 return `conn_auth;

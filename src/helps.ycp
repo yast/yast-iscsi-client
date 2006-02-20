@@ -75,7 +75,7 @@ Then press <b>Edit</b> or <b>Delete</b> as desired.</p>
 
 
  "server_table" : _("List of current sessions. To add a new target, press <b>Add</b>.
-To remove one, select it and press <b>Logout</b>.
+To remove one, select it and press <b>Log Out</b>.
 To change start-up status, press <b>Toggle</b>
 ") +
 
@@ -84,7 +84,7 @@ _("<h1>Warning</h1>") + _("<p>When accessing a iSCSI-device <b>READ</b>/<b>WRITE
 "),
 
  "discovery"	: _("<h1>iSCSI Client</h1>") + _("Enter the <b>IP Address</b> of the discovered server.
-Only change <b>Port</b> if needed. For authentication, use <b>Username</b> and <b>Password</b>. If do not need authentication,
+Only change <b>Port</b> if needed. For authentication, use <b>Username</b> and <b>Password</b>. If you do not need authentication,
 select <b>None</b>
 ") +
 	/* Warning */
@@ -94,9 +94,9 @@ _("<h1>Warning</h1>") + _("<p>When accessing a iSCSI-device <b>READ</b>/<b>WRITE
  "targets_table" : _("<h1>iSCSI Client</h1>") 
 			+ _("List of nodes offered by the iSCSI target. Select one item and click <b>Connect</b>.  "),
 
- "conn_auth"	: _("<h1>iSCSI Client</h1>") +_("Select the type of authentication and enter the <b>Username</b> and <b>Password</b>"),
+ "conn_auth"	: _("<h1>iSCSI Client</h1>") +_("Select the type of authentication and enter the <b>Username</b> and <b>Password</b>."),
 
- "discovered"	: _("<h1>iSCSI Client</h1>") +_("List of discovered targets. Start a new <b>Discovery</b> or <b>Connect</b> any of target."),
+ "discovered"	: _("<h1>iSCSI Client</h1>") +_("List of discovered targets. Start a new <b>Discovery</b> or <b>Connect</b> to any target."),
 
 ];
 

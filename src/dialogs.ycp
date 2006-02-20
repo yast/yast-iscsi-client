@@ -50,13 +50,13 @@ map<string, map <string, any> > widgets = $[
 		"custom_widget"	:
 		 `VBox(
 		  `Table(`id(`connected),
-			`header(_("Portal Address"), _("Target Name"), _("Start-up")),
+			`header(_("Portal Address"), _("Target Name"), _("Start-Up")),
 			[]
 			),
 		  `Left(`HBox(
 			`PushButton(`id(`add), _("Add")),
-			`PushButton(`id(`del), _("Logout")),
-			`PushButton(`id(`toggle), _("Toggle Start-up"))
+			`PushButton(`id(`del), _("Log Out")),
+			`PushButton(`id(`toggle), _("Toggle Start-Up"))
 			))
 		  ),
 		"init"	: initConnectedTable,
@@ -73,7 +73,7 @@ map<string, map <string, any> > widgets = $[
 			),
 		  `Left(`HBox(
 			`PushButton(`id(`discovery), _("Discovery")),
-			`PushButton(`id(`connect), _("Login"))
+			`PushButton(`id(`connect), _("Log In"))
 
 			))
 		  ),
@@ -124,7 +124,7 @@ map<string, map <string, any> > widgets = $[
                "widget" : `custom,
                 "custom_widget" :
                  `VBox(
-			`Left( `CheckBox(`id(`auth_none),`opt(`notify), _("None Authentication"), true) ),
+			`Left( `CheckBox(`id(`auth_none),`opt(`notify), _("No Authentication"), true) ),
 			`VSpacing(2),
 			`Left( `CheckBox(`id(`auth_in),`opt(`notify), _("Incoming Authentication"), false) ),
 			`HBox(
@@ -156,7 +156,7 @@ map<string, map <string, any> > widgets = $[
 
 map tabs_descr = $[
         "general":$[
-         "header"       : _("Global"),
+         "header"       : _("Service"),
          "contents"     :
                           `VBox(
                           `VStretch(),

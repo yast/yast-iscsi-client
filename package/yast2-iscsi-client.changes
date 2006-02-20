@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Feb 20 10:57:22 CET 2006 - mzugec@suse.cz
+
+- fixed #148949 - Global->Service + proofread 
+
+-------------------------------------------------------------------
 Fri Feb 17 18:02:22 CET 2006 - mzugec@suse.cz
 
 - fixed #151868 - authentication into target 

@@ -2,7 +2,7 @@
 
 
 @HEADER@
-BuildRequires:	yast2-devel-packages
+BuildRequires:	docbook-xsl-stylesheets doxygen libxslt perl-XML-Writer popt-devel sgml-skel update-desktop-files yast2 yast2-devtools yast2-packagemanager-devel yast2-perl-bindings yast2-testsuite
 Requires:	yast2
 
 BuildArchitectures:	noarch

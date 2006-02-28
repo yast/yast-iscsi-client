@@ -31,6 +31,8 @@ include "iscsi-client/wizards.ycp";
 /* main ui function */
 any ret = nil;
 
+y2internal("before check initiator name");
+IscsiClient::checkInitiatorName();
 //SCR::Execute(.background.run_output_err, "modprobe iscsi_tcp");
 ModuleLoading::Load("iscsi_tcp", "", "", "", false, true);
 SCR::Execute(.background.run_output_err, "iscsid");

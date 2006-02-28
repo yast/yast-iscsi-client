@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Feb 28 16:26:29 CET 2006 - mzugec@suse.cz
+
+- fixed #154123 create /etc/initiatorname.iscsi in installation 
+
+-------------------------------------------------------------------
 Mon Feb 20 10:57:22 CET 2006 - mzugec@suse.cz
 
 - fixed #148949 - Global->Service + proofread 

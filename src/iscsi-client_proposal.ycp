@@ -62,9 +62,9 @@ else if(func == "AskUser") {
 else if(func == "Description") {
     ret = $[
 	/* Rich text title for IscsiClient in proposals */
-	"rich_text_title" : _("iSCSI Client"),
+	"rich_text_title" : _("iSCSI Initiator"),
 	/* Menu title for IscsiClient in proposals */
-	"menu_title" : _("&iSCSI Client"),
+	"menu_title" : _("&iSCSI Initiator"),
 	"id" : "iscsi-client",
     ];
 }

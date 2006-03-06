@@ -199,7 +199,7 @@ y2milestone("%1 not exist, create", file);
 boolean installed_packages(){
  boolean ret = false;
   if( !Package::InstallMsg( "open-iscsi",
-            _("<p>To configure the iSCSI client, the <b>%1</b> package must be installed.</p>") +
+            _("<p>To configure the iSCSI initiator, the <b>%1</b> package must be installed.</p>") +
             _("<p>Install it now?</p>")) )
         {
         Popup::Error( Message::CannotContinueWithoutPackagesInstalled() );
@@ -293,7 +293,7 @@ boolean setServiceStatus(){
 global boolean Read() {
 
     /* IscsiClient read dialog caption */
-    string caption = _("Initializing iSCSI Client Configuration");
+    string caption = _("Initializing iSCSI Initiator Configuration");
 
     // TODO FIXME Set the right number of stages
     integer steps = 4;
@@ -372,7 +372,7 @@ y2internal("Check initiator name");
 global boolean Write() {
 
     /* IscsiClient read dialog caption */
-    string caption = _("Saving iSCSI Client Configuration");
+    string caption = _("Saving iSCSI Initiator Configuration");
 
     // TODO FIXME And set the right number of stages
     integer steps = 2;

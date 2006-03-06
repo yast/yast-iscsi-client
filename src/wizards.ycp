@@ -120,7 +120,7 @@ any IscsiClientSequence() {
 any IscsiClientAutoSequence() {
 
     /* Initialization dialog caption */
-    string caption = _("iSCSI Client Configuration");
+    string caption = _("iSCSI Initiator Configuration");
     /* Initialization dialog contents */
     term contents = `Label(_("Initializing..."));
 

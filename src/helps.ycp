@@ -45,7 +45,7 @@ Configure an iSCSI initiator here.<br></p>
 
     /* Summary dialog help 2/3 */
     _("<p><b><big>Adding an iSCSI Initiator</big></b><br>
-Select an iSCSI initiator from the list of detected clients.
+Select an iSCSI initiator from the list of detected initiators.
 If your iSCSI initiator was not detected, use <b>Other (not detected)</b>.
 Then press <b>Configure</b>.</p>
 ") +

@@ -17,7 +17,7 @@ textdomain "iscsi-client";
 map HELPS = $[
 
     /* Read dialog help 1/2 */
-    "read" : _("<p><b><big>Initializing iSCSI Client Configuration</big></b><br>
+    "read" : _("<p><b><big>Initializing iSCSI Initiator Configuration</big></b><br>
 Please wait...<br></p>
 ") +
 
@@ -27,7 +27,7 @@ Safely abort the configuration utility by pressing <b>Abort</b> now.</p>
 "),
 
     /* Write dialog help 1/2 */
-    "write" : _("<p><b><big>Saving iSCSI Client Configuration</big></b><br>
+    "write" : _("<p><b><big>Saving iSCSI Initiator Configuration</big></b><br>
 Please wait...<br></p>
 ") +
 
@@ -39,14 +39,14 @@ An additional dialog informs whether it is safe to do so.
 "),
 
     /* Summary dialog help 1/3 */
-    "summary" : _("<p><b><big>iSCSI Client Configuration</big></b><br>
-Configure an iSCSI client here.<br></p>
+    "summary" : _("<p><b><big>iSCSI Initiator Configuration</big></b><br>
+Configure an iSCSI initiator here.<br></p>
 ") +
 
     /* Summary dialog help 2/3 */
-    _("<p><b><big>Adding an iSCSI Client</big></b><br>
-Select an iSCSI client from the list of detected clients.
-If your iSCSI client was not detected, use <b>Other (not detected)</b>.
+    _("<p><b><big>Adding an iSCSI Initiator</big></b><br>
+Select an iSCSI initiator from the list of detected clients.
+If your iSCSI initiator was not detected, use <b>Other (not detected)</b>.
 Then press <b>Configure</b>.</p>
 ") +
 
@@ -57,19 +57,19 @@ the configuration opens.</p>
 "),
 
     /* Ovreview dialog help 1/3 */
-    "overview" : _("<p><b><big>iSCSI Client Configuration Overview</big></b><br>
-Obtain an overview of installed iSCSI clients. Additionally
+    "overview" : _("<p><b><big>iSCSI Initiator Configuration Overview</big></b><br>
+Obtain an overview of installed iSCSI initiators. Additionally
 edit their configurations.<br></p>
 ") +
 
     /* Ovreview dialog help 2/3 */
-_("<p><b><big>Adding an iSCSI Client</big></b><br>
-Press <b>Add</b> to configure an iSCSI client.</p>
+_("<p><b><big>Adding an iSCSI Initiator</big></b><br>
+Press <b>Add</b> to configure an iSCSI initiator.</p>
 ") +
 
     /* Ovreview dialog help 3/3 */
 _("<p><b><big>Editing or Deleting</big></b><br>
-Choose an iSCSI Client to change or remove.
+Choose an iSCSI Initiator to change or remove.
 Then press <b>Edit</b> or <b>Delete</b> as desired.</p>
 "),
 
@@ -83,7 +83,7 @@ To change start-up status, press <b>Toggle</b>
 _("<h1>Warning</h1>") + _("<p>When accessing a iSCSI-device <b>READ</b>/<b>WRITE</b>please make sure that this access is exclusive. Otherwise the potential risk of data corruption is there.</p>
 "),
 
- "discovery"	: _("<h1>iSCSI Client</h1>") + _("Enter the <b>IP Address</b> of the discovered server.
+ "discovery"	: _("<h1>iSCSI Initiator</h1>") + _("Enter the <b>IP Address</b> of the discovered server.
 Only change <b>Port</b> if needed. For authentication, use <b>Username</b> and <b>Password</b>. If you do not need authentication,
 select <b>None</b>
 ") +
@@ -91,12 +91,12 @@ select <b>None</b>
 _("<h1>Warning</h1>") + _("<p>When accessing a iSCSI-device <b>READ</b>/<b>WRITE</b>please make sure that this access is exclusive. Otherwise the potential risk of data corruption is there.</p>
 "),
 
- "targets_table" : _("<h1>iSCSI Client</h1>") 
+ "targets_table" : _("<h1>iSCSI Initiator</h1>") 
 			+ _("List of nodes offered by the iSCSI target. Select one item and click <b>Connect</b>.  "),
 
- "conn_auth"	: _("<h1>iSCSI Client</h1>") +_("Select the type of authentication and enter the <b>Username</b> and <b>Password</b>."),
+ "conn_auth"	: _("<h1>iSCSI Initiator</h1>") +_("Select the type of authentication and enter the <b>Username</b> and <b>Password</b>."),
 
- "discovered"	: _("<h1>iSCSI Client</h1>") +_("List of discovered targets. Start a new <b>Discovery</b> or <b>Connect</b> to any target."),
+ "discovered"	: _("List of discovered targets. Start a new <b>Discovery</b> or <b>Connect</b> to any target."),
 
 ];
 

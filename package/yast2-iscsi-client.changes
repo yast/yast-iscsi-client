@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Mar  6 09:48:30 CET 2006 - mzugec@suse.cz
+
+- #155273  - IscsiClient -> Iscsi Initiator
+
+-------------------------------------------------------------------
 Tue Feb 28 16:26:29 CET 2006 - mzugec@suse.cz
 
 - fixed #154123 create /etc/initiatorname.iscsi in installation 

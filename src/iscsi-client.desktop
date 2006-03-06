@@ -19,6 +19,6 @@ X-SuSE-YaST-AutoInstResource=iscsi-client
 Icon=yast-iscsi-client
 Exec=/sbin/yast2 iscsi-client 
 
-Name=IscsiClient
+Name=Iscsi Initiator
 GenericName=iscsi-client
 X-KDE-SubstituteUID=true

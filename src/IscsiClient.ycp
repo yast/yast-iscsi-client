@@ -335,12 +335,12 @@ global boolean Read() {
 	""
     );
 
-y2internal("Check initiator name");
     // read database
-    if(!checkInitiatorName()) return false;
     Progress::NextStage();
-    /* Error message */
     if(!installed_packages()) return false;
+    /* Error message */
+y2internal("Check initiator name");
+    if(!checkInitiatorName()) return false;
     sleep(sl);
 
     // read another database

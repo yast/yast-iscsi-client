@@ -23,13 +23,25 @@ import "Service";
 import "Package";
 import "Popup";
 import "Stage";
-import "Service";
 
 global list <string> sessions = [];
 global list <string> discovered = [];
 global list <string> targets = [];
 boolean serviceStatus = false;
 map<string, any> config = $[];
+
+
+global boolean GetStartService() {
+
+ return Service::Enabled("open-iscsi");
+}
+
+global void SetStartService(boolean status) {
+ if (status == true) Service::Enable("open-iscsi");
+        else Service::Disable("open-iscsi");
+}
+
+
 
 global list <map<string, any> > getConfig(){
  config = (map<string, any>) SCR::Read(.etc.iscsid.all);
@@ -282,7 +294,7 @@ y2internal("Service status = %1", serviceStatus);
 
 boolean setServiceStatus(){
  boolean ret = true;
- if (!serviceStatus) Service::Stop("open-iscsi");
+ if (!GetStartService()) Service::Stop("open-iscsi");
  return ret;
 }
 
@@ -472,15 +484,6 @@ global map AutoPackages() {
     return $[ "install":[], "remove":[] ];
 }
 
-global boolean GetStartService() {
-
- return Service::Enabled("open-iscsi");
-}
-
-global void SetStartService(boolean status) {
- if (status == true) Service::Enable("open-iscsi");
-        else Service::Disable("open-iscsi");
-}
 
 
 

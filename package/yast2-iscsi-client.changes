@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Mar 21 09:54:21 CET 2006 - mzugec@suse.cz
+
+- fixed #159666 - move to net services group 
+
+-------------------------------------------------------------------
 Mon Mar 13 18:31:54 CET 2006 - mzugec@suse.cz
 
 - fixed #157634 - install package 

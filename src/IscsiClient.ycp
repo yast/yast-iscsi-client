@@ -23,6 +23,7 @@ import "Service";
 import "Package";
 import "Popup";
 import "Stage";
+import "Confirm";
 
 global list <string> sessions = [];
 global list <string> discovered = [];
@@ -194,8 +195,6 @@ global boolean checkInitiatorName(){
 y2milestone("Check %1", file);
  if (size((map<string, any>)SCR::Read (.target.lstat, file)) == 0){
 y2milestone("%1 not exist, create", file);
-//  ret = (boolean)SCR::Write (.target.string, file, "InitiatorName=iqn.2006-01.de.suse:01.e173f52f5766\n");
-//  SCR::Execute (.target.bash, "chmod 0600 $FILE" ,$["FILE":file]);
  map<string, any> output = (map<string, any>)SCR::Execute (.target.bash_output,
 								"/sbin/iscsi-iname -p iqn.`date +%Y-%m`.de.suse:01", $[]);
  if (size(output["stderr"]:"")==0){
@@ -331,6 +330,12 @@ global boolean Read() {
 	""
     );
 
+    // detect devices
+    if(!Confirm::MustBeRoot()) return false;
+    Progress::NextStage();
+    if(false) return false;
+    sleep(sl);
+
     // read database
     Progress::NextStage();
     if(!installed_packages()) return false;
@@ -355,12 +360,6 @@ y2milestone("Check initiator name");
 	Report::Error( Message::CannotReadCurrentSettings() );
 	return false;
 	}
-    sleep(sl);
-
-    // detect devices
-    if(Abort()) return false;
-    Progress::NextStage();
-    if(false) return false;
     sleep(sl);
 
     if(Abort()) return false;

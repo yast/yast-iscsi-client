@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Mar 23 15:47:29 CET 2006 - mzugec@suse.cz
+
+- fixed #160315 - check if user is root
+
+-------------------------------------------------------------------
 Thu Mar 23 13:24:48 CET 2006 - mzugec@suse.cz
 
 - fixed #158539 - possibility to remove target 

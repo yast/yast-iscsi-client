@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Mar 23 13:24:48 CET 2006 - mzugec@suse.cz
+
+- fixed #158539 - possibility to remove target 
+
+-------------------------------------------------------------------
 Tue Mar 21 09:54:21 CET 2006 - mzugec@suse.cz
 
 - fixed #159666 - move to net services group 

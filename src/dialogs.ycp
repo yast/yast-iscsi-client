@@ -45,7 +45,7 @@ map<string, map <string, any> > widgets = $[
 		"widget" : `custom,
 		"custom_widget"	:
 		 `VBox(
-		  `Table(`id(`connected),
+		  `Table(`id(`connected), `opt(`notify, `immediate ),
 			`header(_("Portal Address"), _("Target Name"), _("Start-Up")),
 			[]
 			),
@@ -63,13 +63,14 @@ map<string, map <string, any> > widgets = $[
 		"widget" : `custom,
 		"custom_widget"	:
 		 `VBox(
-		  `Table(`id(`discovered),
+		  `Table(`id(`discovered), `opt(`notify, `immediate ),
 			`header(_("Portal Address"), _("Target Name"), _("Connected")),
 			[]
 			),
 		  `Left(`HBox(
 			`PushButton(`id(`discovery), _("Discovery")),
-			`PushButton(`id(`connect), _("Log In"))
+			`PushButton(`id(`connect), _("Log In")),
+			`PushButton(`id(`delete), Label::DeleteButton())
 
 			))
 		  ),

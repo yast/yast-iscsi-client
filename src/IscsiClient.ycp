@@ -167,7 +167,6 @@ global boolean Modified() {
 
 global list<string> getDiscovered(){
     map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -m node");
-    y2internal("retcode %1", retcode);
 	if (size(retcode["stderr"]:"")>0) {
 	 discovered=[];
 	} else
@@ -181,7 +180,6 @@ global list<string> getDiscovered(){
 global boolean readSessions(){
 y2milestone("reading current settings");
     map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -m session");
-    y2internal("retcode %1", retcode);
 	if (size(retcode["stderr"]:"")>0) return false;
       sessions = filter(string row, splitstring(retcode["stdout"]:"", "\n"), {
                         return ( size(row)>0 && (search(row, "session")==nil) );
@@ -226,7 +224,6 @@ global boolean deleteRecord(string record){
  y2milestone("Deleting record %1", record);
 
     map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, sformat("iscsiadm -m node -r %1 --logout", record));
-    y2internal("retcode %1", retcode);
         if (size(retcode["stderr"]:"")>0) return false;
 
  readSessions();
@@ -238,7 +235,6 @@ global string getStartupStatus(string record){
  string status = "";
  y2milestone("Getting status of record %1", record);
      map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, sformat("iscsiadm -m node -r %1 ", record));
-    y2internal("retcode %1", retcode);
     if (size(retcode["stderr"]:"")>0) return "";
     foreach(string row, splitstring(retcode["stdout"]:"", "\n"), {
      if (issubstring(row, "node.conn[0].startup")){
@@ -287,7 +283,7 @@ global boolean setStartupStatus(string record, string status){
 boolean getServiceStatus(){
  boolean ret = true;
  if (Service::Status("open-iscsi") == 0) serviceStatus=true;
-y2internal("Service status = %1", serviceStatus);
+y2milestone("Service status = %1", serviceStatus);
  if (!serviceStatus) Service::Start("open-iscsi");
  return ret;
 }
@@ -339,7 +335,7 @@ global boolean Read() {
     Progress::NextStage();
     if(!installed_packages()) return false;
     /* Error message */
-y2internal("Check initiator name");
+y2milestone("Check initiator name");
     if(!checkInitiatorName()) return false;
     sleep(sl);
 

@@ -144,6 +144,15 @@ symbol handleConnectedTable (string key, map event){
 		break;
   }
  }
+ if( getRecord() == ""){
+   UI::ChangeWidget (`id (`del), `Enabled, false);
+   UI::ChangeWidget (`id (`toggle), `Enabled, false);
+
+  } else {
+   UI::ChangeWidget (`id (`del), `Enabled, true);
+   UI::ChangeWidget (`id (`toggle), `Enabled, true);
+
+	}
  return nil;
 }
 
@@ -248,8 +257,22 @@ boolean validateServerLocation(any key, map event){
 
 
 // ********************* discovered table *******************
+
+boolean setDiscoveredButtons(){
+   list <string> params = [];
+   any selected = UI::QueryWidget(`discovered, `CurrentItem);
+   if (selected != nil) { params = splitstring( IscsiClient::discovered[tointeger(selected)]:"", " " ); }
+        else  { params = []; }
+ if ((params==[])||(IscsiClient::connected(params[1]:"", params[2]:""))){
+   UI::ChangeWidget (`id (`connect), `Enabled, false);
+   UI::ChangeWidget (`id (`delete), `Enabled, false);
+  } else{
+	   UI::ChangeWidget (`id (`connect), `Enabled, true);
+	   UI::ChangeWidget (`id (`delete), `Enabled, true);
+	}
+}
+
 void initDiscoveredTable(string key){
-//     current_tab = "discovered";
      list <term> items = [];
      integer row = 0;
      foreach(string s, IscsiClient::getDiscovered(), {
@@ -259,15 +282,20 @@ void initDiscoveredTable(string key){
 		(IscsiClient::connected(row_in_string[1]:"", row_in_string[2]:""))?_("True"):_("False") ));
       row = row + 1;
      });
-        UI::ChangeWidget (`id (`discovered), `Items, items);
-        UI::SetFocus (`id (`discovered));
+
+  UI::ChangeWidget (`id (`discovered), `Items, items);
+  UI::SetFocus (`id (`discovered));
+  setDiscoveredButtons();
 }
 
 symbol handleDiscoveredTable (string key, map event){
+   list <string> params = [];
+   any selected = UI::QueryWidget(`discovered, `CurrentItem);
+   if (selected != nil) { params = splitstring( IscsiClient::discovered[tointeger(selected)]:"", " " ); }
+	else  { params = []; }
+   curr_rec = deletechars(params[0]:"", "[]");
  if ( event["EventReason"]:"" == "Activated" ){
   if ( event["ID"]:nil == `connect) {
-   list <string> params = splitstring( IscsiClient::discovered[(integer)UI::QueryWidget(`discovered, `CurrentItem)]:"", " " );
-   curr_rec = deletechars(params[0]:"", "[]");
    if ( IscsiClient::connected(params[1]:"", params[2]:"") == true){
      Popup::Error(_("The target is already connected."));
      return nil;
@@ -277,7 +305,18 @@ symbol handleDiscoveredTable (string key, map event){
   if ( event["ID"]:nil == `discovery) {
    return `disc;
   }
+  if ( event["ID"]:nil == `delete) {
+   if ((params == [])||(!IscsiClient::connected(params[1]:"", params[2]:""))){
+	 SCR::Execute (.target.bash_output,sformat("iscsiadm -m node -r %1 --op=delete", deletechars(params[0]:"", "[]")), $[] );
+	 IscsiClient::readSessions();
+	 initDiscoveredTable("");
+   if (selected != nil) { params = splitstring( IscsiClient::discovered[tointeger(selected)]:"", " " ); }
+        else  { params = []; }
+
+	}
+  }
  }
+ setDiscoveredButtons();
  return nil;
 }
 

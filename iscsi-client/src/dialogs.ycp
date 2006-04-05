@@ -1,0 +1,319 @@
+/**
+ * File:	include/iscsi-client/dialogs.ycp
+ * Package:	Configuration of iscsi-client
+ * Summary:	Dialogs definitions
+ * Authors:	Michal Zugec <mzugec@suse.cz>
+ *
+ * $Id$
+ */
+
+{
+
+textdomain "iscsi-client";
+
+import "Label";
+import "Wizard";
+import "IscsiClient";
+import "CWMServiceStart";
+import "CWMFirewallInterfaces";
+import "CWMTab";
+import "CWM";
+import "Stage";
+
+string current_tab = "general";
+
+include "iscsi-client/helps.ycp";
+include "iscsi-client/widgets.ycp";
+
+map<string, map <string, any> > widgets = $[
+            "auto_start_up" : CWMServiceStart::CreateAutoStartWidget ($[
+                "get_service_auto_start" : IscsiClient::GetStartService,
+                "set_service_auto_start" : IscsiClient::SetStartService,
+                // radio button (starting SLP service - option 1)
+                "start_auto_button" : _("When &Booting"),
+                // radio button (starting SLP service - option 2)
+                "start_manual_button" : _("&Manually"),
+                "help" : sformat (CWMServiceStart::AutoStartHelpTemplate (),
+                    // part of help text, used to describe radiobuttons (matching starting SLP service but without "&")
+                    _("When Booting"),
+                    // part of help text, used to describe radiobuttons (matching starting SLP service but without "&")
+                    _("Manually")
+                ),
+            ]),
+
+       "connected_table" : $[
+		"widget" : `custom,
+		"custom_widget"	:
+		 `VBox(
+		  `Table(`id(`connected), `opt(`notify, `immediate ),
+			`header(_("Portal Address"), _("Target Name"), _("Start-Up")),
+			[]
+			),
+		  `Left(`HBox(
+			`PushButton(`id(`add), _("Add")),
+			`PushButton(`id(`del), _("Log Out")),
+			`PushButton(`id(`toggle), _("Toggle Start-Up"))
+			))
+		  ),
+		"init"	: initConnectedTable,
+		"handle" : handleConnectedTable,
+		"help"	: HELPS["server_table"]:""
+		],
+       "discovered_table" : $[
+		"widget" : `custom,
+		"custom_widget"	:
+		 `VBox(
+		  `Table(`id(`discovered), `opt(`notify, `immediate ),
+			`header(_("Portal Address"), _("Target Name"), _("Connected")),
+			[]
+			),
+		  `Left(`HBox(
+			`PushButton(`id(`discovery), _("Discovery")),
+			`PushButton(`id(`connect), _("Log In")),
+			`PushButton(`id(`delete), Label::DeleteButton())
+
+			))
+		  ),
+		"help"	: HELPS["discovered"]:"",
+		"init" : initDiscoveredTable,
+		"handle" : handleDiscoveredTable
+		],
+       "targets_table" : $[
+		"widget" : `custom,
+		"custom_widget"	:
+		 `VBox(
+		  `Table(`id(`targets),
+			`header(_("Portal Address"), _("Target Name"), _("Connected")),
+			[]
+			),
+		  `Left(`HBox(
+//			`PushButton(_("Discovery")),
+			`PushButton(`id(`connect), _("Connect"))
+
+			))
+		  ),
+		"init" : initTargetTable,
+		"handle" : handleTargetTable
+		],
+	"discovery_auth" : $[
+               "widget" : `custom,
+                "custom_widget" :
+                 `VBox(
+			`Left( `CheckBox(`id(`auth_none),`opt(`notify), _("No Authentication"), true) ),
+			`VSpacing(2),
+			`Left( `CheckBox(`id(`auth_in),`opt(`notify), _("Incoming Authentication"), false) ),
+			`HBox(
+				`TextEntry(`id(`user_in), _("Username")), `Password(`id(`pass_in), _("Password"))
+			  ),
+			`VSpacing(2),
+			`Left( `CheckBox(`id(`auth_out),`opt(`notify), _("Outgoing Authentication"), false) ),
+			`HBox(
+				`TextEntry(`id(`user_out), _("Username")), `Password(`id(`pass_out), _("Password"))
+			  )
+                  ),
+		"init"	: initDiscAuth,
+		"handle" : handleDiscAuth,
+		"validate_type" : `function,
+		"validate_function" : validateDiscAuth,
+		"help"	:	HELPS["conn_auth"]:""
+	],
+	"conn_auth" : $[
+               "widget" : `custom,
+                "custom_widget" :
+                 `VBox(
+			`Left( `CheckBox(`id(`auth_none),`opt(`notify), _("No Authentication"), true) ),
+			`VSpacing(2),
+			`Left( `CheckBox(`id(`auth_in),`opt(`notify), _("Incoming Authentication"), false) ),
+			`HBox(
+				`TextEntry(`id(`user_in), _("Username")), `Password(`id(`pass_in), _("Password"))
+			  ),
+			`VSpacing(2),
+			`Left( `CheckBox(`id(`auth_out),`opt(`notify), _("Outgoing Authentication"), false) ),
+			`HBox(
+				`TextEntry(`id(`user_out), _("Username")), `Password(`id(`pass_out), _("Password"))
+			  )
+                  ),
+		"init"  : initDiscAuth,
+		"handle" : handleDiscAuth,
+		"validate_type" : `function,
+		"validate_function" : validateConnAuth,
+		"help"	: HELPS["conn_auth"]:""
+	],
+	"server_location" : $[
+		"widget" : `custom,
+		"custom_widget" : `HBox(
+		`TextEntry(`id(`hostname), _("IP Address")),
+                `IntField(`id(`port), _("Port"), 0,65535,3260)
+		),
+                   "validate_type" : `function,
+                   "validate_function" : validateServerLocation
+	]
+    ];
+
+
+map tabs_descr = $[
+        "general":$[
+         "header"       : _("Service"),
+         "contents"     :
+                          `VBox(
+                          `VStretch(),
+                          `HBox(
+                           `HStretch(),
+                           `HSpacing (1),
+                            `VBox(
+                                "auto_start_up",
+                                `VSpacing (2)
+                                ),
+                           `HSpacing (1),
+                           `HStretch()
+                              ),
+                          `VStretch()
+                        ),
+         "widget_names" : [ "auto_start_up" ]
+        ],
+
+        "client":$[
+         "header"       : _("Connected Targets"),
+         "contents"     :
+                          `VBox(
+                          `VStretch(),
+                          `HBox(
+                           `HSpacing (1),
+                            `VBox(
+                                "connected_table"
+                                 ),
+                           `HSpacing (1)
+                               ),
+                          `VStretch()
+                        ),
+         "widget_names" : [ "connected_table" ]
+        ],
+        "discovered":$[
+         "header"       : _("Discovered Targets"),
+         "contents"     :
+                         `VBox(
+                          `VStretch(),
+                          `HBox(
+                           `HSpacing (1),
+                            `VBox(
+                                "discovered_table"
+                                 ),
+                           `HSpacing (1)
+                               ),
+                          `VStretch()
+                        ),
+         "widget_names" : [ "discovered_table" ]
+        ]
+      ];
+
+
+
+
+any GlobalDialog() {
+    string caption = _("iSCSI Initiator Overview");
+
+    map widget_descr = $[
+	"tab": CWMTab::CreateWidget($[
+            "tab_order": (Stage::initial()) ? ["client"] : [ "general", "client", "discovered" ],
+            "tabs": tabs_descr,
+            "widget_descr": widgets,
+            "initial_tab" : (Stage::initial()) ? "client" : current_tab,
+            "tab_help" : _("<h1>iSCSI Initiator</h1>"),
+        ]),
+    ];
+
+    term contents = `VBox( "tab" );
+    list<map <string, any> > w = CWM::CreateWidgets (["tab"], (map <string, map <string, any> >)widget_descr);
+    string help = CWM::MergeHelps(w);
+    contents = CWM::PrepareDialog(contents, w);
+    Wizard::SetContentsButtons(caption, contents, help, Label::NextButton (), Label::FinishButton ());
+    Wizard::HideBackButton();
+    symbol ret = CWM::Run(w, $[`abort:ReallyAbort ]);
+    return ret;
+}
+
+any DiscAuthDialog (string return_to){
+     current_tab = return_to;
+    string caption = _("iSCSI Initiator Discovery"); // bug #148963 _("iSCSI Target Login");
+    list<map <string, any> > w = CWM::CreateWidgets (["server_location", "discovery_auth"],
+								(map <string, map <string, any> >)widgets);
+        term contents =
+                          `VBox(
+                          `VStretch(),
+                          `HBox(
+                           `HStretch(),
+                           `HSpacing (1),
+                            `VBox(
+                                w[0, "widget"]:`VSpacing (1),
+                                `VSpacing (2),
+                                w[1, "widget"]:`VSpacing (1),
+                                `VSpacing (2)
+                                ),
+                           `HSpacing (1),
+                           `HStretch()
+                               ),
+                          `VStretch()
+                        );
+
+    string help = CWM::MergeHelps(w);
+    contents = CWM::PrepareDialog(contents, w);
+    Wizard::SetContentsButtons(caption, contents, HELPS["discovery"]:"",
+            Label::BackButton(), Label::NextButton());
+
+    any ret = CWM::Run(w, $[`abort:ReallyAbort ]);
+    return ret;
+}
+
+
+any TargetsDialog(){
+     current_tab = "client";
+    string caption = _("iSCSI Initiator Discovery");
+    list<map <string, any> > w = CWM::CreateWidgets (["targets_table"], (map <string, map <string, any> >)widgets);
+        term contents =`VBox(
+                          `VStretch(),
+                          `HBox(
+                           `HSpacing (1),
+                            `VBox(
+                                w[0, "widget"]:`VSpacing (1)
+                                 ),
+                           `HSpacing (1)
+                               ),
+                          `VStretch()
+                        );
+    string help = CWM::MergeHelps(w);
+    contents = CWM::PrepareDialog(contents, w);
+    Wizard::SetContentsButtons(caption, contents, HELPS["targets_table"]:"", Label::BackButton(), Label::NextButton());
+    any ret = CWM::Run(w, $[`abort:ReallyAbort ]);
+    return ret;
+}
+
+any ConnAuthDialog(string return_to){
+     current_tab = return_to;
+    string caption = _("iSCSI Initiator Discovery");
+    list<map <string, any> > w = CWM::CreateWidgets (["conn_auth"], (map <string, map <string, any> >)widgets);
+        term contents =
+                          `VBox(
+                          `VStretch(),
+                          `HBox(
+                           `HStretch(),
+                           `HSpacing (1),
+                            `VBox(
+                                w[0, "widget"]:`VSpacing (1),
+				`VSpacing (2)
+                                ),
+                           `HSpacing (1),
+                           `HStretch()
+                               ),
+                          `VStretch()
+                        );
+
+    string help = CWM::MergeHelps(w);
+    contents = CWM::PrepareDialog(contents, w);
+    Wizard::SetContentsButtons(caption, contents, HELPS["conn_auth"]:"", Label::BackButton(), Label::NextButton());
+    any ret = CWM::Run(w, $[`abort:ReallyAbort ]);
+    return ret;
+}
+
+
+/* EOF */
+}

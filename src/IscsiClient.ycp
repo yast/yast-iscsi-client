@@ -289,7 +289,10 @@ y2milestone("Service status = %1", serviceStatus);
 
 boolean setServiceStatus(){
  boolean ret = true;
- if (!GetStartService()) Service::Stop("open-iscsi");
+ if (!GetStartService()){
+	 readSessions();
+	 if (size(sessions)==0) Service::Stop("open-iscsi");
+	}
  return ret;
 }
 

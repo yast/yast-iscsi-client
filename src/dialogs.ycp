@@ -41,6 +41,7 @@ map<string, map <string, any> > widgets = $[
                 ),
             ]),
 
+	// table of connected targets
        "connected_table" : $[
 		"widget" : `custom,
 		"custom_widget"	:
@@ -59,6 +60,8 @@ map<string, map <string, any> > widgets = $[
 		"handle" : handleConnectedTable,
 		"help"	: HELPS["server_table"]:""
 		],
+
+	// table of discovered targets
        "discovered_table" : $[
 		"widget" : `custom,
 		"custom_widget"	:
@@ -78,6 +81,8 @@ map<string, map <string, any> > widgets = $[
 		"init" : initDiscoveredTable,
 		"handle" : handleDiscoveredTable
 		],
+
+	// dialog for all targets from portal (connected/disconnected)
        "targets_table" : $[
 		"widget" : `custom,
 		"custom_widget"	:
@@ -87,7 +92,6 @@ map<string, map <string, any> > widgets = $[
 			[]
 			),
 		  `Left(`HBox(
-//			`PushButton(_("Discovery")),
 			`PushButton(`id(`connect), _("Connect"))
 
 			))
@@ -95,6 +99,8 @@ map<string, map <string, any> > widgets = $[
 		"init" : initTargetTable,
 		"handle" : handleTargetTable
 		],
+
+	// authentification dialog for add/discovery target
 	"discovery_auth" : $[
                "widget" : `custom,
                 "custom_widget" :
@@ -117,6 +123,8 @@ map<string, map <string, any> > widgets = $[
 		"validate_function" : validateDiscAuth,
 		"help"	:	HELPS["conn_auth"]:""
 	],
+
+	// authentication dialog for add target
 	"conn_auth" : $[
                "widget" : `custom,
                 "custom_widget" :
@@ -139,6 +147,8 @@ map<string, map <string, any> > widgets = $[
 		"validate_function" : validateConnAuth,
 		"help"	: HELPS["conn_auth"]:""
 	],
+
+	// widget for portal address
 	"server_location" : $[
 		"widget" : `custom,
 		"custom_widget" : `HBox(
@@ -152,6 +162,8 @@ map<string, map <string, any> > widgets = $[
 
 
 map tabs_descr = $[
+
+	// service status dialog
         "general":$[
          "header"       : _("Service"),
          "contents"     :
@@ -172,6 +184,7 @@ map tabs_descr = $[
          "widget_names" : [ "auto_start_up" ]
         ],
 
+	// list og connected targets
         "client":$[
          "header"       : _("Connected Targets"),
          "contents"     :
@@ -188,6 +201,8 @@ map tabs_descr = $[
                         ),
          "widget_names" : [ "connected_table" ]
         ],
+
+	// list of discovered targets
         "discovered":$[
          "header"       : _("Discovered Targets"),
          "contents"     :
@@ -208,7 +223,7 @@ map tabs_descr = $[
 
 
 
-
+// main tabbed dialog
 any GlobalDialog() {
     string caption = _("iSCSI Initiator Overview");
 
@@ -232,6 +247,7 @@ any GlobalDialog() {
     return ret;
 }
 
+// authentication dialog for add new target
 any DiscAuthDialog (string return_to){
      current_tab = return_to;
     string caption = _("iSCSI Initiator Discovery"); // bug #148963 _("iSCSI Target Login");
@@ -264,7 +280,7 @@ any DiscAuthDialog (string return_to){
     return ret;
 }
 
-
+// list of connected targets
 any TargetsDialog(){
      current_tab = "client";
     string caption = _("iSCSI Initiator Discovery");
@@ -287,6 +303,7 @@ any TargetsDialog(){
     return ret;
 }
 
+// authentication for connect to portal
 any ConnAuthDialog(string return_to){
      current_tab = return_to;
     string caption = _("iSCSI Initiator Discovery");

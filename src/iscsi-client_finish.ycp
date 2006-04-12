@@ -43,6 +43,7 @@ if (func == "Info")
 }
 else if (func == "Write")
 {
+  // write open-iscsi database of automatic connected targets
   WFM::Execute (.local.bash,"/bin/cp -a /var/lib/open-iscsi/* " + Installation::destdir + "/var/lib/open-iscsi/");
 }
 else

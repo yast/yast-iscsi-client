@@ -6,6 +6,7 @@
  boolean bg_finish = false;
 
 
+// function for run command in background
 list <string> runInBg(string command){
     bg_finish=false;
     y2milestone("Start command %1 in background", command);
@@ -15,7 +16,6 @@ list <string> runInBg(string command){
     if (!started) {
         y2error("Cannot run command");
 	stat = false;
-//        bg_finish=true;
         return [];
     }
     integer time_spent = 0;
@@ -34,7 +34,6 @@ list <string> runInBg(string command){
     stdout = (list<string>)(SCR::Read(.background.newout));
     if (cont_loop) {
 	return_code = (integer) SCR::Read(.background.status);
-//	y2error("%1", SCR::Read(.background.newerr) );
 	if (return_code == 255) {
 		stat = false;
 		Popup::Error( ( (list<string>)SCR::Read(.background.newerr) )[0]:"" );
@@ -49,6 +48,7 @@ list <string> runInBg(string command){
  return stdout;
 }
 
+// validation for authentication dialog entry
 boolean checkAuthEntry(){
  boolean ret = true;
  boolean auth_none = (boolean) UI::QueryWidget(`id(`auth_none), `Value);
@@ -89,7 +89,7 @@ boolean checkAuthEntry(){
 }
 
 
-// connected table
+// init table of connected sessions
 void initConnectedTable(string key){
     if (IscsiClient::readSessions()== false) Popup::Error("Error While Connecting iscsid");
      list <term> items = [];
@@ -102,9 +102,9 @@ void initConnectedTable(string key){
      });
         UI::ChangeWidget (`id (`connected), `Items, items);
         UI::SetFocus (`id (`connected));
-
 }
 
+// get record identificator from selected row
 string getRecord(){
  string record = "";
  any sel_item = UI::QueryWidget(`id(`connected), `CurrentItem);
@@ -116,13 +116,17 @@ string getRecord(){
  return record;
 }
 
+// handle for table of connected sessions
 symbol handleConnectedTable (string key, map event){
  if (event["EventReason"]:"" == "Activated"){
  string record = "";
  switch((symbol)event["ID"]:nil){
   case(`add):
+		// add a new target, discovery
+		// goto DiscAuthDialog("client")) ()
 		return `add;
   case(`del):
+		// delete (logout from) connected target
 		record = getRecord();
 		if (size( record )>0){
 		  if (Popup::ContinueCancel(_("Really log out from the selected target?")))
@@ -131,6 +135,7 @@ symbol handleConnectedTable (string key, map event){
 		} else Popup::Error(_("No record found"));
 		break;
   case(`toggle):
+		// change manual/automatic status of connected target
 		record = getRecord();
 		if (size( record )>0){
 		y2milestone("toggle record %1", record);
@@ -144,6 +149,7 @@ symbol handleConnectedTable (string key, map event){
 		break;
   }
  }
+ // if nothing selected - disable some buttons, otherwise enable them
  if( getRecord() == ""){
    UI::ChangeWidget (`id (`del), `Enabled, false);
    UI::ChangeWidget (`id (`toggle), `Enabled, false);
@@ -158,6 +164,7 @@ symbol handleConnectedTable (string key, map event){
 
 // ***************** add table ***************************
 
+// set incoming widget status
 void setAuthIn(boolean status){
  UI::ChangeWidget(`id(`user_in),`Enabled, status );
  UI::ChangeWidget(`id(`pass_in),`Enabled, status );
@@ -165,6 +172,7 @@ void setAuthIn(boolean status){
  if(status) UI::ChangeWidget(`id(`auth_none),`Value, !status );
 }
 
+// set outgoing widget status
 void setAuthOut(boolean status){
  UI::ChangeWidget(`id(`user_out),`Enabled, status );
  UI::ChangeWidget(`id(`pass_out),`Enabled, status );
@@ -172,11 +180,13 @@ void setAuthOut(boolean status){
  if(status) UI::ChangeWidget(`id(`auth_none),`Value, !status );
 }
 
+// disable both incoming and outgoing
 void initDiscAuth(string key){
  setAuthIn(false);
  setAuthOut(false);
 }
 
+// handle for enable/disable widgets in authentication dialog
 symbol handleDiscAuth(string key, map event){
  if (event["EventReason"]:"" == "ValueChanged"){
  boolean status = false;
@@ -200,26 +210,28 @@ symbol handleDiscAuth(string key, map event){
 }
 
 boolean validateDiscAuth(any key, map event){
- boolean ret = true;
- if (!checkAuthEntry()) ret = false;
- return ret;
+ return checkAuthEntry();
 }
 // *******************Server Location ***********************
+
+// do discovery to selected portal
 boolean validateServerLocation(any key, map event){
  boolean ret = true;
  string ip = tostring(UI::QueryWidget(`hostname, `Value));
  string port = tostring(UI::QueryWidget(`port, `Value));
+ // validate IP address
  if (size(ip)==0) {
 		Popup::Error(_("Insert the IP address."));
 		UI::SetFocus(`hostname);
 		return false;
 		}
+ // validate port number
  if (size(port)==0) {
 		Popup::Error(_("Insert the port."));
 		UI::SetFocus(`port);
 		return false;
 		}
-
+ // store old config
  IscsiClient::getConfig();
 
  boolean auth_none = (boolean) UI::QueryWidget(`id(`auth_none), `Value);
@@ -245,11 +257,14 @@ boolean validateServerLocation(any key, map event){
   pass_out  = "";
  }
 
+ // write authentication data
  IscsiClient::saveConfig(user_in, pass_in, user_out, pass_out);
 
  bg_finish=false;
+ // discovery with authentication
  IscsiClient::targets = runInBg( sformat("iscsiadm -m discovery -t st -p %1:%2", ip, port) );
  while(!bg_finish){};
+ // restore old config
  IscsiClient::oldConfig();
 
  return stat;
@@ -258,6 +273,7 @@ boolean validateServerLocation(any key, map event){
 
 // ********************* discovered table *******************
 
+// enable [ connect, delete ] buttons only for not connected items
 boolean setDiscoveredButtons(){
    list <string> params = [];
    any selected = UI::QueryWidget(`discovered, `CurrentItem);
@@ -272,6 +288,7 @@ boolean setDiscoveredButtons(){
 	}
 }
 
+// initialize widget with discovered targets
 void initDiscoveredTable(string key){
      list <term> items = [];
      integer row = 0;
@@ -288,6 +305,7 @@ void initDiscoveredTable(string key){
   setDiscoveredButtons();
 }
 
+// handling widget with discovered targets
 symbol handleDiscoveredTable (string key, map event){
    list <string> params = [];
    any selected = UI::QueryWidget(`discovered, `CurrentItem);
@@ -295,16 +313,21 @@ symbol handleDiscoveredTable (string key, map event){
 	else  { params = []; }
    curr_rec = deletechars(params[0]:"", "[]");
  if ( event["EventReason"]:"" == "Activated" ){
+  // connect new target
   if ( event["ID"]:nil == `connect) {
+   // check if not already connected
    if ( IscsiClient::connected(params[1]:"", params[2]:"") == true){
      Popup::Error(_("The target is already connected."));
      return nil;
     }
+   // goto ConnAuthDialog("discovered") (initDiscAuth)
    return `conn;
   }
+  // discovery target ConnAuthDialog("client") (initDiscAuth)
   if ( event["ID"]:nil == `discovery) {
    return `disc;
   }
+  // delete connected item
   if ( event["ID"]:nil == `delete) {
    if ((params == [])||(!IscsiClient::connected(params[1]:"", params[2]:""))){
 	 SCR::Execute (.target.bash_output,sformat("iscsiadm -m node -r %1 --op=delete", deletechars(params[0]:"", "[]")), $[] );
@@ -312,7 +335,6 @@ symbol handleDiscoveredTable (string key, map event){
 	 initDiscoveredTable("");
    if (selected != nil) { params = splitstring( IscsiClient::discovered[tointeger(selected)]:"", " " ); }
         else  { params = []; }
-
 	}
   }
  }
@@ -321,6 +343,8 @@ symbol handleDiscoveredTable (string key, map event){
 }
 
 //******************* target table *************************
+
+// initialize dialog for all targets from portal (connected/disconnected)
 void initTargetTable(string key){
      list <term> items = [];
      integer row = 0;
@@ -335,14 +359,17 @@ void initTargetTable(string key){
         UI::SetFocus (`id (`targets));
 }
 
+// handle dialog for all targets from portal (connected/disconnected) - only connect button ;)
 symbol handleTargetTable (string key, map event){
  if ( event["EventReason"]:"" == "Activated" ){
   if ( event["ID"]:nil == `connect) {
+   // check if is not already connected
    list <string> params = splitstring( IscsiClient::targets[(integer)UI::QueryWidget(`targets, `CurrentItem)]:"", " " );
    if ( IscsiClient::connected(params[1]:"", params[2]:"") == true){
     Popup::Error(_("The target is already connected."));
    } else {
 	 curr_rec = deletechars(params[0]:"", "[]");
+	// goto ConnAuthDialog("discovered") (initDiscAuth())
 	 return `conn_auth;
 	}
   }
@@ -351,6 +378,8 @@ symbol handleTargetTable (string key, map event){
 }
 
 //***************** connection autentication *******************
+
+// login to target with authentication
 boolean validateConnAuth(any key, map event){
  boolean ret = true;
  boolean auth_none = (boolean) UI::QueryWidget(`id(`auth_none), `Value);

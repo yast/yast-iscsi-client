@@ -33,11 +33,14 @@ map<string, any> config = $[];
 
 // get accessor for service status
 global boolean GetStartService() {
- return Service::Enabled("open-iscsi");
+ boolean status = Service::Enabled("open-iscsi");
+ y2milestone("Status of open-iscsi %1", status);
+ return status;
 }
 
 // set accessor for service status
 global void SetStartService(boolean status) {
+ y2milestone("Set status of open-iscsi to %1", status);
  if (status == true) Service::Enable("open-iscsi");
         else Service::Disable("open-iscsi");
 }
@@ -46,11 +49,13 @@ global void SetStartService(boolean status) {
 // read configuration file
 global list <map<string, any> > getConfig(){
  config = (map<string, any>) SCR::Read(.etc.iscsid.all);
+ y2milestone("read config %1", config);
  return config["value"]:[];
 }
 
 // write temporary changed old config
 global void oldConfig(){
+ y2milestone("Store temporary config");
  SCR::Write(.etc.iscsid.all, config);
 }
 
@@ -86,6 +91,7 @@ list <map<string, any> > setOrAdd(list <map<string, any> > old_list, string key,
 
 // delete record with given key
 list <map<string, any> > delete(list <map<string, any> > old_list, string key){
+ y2milestone("Delete record for %1", key);
  list <map<string, any> > new_list = [];
  foreach(map<string, any> row, old_list, {
   if (row["name"]:"" != key) new_list = add(new_list, row);
@@ -95,6 +101,7 @@ list <map<string, any> > delete(list <map<string, any> > old_list, string key){
 
 // temporary change config for discovery authentication
 global void saveConfig(string user_in, string pass_in, string user_out, string pass_out){
+ y2milestone("Save config");
  map<string, any> tmp_conf = config;
  list <map<string, any> > tmp_val = tmp_conf["value"]:[];
 
@@ -178,18 +185,19 @@ global list<string> getDiscovered(){
 	      discovered = filter(string row, splitstring(retcode["stdout"]:"", "\n"), {
                         return ( size(row)>0 && (search(row, "session")==nil) );
                         });
+ y2milestone("Discovered sessions %1", discovered);
  return discovered;
 }
 
 // get all connected targets
 global boolean readSessions(){
-y2milestone("reading current settings");
+ y2milestone("reading current settings");
     map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -m session");
 	if (size(retcode["stderr"]:"")>0) return false;
       sessions = filter(string row, splitstring(retcode["stdout"]:"", "\n"), {
                         return ( size(row)>0 && (search(row, "session")==nil) );
                         });
-      y2milestone("Return list from iscsiadm : %1", sessions);
+  y2milestone("Return list from iscsiadm -m session: %1", sessions);
  return true;
 }
 
@@ -197,9 +205,9 @@ y2milestone("reading current settings");
 global boolean checkInitiatorName(){
  boolean ret=true;
  string file="/etc/initiatorname.iscsi";
-y2milestone("Check %1", file);
+ y2milestone("Check %1", file);
  if (size((map<string, any>)SCR::Read (.target.lstat, file)) == 0){
-y2milestone("%1 not exist, create", file);
+ y2milestone("%1 not exist, create", file);
  map<string, any> output = (map<string, any>)SCR::Execute (.target.bash_output,
 								"/sbin/iscsi-iname -p iqn.`date +%Y-%m`.de.suse:01", $[]);
  if (size(output["stderr"]:"")==0){
@@ -212,6 +220,7 @@ y2milestone("%1 not exist, create", file);
 
 // check if package open-iscsi is installed
 boolean installed_packages(){
+ y2milestone("Check if open-iscsi package installed");
  boolean ret = false;
   if( !Package::InstallMsg( "open-iscsi",
             _("<p>To configure the iSCSI initiator, the <b>%1</b> package must be installed.</p>") +
@@ -219,14 +228,13 @@ boolean installed_packages(){
         {
         Popup::Error( Message::CannotContinueWithoutPackagesInstalled() );
     } else ret = true;
-
  return ret;
 }
 
 // delete deiscovered target from database
 global boolean deleteRecord(string record){
  boolean ret = true;
- y2milestone("Deleting record %1", record);
+ y2milestone("Delete record %1", record);
 
     map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, sformat("iscsiadm -m node -r %1 --logout", record));
         if (size(retcode["stderr"]:"")>0) return false;
@@ -247,6 +255,7 @@ global string getStartupStatus(string record){
        break;
       }
     });
+ y2milestone("Startup status for %1 is %2", record, status);
  return status;
 }
 
@@ -274,11 +283,13 @@ global boolean connected(string ip, string target){
    break;
   }
  });
+ y2milestone("Target %1 with IP %2 connected:%3", target, ip, ret);
  return ret;
 }
 
 // change startup status (manual/automatic) for target
 global boolean setStartupStatus(string record, string status){
+ y2milestone("Set startup status for %1 to %2", record, status);
  boolean ret = true;
        map<string, any> retcode = (map<string, any>) SCR::Execute(.target.bash_output, 
 			sformat("iscsiadm -m node -r %1 --op=update --name=node.conn[0].startup --value=%2", record, status));
@@ -290,7 +301,7 @@ global boolean setStartupStatus(string record, string status){
 boolean getServiceStatus(){
  boolean ret = true;
  if (Service::Status("open-iscsi") == 0) serviceStatus=true;
-y2milestone("Service status = %1", serviceStatus);
+ y2milestone("Service status = %1", serviceStatus);
  // if not enabled, start it manually
  if (!serviceStatus) Service::Start("open-iscsi");
  return ret;
@@ -303,8 +314,12 @@ boolean setServiceStatus(){
 // otherwise keep it running
  if (!GetStartService()){
 	 readSessions();
-	 if (size(sessions)==0) Service::Stop("open-iscsi");
+	 if (size(sessions)==0) {
+		 y2milestone("No active sessions - stopping service");
+		 Service::Stop("open-iscsi");
+		}
 	}
+ y2milestone("Status service for open-iscsi: %1", ret);
  return ret;
 }
 
@@ -421,7 +436,7 @@ global boolean Write() {
 
     if(Abort()) return false;
     Progress::NextStage();
-    if(false) Report::Error (_("Cannot write settings."));
+    if(false) return false;
     sleep(sl);
 
     if(Abort()) return false;

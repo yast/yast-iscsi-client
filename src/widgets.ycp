@@ -50,6 +50,7 @@ list <string> runInBg(string command){
 
 // validation for authentication dialog entry
 boolean checkAuthEntry(){
+ y2milestone("Check entries for authentication");
  boolean ret = true;
  boolean auth_none = (boolean) UI::QueryWidget(`id(`auth_none), `Value);
  boolean auth_in = (boolean) UI::QueryWidget(`id(`auth_in), `Value);
@@ -124,6 +125,7 @@ symbol handleConnectedTable (string key, map event){
   case(`add):
 		// add a new target, discovery
 		// goto DiscAuthDialog("client")) ()
+		y2milestone("Goto dicovered authentication dialog");
 		return `add;
   case(`del):
 		// delete (logout from) connected target
@@ -131,7 +133,10 @@ symbol handleConnectedTable (string key, map event){
 		if (size( record )>0){
 		  if (Popup::ContinueCancel(_("Really log out from the selected target?")))
 		    if ( !(IscsiClient::deleteRecord( record )) ) Popup::Error(_("Error occurred while logging out from the selected target."));
-			else initConnectedTable("");
+			else {
+				y2milestone("Delete record %1", record);
+				initConnectedTable("");
+			     }
 		} else Popup::Error(_("No record found"));
 		break;
   case(`toggle):
@@ -141,8 +146,14 @@ symbol handleConnectedTable (string key, map event){
 		y2milestone("toggle record %1", record);
 		string startup = IscsiClient::getStartupStatus(record);
 		if (size(startup)>0){
-		 if (startup == "manual") IscsiClient::setStartupStatus(record, "automatic");
-			else IscsiClient::setStartupStatus(record, "manual");
+		 if (startup == "manual"){
+				 y2milestone("Change status for %1 to %2", record, "automatic");
+				 IscsiClient::setStartupStatus(record, "automatic");
+				}
+			else {
+				y2milestone("Change status for %1 to %2", record, "manual");
+				IscsiClient::setStartupStatus(record, "manual");
+			     }
 		  initConnectedTable("");
 		 }
 		} else Popup::Error(_("No record found"));

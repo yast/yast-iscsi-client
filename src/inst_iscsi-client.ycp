@@ -39,7 +39,7 @@ ModuleLoading::Load("iscsi_tcp", "", "", "", false, true);
 SCR::Execute(.background.run_output_err, "iscsid");
 // run dialog
 ret = MainSequence();
-y2debug("ret=%1", ret);
+y2debug("MainSequence ret=%1", ret);
 // add package open-iscsi to installed system
 Packages::addAdditionalPackage("open-iscsi");
 

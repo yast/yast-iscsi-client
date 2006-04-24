@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Mon Apr 24 08:37:29 CEST 2006 - mzugec@suse.cz
+
+- testsuite 
+
+-------------------------------------------------------------------
+Mon Apr 24 08:36:53 CEST 2006 - mzugec@suse.cz
+
+- comments, logs 
+
+-------------------------------------------------------------------
 Fri Apr  7 08:12:03 CEST 2006 - mzugec@suse.cz
 
 - fixed #156838 - yast-iscsi-client shutting down the open-iscsi initiator when it shouldn't 

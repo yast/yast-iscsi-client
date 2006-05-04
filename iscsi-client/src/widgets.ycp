@@ -1,0 +1,432 @@
+{
+ textdomain "iscsi-client";
+
+ boolean stat = false;
+ string curr_rec = "";
+ boolean bg_finish = false;
+
+
+// function for run command in background
+list <string> runInBg(string command){
+    bg_finish=false;
+    y2milestone("Start command %1 in background", command);
+    list <string> stdout = [];
+    integer return_code = nil;
+    boolean started = (boolean)SCR::Execute(.background.run_output_err, command);
+    if (!started) {
+        y2error("Cannot run command");
+	stat = false;
+        return [];
+    }
+    integer time_spent = 0;
+    boolean cont_loop = true;
+    integer script_time_out = 10000;
+    integer sleep_step = 20;
+    while (cont_loop && ((boolean) SCR::Read(.background.output_open))) {
+        if (time_spent >= script_time_out) {
+            Popup::Error("Command timed-out");
+            cont_loop = false;
+        }
+        time_spent = time_spent + sleep_step;
+        sleep(sleep_step);
+    }
+    y2milestone("Time spent: %1 msec", time_spent);
+    stdout = (list<string>)(SCR::Read(.background.newout));
+    if (cont_loop) {
+	return_code = (integer) SCR::Read(.background.status);
+	if (return_code == 255) {
+		stat = false;
+		Popup::Error( ( (list<string>)SCR::Read(.background.newerr) )[0]:"" );
+		}
+		else stat = true;
+	}
+      else {
+        // killing the process if it still runs
+        if ((boolean) SCR::Read(.background.output_open)) SCR::Execute(.background.kill, "");
+    }
+ bg_finish=true;
+ return stdout;
+}
+
+// validation for authentication dialog entry
+boolean checkAuthEntry(){
+ y2milestone("Check entries for authentication");
+ boolean ret = true;
+ boolean auth_none = (boolean) UI::QueryWidget(`id(`auth_none), `Value);
+ boolean auth_in = (boolean) UI::QueryWidget(`id(`auth_in), `Value);
+ boolean auth_out = (boolean) UI::QueryWidget(`id(`auth_out), `Value);
+ string user_in = tostring( UI::QueryWidget(`id(`user_in), `Value) );
+ string pass_in = tostring( UI::QueryWidget(`id(`pass_in), `Value) );
+ string user_out = tostring( UI::QueryWidget(`id(`user_out), `Value) );
+ string pass_out = tostring( UI::QueryWidget(`id(`pass_out), `Value) );
+ if (auth_none) return true;
+  else {
+   if  (auth_in){
+    if (size(user_in)==0) {
+     Popup::Error(_("Insert the username."));
+     UI::SetFocus(`id(`user_in));
+     return false;
+    }
+    if(size(pass_in)==0) {
+     Popup::Error(_("Insert the password."));
+     UI::SetFocus(`id(`pass_in));
+     return false;
+    }
+   }
+   if  (auth_out){
+    if (size(user_out)==0) {
+     Popup::Error(_("Insert the username."));
+     UI::SetFocus(`id(`user_out));
+     return false;
+    }
+    if(size(pass_out)==0) {
+     Popup::Error(_("Insert the password."));
+     UI::SetFocus(`id(`pass_out));
+     return false;
+    }
+   }
+  }
+ return ret;
+}
+
+
+// init table of connected sessions
+void initConnectedTable(string key){
+    if (IscsiClient::readSessions()== false) Popup::Error("Error While Connecting iscsid");
+     list <term> items = [];
+     integer row = 0;
+     foreach(string s, IscsiClient::sessions, {
+     list<string> row_in_string = splitstring(s, " ");
+	string record = deletechars(row_in_string[0]:"", "[]");
+	items = add(items, `item(`id(row), row_in_string[1]:"", row_in_string[2]:"", IscsiClient::getStartupStatus(record)));
+      row = row + 1;
+     });
+        UI::ChangeWidget (`id (`connected), `Items, items);
+        UI::SetFocus (`id (`connected));
+}
+
+// get record identificator from selected row
+string getRecord(){
+ string record = "";
+ any sel_item = UI::QueryWidget(`id(`connected), `CurrentItem);
+ if (sel_item != nil){
+	 integer current = tointeger(sel_item);
+	 record = (splitstring(IscsiClient::sessions[current]:"", " " ))[0]:"";
+	 record = deletechars(record, "[]");
+	}
+ return record;
+}
+
+// handle for table of connected sessions
+symbol handleConnectedTable (string key, map event){
+ if (event["EventReason"]:"" == "Activated"){
+ string record = "";
+ switch((symbol)event["ID"]:nil){
+  case(`add):
+		// add a new target, discovery
+		// goto DiscAuthDialog("client")) ()
+		y2milestone("Goto dicovered authentication dialog");
+		return `add;
+  case(`del):
+		// delete (logout from) connected target
+		record = getRecord();
+		if (size( record )>0){
+		  if (Popup::ContinueCancel(_("Really log out from the selected target?")))
+		    if ( !(IscsiClient::deleteRecord( record )) ) Popup::Error(_("Error occurred while logging out from the selected target."));
+			else {
+				y2milestone("Delete record %1", record);
+				initConnectedTable("");
+			     }
+		} else Popup::Error(_("No record found."));
+		break;
+  case(`toggle):
+		// change manual/automatic status of connected target
+		record = getRecord();
+		if (size( record )>0){
+		y2milestone("toggle record %1", record);
+		string startup = IscsiClient::getStartupStatus(record);
+		if (size(startup)>0){
+		 if (startup == "manual"){
+				 y2milestone("Change status for %1 to %2", record, "automatic");
+				 IscsiClient::setStartupStatus(record, "automatic");
+				}
+			else {
+				y2milestone("Change status for %1 to %2", record, "manual");
+				IscsiClient::setStartupStatus(record, "manual");
+			     }
+		  initConnectedTable("");
+		 }
+		} else Popup::Error(_("No record found."));
+		break;
+  }
+ }
+ // if nothing selected - disable some buttons, otherwise enable them
+ if( getRecord() == ""){
+   UI::ChangeWidget (`id (`del), `Enabled, false);
+   UI::ChangeWidget (`id (`toggle), `Enabled, false);
+
+  } else {
+   UI::ChangeWidget (`id (`del), `Enabled, true);
+   UI::ChangeWidget (`id (`toggle), `Enabled, true);
+
+	}
+ return nil;
+}
+
+// ***************** add table ***************************
+
+// set incoming widget status
+void setAuthIn(boolean status){
+ UI::ChangeWidget(`id(`user_in),`Enabled, status );
+ UI::ChangeWidget(`id(`pass_in),`Enabled, status );
+ UI::ChangeWidget(`id(`auth_in),`Value, status );
+ if(status) UI::ChangeWidget(`id(`auth_none),`Value, !status );
+}
+
+// set outgoing widget status
+void setAuthOut(boolean status){
+ UI::ChangeWidget(`id(`user_out),`Enabled, status );
+ UI::ChangeWidget(`id(`pass_out),`Enabled, status );
+ UI::ChangeWidget(`id(`auth_out),`Value, status );
+ if(status) UI::ChangeWidget(`id(`auth_none),`Value, !status );
+}
+
+// disable both incoming and outgoing
+void initDiscAuth(string key){
+ setAuthIn(false);
+ setAuthOut(false);
+}
+
+// handle for enable/disable widgets in authentication dialog
+symbol handleDiscAuth(string key, map event){
+ if (event["EventReason"]:"" == "ValueChanged"){
+ boolean status = false;
+ switch((symbol)event["ID"]:nil){
+  case(`auth_none):
+		status = (boolean)UI::QueryWidget(`id(`auth_none), `Value);
+		setAuthIn(!status);
+		setAuthOut(!status);
+		break;
+  case(`auth_in):
+		status = (boolean)UI::QueryWidget(`id(`auth_in), `Value);
+		setAuthIn(status);
+		break;
+  case(`auth_out):
+		status = (boolean)UI::QueryWidget(`id(`auth_out), `Value);
+		setAuthOut(status);
+		break;
+  }
+ }
+ return nil;
+}
+
+boolean validateDiscAuth(any key, map event){
+ return checkAuthEntry();
+}
+// *******************Server Location ***********************
+
+// do discovery to selected portal
+boolean validateServerLocation(any key, map event){
+ boolean ret = true;
+ string ip = tostring(UI::QueryWidget(`hostname, `Value));
+ string port = tostring(UI::QueryWidget(`port, `Value));
+ // validate IP address
+ if (size(ip)==0) {
+		Popup::Error(_("Insert the IP address."));
+		UI::SetFocus(`hostname);
+		return false;
+		}
+ // validate port number
+ if (size(port)==0) {
+		Popup::Error(_("Insert the port."));
+		UI::SetFocus(`port);
+		return false;
+		}
+ // store old config
+ IscsiClient::getConfig();
+
+ boolean auth_none = (boolean) UI::QueryWidget(`id(`auth_none), `Value);
+ boolean auth_in = (boolean) UI::QueryWidget(`id(`auth_in), `Value);
+ boolean auth_out = (boolean) UI::QueryWidget(`id(`auth_out), `Value);
+ string user_in = tostring( UI::QueryWidget(`id(`user_in), `Value) );
+ string pass_in = tostring( UI::QueryWidget(`id(`pass_in), `Value) );
+ string user_out = tostring( UI::QueryWidget(`id(`user_out), `Value) );
+ string pass_out = tostring( UI::QueryWidget(`id(`pass_out), `Value) );
+
+ if (auth_none){
+  user_in  = "";
+  pass_in  = "";
+  user_out = "";
+  pass_out = "";
+ }
+ if (!auth_in){
+  user_in  = "";
+  pass_in  = "";
+ }
+ if (!auth_out){
+  user_out  = "";
+  pass_out  = "";
+ }
+
+ // write authentication data
+ IscsiClient::saveConfig(user_in, pass_in, user_out, pass_out);
+
+ bg_finish=false;
+ // discovery with authentication
+ IscsiClient::targets = runInBg( sformat("iscsiadm -m discovery -t st -p %1:%2", ip, port) );
+ while(!bg_finish){};
+ // restore old config
+ IscsiClient::oldConfig();
+
+ return stat;
+}
+
+
+// ********************* discovered table *******************
+
+// enable [ connect, delete ] buttons only for not connected items
+boolean setDiscoveredButtons(){
+   list <string> params = [];
+   any selected = UI::QueryWidget(`discovered, `CurrentItem);
+   if (selected != nil) { params = splitstring( IscsiClient::discovered[tointeger(selected)]:"", " " ); }
+        else  { params = []; }
+ if ((params==[])||(IscsiClient::connected(params[1]:"", params[2]:""))){
+   UI::ChangeWidget (`id (`connect), `Enabled, false);
+   UI::ChangeWidget (`id (`delete), `Enabled, false);
+  } else{
+	   UI::ChangeWidget (`id (`connect), `Enabled, true);
+	   UI::ChangeWidget (`id (`delete), `Enabled, true);
+	}
+}
+
+// initialize widget with discovered targets
+void initDiscoveredTable(string key){
+     list <term> items = [];
+     integer row = 0;
+     foreach(string s, IscsiClient::getDiscovered(), {
+     list<string> row_in_string = splitstring(s, " ");
+        string record = deletechars(row_in_string[0]:"", "[]");
+        items = add(items, `item(`id(row), row_in_string[1]:"", row_in_string[2]:"", 
+		(IscsiClient::connected(row_in_string[1]:"", row_in_string[2]:""))?_("True"):_("False") ));
+      row = row + 1;
+     });
+
+  UI::ChangeWidget (`id (`discovered), `Items, items);
+  UI::SetFocus (`id (`discovered));
+  setDiscoveredButtons();
+}
+
+// handling widget with discovered targets
+symbol handleDiscoveredTable (string key, map event){
+   list <string> params = [];
+   any selected = UI::QueryWidget(`discovered, `CurrentItem);
+   if (selected != nil) { params = splitstring( IscsiClient::discovered[tointeger(selected)]:"", " " ); }
+	else  { params = []; }
+   curr_rec = deletechars(params[0]:"", "[]");
+ if ( event["EventReason"]:"" == "Activated" ){
+  // connect new target
+  if ( event["ID"]:nil == `connect) {
+   // check if not already connected
+   if ( IscsiClient::connected(params[1]:"", params[2]:"") == true){
+     Popup::Error(_("The target is already connected."));
+     return nil;
+    }
+   // goto ConnAuthDialog("discovered") (initDiscAuth)
+   return `conn;
+  }
+  // discovery target ConnAuthDialog("client") (initDiscAuth)
+  if ( event["ID"]:nil == `discovery) {
+   return `disc;
+  }
+  // delete connected item
+  if ( event["ID"]:nil == `delete) {
+   if ((params == [])||(!IscsiClient::connected(params[1]:"", params[2]:""))){
+	 SCR::Execute (.target.bash_output,sformat("iscsiadm -m node -r %1 --op=delete", deletechars(params[0]:"", "[]")), $[] );
+	 IscsiClient::readSessions();
+	 initDiscoveredTable("");
+   if (selected != nil) { params = splitstring( IscsiClient::discovered[tointeger(selected)]:"", " " ); }
+        else  { params = []; }
+	}
+  }
+ }
+ setDiscoveredButtons();
+ return nil;
+}
+
+//******************* target table *************************
+
+// initialize dialog for all targets from portal (connected/disconnected)
+void initTargetTable(string key){
+     list <term> items = [];
+     integer row = 0;
+     foreach(string s, IscsiClient::targets, {
+     list<string> row_in_string = splitstring(s, " ");
+        string record = deletechars(row_in_string[0]:"", "[]");
+        items = add(items, `item(`id(row), row_in_string[1]:"", row_in_string[2]:"",
+		(IscsiClient::connected(row_in_string[1]:"", row_in_string[2]:""))?_("True"):_("False") ));
+      row = row + 1;
+     });
+        UI::ChangeWidget (`id (`targets), `Items, items);
+        UI::SetFocus (`id (`targets));
+}
+
+// handle dialog for all targets from portal (connected/disconnected) - only connect button ;)
+symbol handleTargetTable (string key, map event){
+ if ( event["EventReason"]:"" == "Activated" ){
+  if ( event["ID"]:nil == `connect) {
+   // check if is not already connected
+   list <string> params = splitstring( IscsiClient::targets[(integer)UI::QueryWidget(`targets, `CurrentItem)]:"", " " );
+   if ( IscsiClient::connected(params[1]:"", params[2]:"") == true){
+    Popup::Error(_("The target is already connected."));
+   } else {
+	 curr_rec = deletechars(params[0]:"", "[]");
+	// goto ConnAuthDialog("discovered") (initDiscAuth())
+	 return `conn_auth;
+	}
+  }
+ }
+ return nil;
+}
+
+//***************** connection autentication *******************
+
+// login to target with authentication
+boolean validateConnAuth(any key, map event){
+ boolean ret = true;
+ boolean auth_none = (boolean) UI::QueryWidget(`id(`auth_none), `Value);
+ boolean auth_in = (boolean) UI::QueryWidget(`id(`auth_in), `Value);
+ boolean auth_out = (boolean) UI::QueryWidget(`id(`auth_out), `Value);
+ string user_in = tostring( UI::QueryWidget(`id(`user_in), `Value) );
+ string pass_in = tostring( UI::QueryWidget(`id(`pass_in), `Value) );
+ string user_out = tostring( UI::QueryWidget(`id(`user_out), `Value) );
+ string pass_out = tostring( UI::QueryWidget(`id(`pass_out), `Value) );
+
+ if (!auth_none){
+  if(!checkAuthEntry()) return false;
+
+  if (auth_in){
+   IscsiClient::setValue(curr_rec, "node.session.auth.username_in", user_in);
+   IscsiClient::setValue(curr_rec, "node.session.auth.password_in", pass_in);
+  } else{
+	   IscsiClient::setValue(curr_rec, "node.session.auth.username_in", "");
+	   IscsiClient::setValue(curr_rec, "node.session.auth.password_in", "");
+   }
+  if (auth_out){
+   IscsiClient::setValue(curr_rec, "node.session.auth.username", user_out);
+   IscsiClient::setValue(curr_rec, "node.session.auth.password", pass_out);
+   IscsiClient::setValue(curr_rec, "node.session.auth.authmethod", "CHAP");
+  } else {
+	   IscsiClient::setValue(curr_rec, "node.session.auth.username", "");
+	   IscsiClient::setValue(curr_rec, "node.session.auth.password", "");
+	   IscsiClient::setValue(curr_rec, "node.session.auth.authmethod", "");
+    }
+ } else IscsiClient::setValue(curr_rec, "node.session.auth.authmethod", "None");
+
+  runInBg(sformat("iscsiadm -m node -r %1 --login", curr_rec));
+  if(!stat) ret = false;
+  if (ret) IscsiClient::readSessions();
+ return ret;
+}
+
+
+}

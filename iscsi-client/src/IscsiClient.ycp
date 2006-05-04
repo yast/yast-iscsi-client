@@ -1,0 +1,511 @@
+/**
+ * File:	modules/IscsiClient.ycp
+ * Package:	Configuration of iscsi-client
+ * Summary:	IscsiClient settings, input and output functions
+ * Authors:	Michal Zugec <mzugec@suse.cz>
+ *
+ * $Id$
+ *
+ * Representation of the configuration of iscsi-client.
+ * Input and output routines.
+ */
+
+{
+
+module "IscsiClient";
+textdomain "iscsi-client";
+
+import "Progress";
+import "Report";
+import "Summary";
+import "Message";
+import "Service";
+import "Package";
+import "Popup";
+import "Stage";
+import "Confirm";
+
+global list <string> sessions = [];
+global list <string> discovered = [];
+global list <string> targets = [];
+boolean serviceStatus = false;
+map<string, any> config = $[];
+
+// get accessor for service status
+global boolean GetStartService() {
+ boolean status = Service::Enabled("open-iscsi");
+ y2milestone("Status of open-iscsi %1", status);
+ return status;
+}
+
+// set accessor for service status
+global void SetStartService(boolean status) {
+ y2milestone("Set status of open-iscsi to %1", status);
+ if (status == true) Service::Enable("open-iscsi");
+        else Service::Disable("open-iscsi");
+}
+
+
+// read configuration file
+global list <map<string, any> > getConfig(){
+ config = (map<string, any>) SCR::Read(.etc.iscsid.all);
+ y2milestone("read config %1", config);
+ return config["value"]:[];
+}
+
+// write temporary changed old config
+global void oldConfig(){
+ y2milestone("Store temporary config");
+ SCR::Write(.etc.iscsid.all, config);
+}
+
+// create map from given map in format needed by ini-agent
+map<string, any> createMap(map<string, any> old_map, list<string> comments)
+{
+ string comment = "";
+ foreach(string row, comments, {
+  comment = sformat("%1%2", comment, row);
+  });
+ return $[ "name":old_map["KEY"]:"",
+           "value":old_map["VALUE"]:"",
+           "kind":"value",
+           "type":1,
+           "comment":comment
+         ];
+}
+
+// add or modify given map
+list <map<string, any> > setOrAdd(list <map<string, any> > old_list, string key, string value){
+ list <map<string, any> > new_list = [];
+ boolean found = false;
+ foreach(map<string, any> row, old_list, {
+  if (row["name"]:"" == key){
+   found = true;
+   row["value"] = value;
+  }
+  new_list = add(new_list, row);
+ });
+ if (!found) new_list = add(new_list, createMap($["KEY":key, "VALUE":value], []) );
+ return new_list;
+}
+
+// delete record with given key
+list <map<string, any> > delete(list <map<string, any> > old_list, string key){
+ y2milestone("Delete record for %1", key);
+ list <map<string, any> > new_list = [];
+ foreach(map<string, any> row, old_list, {
+  if (row["name"]:"" != key) new_list = add(new_list, row);
+ });
+ return new_list;
+}
+
+// temporary change config for discovery authentication
+global void saveConfig(string user_in, string pass_in, string user_out, string pass_out){
+ y2milestone("Save config");
+ map<string, any> tmp_conf = config;
+ list <map<string, any> > tmp_val = tmp_conf["value"]:[];
+
+ if ((size(user_in)>0)&&(size(pass_in)>0)) {
+	tmp_val = setOrAdd(tmp_val, "node.session.auth.username", user_in);
+	tmp_val = setOrAdd(tmp_val, "node.session.auth.password", pass_in);
+	}
+  else {
+	tmp_val = delete(tmp_val, "node.session.auth.username");
+	tmp_val = delete(tmp_val, "node.session.auth.password");
+	}
+
+ if ((size(user_out)>0)&&(size(pass_out)>0)) {
+	tmp_val = setOrAdd(tmp_val, "discovery.sendtargets.auth.authmethod", "CHAP");
+	tmp_val = setOrAdd(tmp_val, "discovery.sendtargets.auth.username", user_out);
+	tmp_val = setOrAdd(tmp_val, "discovery.sendtargets.auth.password", pass_out);
+	}
+  else {
+	tmp_val = delete(tmp_val, "discovery.sendtargets.auth.authmethod");
+	tmp_val = delete(tmp_val, "discovery.sendtargets.auth.username");
+	tmp_val = delete(tmp_val, "discovery.sendtargets.auth.password");
+	}
+ tmp_conf["value"] = tmp_val;
+ SCR::Write(.etc.iscsid.all, tmp_conf);
+ SCR::Write(.etc.iscsid, nil);
+}
+
+/**
+ * Prototypes
+ */
+global boolean Modified();
+
+/**
+ * Data was modified?
+ */
+global boolean modified = false;
+
+/**
+ */
+global boolean proposal_valid = false;
+
+/**
+ * Write only, used during autoinstallation.
+ * Don't run services and SuSEconfig, it's all done at one place.
+ */
+global boolean write_only = false;
+
+/**
+ * Abort function
+ * return boolean return true if abort
+ */
+global boolean() AbortFunction = Modified;
+
+/**
+ * Abort function
+ * @return boolean return true if abort
+ */
+global define boolean Abort() ``{
+    if(AbortFunction != nil)
+    {
+	return AbortFunction () == true;
+    }
+    return false;
+}
+
+/**
+ * Data was modified?
+ * @return true if modified
+ */
+global boolean Modified() {
+    y2debug("modified=%1",modified);
+    return modified;
+}
+
+// get all discovered targets
+global list<string> getDiscovered(){
+    map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -m node");
+	if (size(retcode["stderr"]:"")>0) {
+	 discovered=[];
+	} else
+	      discovered = filter(string row, splitstring(retcode["stdout"]:"", "\n"), {
+                        return ( size(row)>0 && (search(row, "session")==nil) );
+                        });
+ y2milestone("Discovered sessions %1", discovered);
+ return discovered;
+}
+
+// get all connected targets
+global boolean readSessions(){
+ y2milestone("reading current settings");
+    map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -m session");
+	if (size(retcode["stderr"]:"")>0) return false;
+      sessions = filter(string row, splitstring(retcode["stdout"]:"", "\n"), {
+                        return ( size(row)>0 && (search(row, "session")==nil) );
+                        });
+  y2milestone("Return list from iscsiadm -m session: %1", sessions);
+ return true;
+}
+
+// check initiatorname if exist, if no - create it
+global boolean checkInitiatorName(){
+ boolean ret=true;
+ string file="/etc/initiatorname.iscsi";
+ y2milestone("Check %1", file);
+ if (size((map<string, any>)SCR::Read (.target.lstat, file)) == 0){
+ y2milestone("%1 not exist, create", file);
+ map<string, any> output = (map<string, any>)SCR::Execute (.target.bash_output,
+								"/sbin/iscsi-iname -p iqn.`date +%Y-%m`.de.suse:01", $[]);
+ if (size(output["stderr"]:"")==0){
+  ret = (boolean)SCR::Write (.target.string, file, sformat("InitiatorName=%1", output["stdout"]:""));
+	SCR::Execute (.target.bash, "chmod 0600 $FILE" ,$["FILE":file]);
+  } else ret = false;
+ }
+ return ret;
+}
+
+// check if package open-iscsi is installed
+boolean installed_packages(){
+ y2milestone("Check if open-iscsi package installed");
+ boolean ret = false;
+  if( !Package::InstallMsg( "open-iscsi",
+            _("<p>To configure the iSCSI initiator, the <b>%1</b> package must be installed.</p>") +
+            _("<p>Install it now?</p>")) )
+        {
+        Popup::Error( Message::CannotContinueWithoutPackagesInstalled() );
+    } else ret = true;
+ return ret;
+}
+
+// delete deiscovered target from database
+global boolean deleteRecord(string record){
+ boolean ret = true;
+ y2milestone("Delete record %1", record);
+
+    map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, sformat("iscsiadm -m node -r %1 --logout", record));
+        if (size(retcode["stderr"]:"")>0) return false;
+
+ readSessions();
+ return ret;
+}
+
+// get (manual/automatic) status of target connecting
+global string getStartupStatus(string record){
+ string status = "";
+ y2milestone("Getting status of record %1", record);
+     map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, sformat("iscsiadm -m node -r %1 ", record));
+    if (size(retcode["stderr"]:"")>0) return "";
+    foreach(string row, splitstring(retcode["stdout"]:"", "\n"), {
+     if (issubstring(row, "node.conn[0].startup")){
+	status = (splitstring(row, " "))[2]:"";
+       break;
+      }
+    });
+ y2milestone("Startup status for %1 is %2", record, status);
+ return status;
+}
+
+// update authentication value
+global boolean setValue(string record, string name, string value){
+ y2milestone("set %1  for record %3", name, record);
+ string command = sformat("iscsiadm -m node -r %1 --op=update --name=%2 --value=%3", record, name, value);
+// y2milestone("execute command - %1", command );
+ boolean ret = true;
+        map<string, any> retcode = (map<string, any>) SCR::Execute(.target.bash_output, command);
+    if (size(retcode["stderr"]:"")>0) {
+				y2error("%1", retcode["stderr"]:"");
+				ret =  false;
+				}
+y2milestone("return value %1", ret);
+ return ret;
+}
+
+// check if given target is connected
+global boolean connected(string ip, string target){
+ boolean ret = false;
+ foreach(string row, sessions, {
+  if (issubstring(row, ip) && issubstring(row, target)){
+   ret = true;
+   break;
+  }
+ });
+ y2milestone("Target %1 with IP %2 connected:%3", target, ip, ret);
+ return ret;
+}
+
+// change startup status (manual/automatic) for target
+global boolean setStartupStatus(string record, string status){
+ y2milestone("Set startup status for %1 to %2", record, status);
+ boolean ret = true;
+       map<string, any> retcode = (map<string, any>) SCR::Execute(.target.bash_output, 
+			sformat("iscsiadm -m node -r %1 --op=update --name=node.conn[0].startup --value=%2", record, status));
+    if (size(retcode["stderr"]:"")>0) return false;
+ return ret;
+}
+
+// get status of open-iscsi
+boolean getServiceStatus(){
+ boolean ret = true;
+ if (Service::Status("open-iscsi") == 0) serviceStatus=true;
+ y2milestone("Service status = %1", serviceStatus);
+ // if not enabled, start it manually
+ if (!serviceStatus) Service::Start("open-iscsi");
+ return ret;
+}
+
+// set startup status of open-iscsi
+boolean setServiceStatus(){
+ boolean ret = true;
+// if disabled and no connected targets - stop it
+// otherwise keep it running
+ if (!GetStartService()){
+	 readSessions();
+	 if (size(sessions)==0) {
+		 y2milestone("No active sessions - stopping service");
+		 Service::Stop("open-iscsi");
+		}
+	}
+ y2milestone("Status service for open-iscsi: %1", ret);
+ return ret;
+}
+
+/**
+ * Read all iscsi-client settings
+ * @return true on success
+ */
+global boolean Read() {
+
+    /* IscsiClient read dialog caption */
+    string caption = _("Initializing iSCSI Initiator Configuration");
+
+    // TODO FIXME Set the right number of stages
+    integer steps = 4;
+
+    integer sl = 500;
+    sleep(sl);
+
+    // TODO FIXME Names of real stages
+    // We do not set help text here, because it was set outside
+    Progress::New( caption, " ", steps, [
+	    /* Progress stage 1/3 */
+	    _("Read the database"),
+	    /* Progress stage 2/3 */
+	    _("Read the previous settings"),
+	    /* Progress stage 3/3 */
+	    _("Detect the devices")
+	], [
+	    /* Progress step 1/3 */
+	    _("Reading the database..."),
+	    /* Progress step 2/3 */
+	    _("Reading the previous settings..."),
+	    /* Progress step 3/3 */
+	    _("Detecting the devices..."),
+	    /* Progress finished */
+	    _("Finished")
+	],
+	""
+    );
+
+    // check if user is root - must be root
+    if(!Confirm::MustBeRoot()) return false;
+    Progress::NextStage();
+    if(false) return false;
+    sleep(sl);
+
+    Progress::NextStage();
+    // check if required package is installed
+    if(!installed_packages()) return false;
+    // check initiatorname - create it if no exists
+    y2milestone("Check initiator name");
+    if(!checkInitiatorName()) return false;
+    sleep(sl);
+
+    if(Abort()) return false;
+    Progress::NextStep();
+    // read status of service
+    if(!getServiceStatus()) return false;
+    sleep(sl);
+
+    // read current settings
+    if(Abort()) return false;
+    Progress::NextStage();
+    // read config file
+    if(readSessions()==false)
+	{
+	Report::Error( Message::CannotReadCurrentSettings() );
+	return false;
+	}
+    sleep(sl);
+
+    if(Abort()) return false;
+    /* Progress finished */
+    Progress::NextStage();
+    sleep(sl);
+
+    if(Abort()) return false;
+    modified = false;
+    return true;
+}
+
+/**
+ * Write all iscsi-client settings
+ * @return true on success
+ */
+global boolean Write() {
+
+    /* IscsiClient read dialog caption */
+    string caption = _("Saving iSCSI Initiator Configuration");
+
+    // TODO FIXME And set the right number of stages
+    integer steps = 2;
+
+    integer sl = 500;
+    sleep(sl);
+
+    // TODO FIXME Names of real stages
+    // We do not set help text here, because it was set outside
+    Progress::New(caption, " ", steps, [
+	    /* Progress stage 1/2 */
+	    _("Write the settings"),
+	    /* Progress stage 2/2 */
+	    _("Run SuSEconfig")
+	], [
+	    /* Progress step 1/2 */
+	    _("Writing the settings..."),
+	    /* Progress step 2/2 */
+	    _("Running SuSEconfig..."),
+	    /* Progress finished */
+	    _("Finished")
+	],
+	""
+    );
+
+    if(Abort()) return false;
+    Progress::NextStage();
+    if(false) return false;
+    sleep(sl);
+
+    if(Abort()) return false;
+    Progress::NextStage ();
+    if(false) return false;
+    sleep(sl);
+
+    if(Abort()) return false;
+    Progress::NextStage();
+    sleep(sl);
+
+    // set open-iscsi service status
+    if(!setServiceStatus()) return false;
+    return true;
+}
+
+/**
+ * Get all iscsi-client settings from the first parameter
+ * (For use by autoinstallation.)
+ * @param settings The YCP structure to be imported.
+ * @return boolean True on success
+ */
+global boolean Import (map settings) {
+    // TODO FIXME: your code here (fill the above mentioned variables)...
+    return true;
+}
+
+/**
+ * Dump the iscsi-client settings to a single map
+ * (For use by autoinstallation.)
+ * @return map Dumped settings (later acceptable by Import ())
+ */
+global map Export () {
+    // TODO FIXME: your code here (return the above mentioned variables)...
+    return $[];
+}
+
+/**
+ * Create a textual summary and a list of unconfigured cards
+ * @return summary of the current configuration
+ */
+global list Summary() {
+    // TODO FIXME: your code here...
+    /* Configuration summary text for autoyast */
+    return [ _("Configuration summary..."), [] ];
+}
+
+/**
+ * Create an overview table with all configured cards
+ * @return table items
+ */
+global list Overview() {
+    // TODO FIXME: your code here...
+    return [];
+}
+
+/**
+ * Return packages needed to be installed and removed during
+ * Autoinstallation to insure module has all needed software
+ * installed.
+ * @return map with 2 lists.
+ */
+global map AutoPackages() {
+    // TODO FIXME: your code here...
+    return $[ "install":[], "remove":[] ];
+}
+
+
+
+
+/* EOF */
+}

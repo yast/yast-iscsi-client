@@ -137,7 +137,7 @@ symbol handleConnectedTable (string key, map event){
 				y2milestone("Delete record %1", record);
 				initConnectedTable("");
 			     }
-		} else Popup::Error(_("No record found"));
+		} else Popup::Error(_("No record found."));
 		break;
   case(`toggle):
 		// change manual/automatic status of connected target
@@ -156,7 +156,7 @@ symbol handleConnectedTable (string key, map event){
 			     }
 		  initConnectedTable("");
 		 }
-		} else Popup::Error(_("No record found"));
+		} else Popup::Error(_("No record found."));
 		break;
   }
  }

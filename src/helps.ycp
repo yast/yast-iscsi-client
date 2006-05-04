@@ -89,8 +89,7 @@ Only change <b>Port</b> if needed. For authentication, use <b>Username</b> and <
 select <b>No Authentication</b>.
 ") +
 	/* Warning */
-_("<h1>Warning</h1>") + _("<p>When accessing a iSCSI-device <b>READ</b>/<b>WRITE</b>please make sure that this access is exclusive. Otherwise the potential risk of data corruption is there.</p>
-"),
+_("<h1>Warning</h1>") + _("<p>When accessing an iSCSI device <b>READ</b>/<b>WRITE</b>, make sure that this access is exclusive. Otherwise there is a potential risk of data corruption.</p>\n"),
 
  // dialog for all targets from portal (connected/disconnected)
  "targets_table" : _("<h1>iSCSI Initiator</h1>")

@@ -220,13 +220,13 @@ symbol handleDiscAuth(string key, map event){
  return nil;
 }
 
-boolean validateDiscAuth(any key, map event){
+global boolean validateDiscAuth(string key, map event){
  return checkAuthEntry();
 }
 // *******************Server Location ***********************
 
 // do discovery to selected portal
-boolean validateServerLocation(any key, map event){
+boolean validateServerLocation(string key, map event){
  boolean ret = true;
  string ip = tostring(UI::QueryWidget(`hostname, `Value));
  string port = tostring(UI::QueryWidget(`port, `Value));
@@ -391,7 +391,7 @@ symbol handleTargetTable (string key, map event){
 //***************** connection autentication *******************
 
 // login to target with authentication
-boolean validateConnAuth(any key, map event){
+global boolean validateConnAuth(string key, map event){
  boolean ret = true;
  boolean auth_none = (boolean) UI::QueryWidget(`id(`auth_none), `Value);
  boolean auth_in = (boolean) UI::QueryWidget(`id(`auth_in), `Value);

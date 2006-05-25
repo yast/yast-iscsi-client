@@ -226,6 +226,7 @@ global boolean readSessions(){
  y2milestone("reading current settings");
     map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -m session");
 	if (size(retcode["stderr"]:"")>0) return false;
+//y2internal("retcode %1", retcode);
       sessions = filter(string row, splitstring(retcode["stdout"]:"", "\n"), {
                         return ( size(row)>0 && (search(row, "session")==nil) );
                         });
@@ -295,7 +296,7 @@ global string getStartupStatus(string record){
 global boolean setValue(string record, string name, string value){
  y2milestone("set %1  for record %3", name, record);
  string command = sformat("iscsiadm -m node -r %1 --op=update --name=%2 --value=%3", record, name, value);
-// y2milestone("execute command - %1", command );
+ y2milestone("execute command - %1", command );
  boolean ret = true;
         map<string, any> retcode = (map<string, any>) SCR::Execute(.target.bash_output, command);
     if (size(retcode["stderr"]:"")>0) {

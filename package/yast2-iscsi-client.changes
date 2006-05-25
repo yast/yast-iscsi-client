@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu May 25 18:17:55 CEST 2006 - mzugec@suse.cz
+
+- fixed #149055 - iscsi client login always asks for credentials
+
+-------------------------------------------------------------------
 Thu May  4 14:03:29 CEST 2006 - mzugec@suse.cz
 
 - proofread 

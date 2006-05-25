@@ -32,6 +32,7 @@ list <string> runInBg(string command){
     }
     y2milestone("Time spent: %1 msec", time_spent);
     stdout = (list<string>)(SCR::Read(.background.newout));
+//y2internal("stdout %1", stdout);
     if (cont_loop) {
 	return_code = (integer) SCR::Read(.background.status);
 	if (return_code == 255) {
@@ -203,7 +204,7 @@ void initConnAuth(string key){
  map<string, any> auth = IscsiClient::getNode(curr_rec);
  if (size(auth)>0)
   {
-   y2internal("%1", auth);
+//   y2internal("%1", auth);
     UI::ChangeWidget(`id(`user_in),`Value, auth["username_in"]:"" );
     UI::ChangeWidget(`id(`pass_in),`Value, auth["password_in"]:"" );
    if ((size(auth["username_in"]:"")>0)&&(size(auth["password_in"]:"")>0)) setAuthOut(true);

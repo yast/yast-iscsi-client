@@ -197,6 +197,21 @@ void initDiscAuth(string key){
  setAuthOut(false);
 }
 
+void initConnAuth(string key){
+ setAuthIn(false);
+ setAuthOut(false);
+ map<string, any> auth = IscsiClient::getNode(curr_rec);
+ if (size(auth)>0)
+  {
+   y2internal("%1", auth);
+    UI::ChangeWidget(`id(`user_in),`Value, auth["username_in"]:"" );
+    UI::ChangeWidget(`id(`pass_in),`Value, auth["password_in"]:"" );
+   if ((size(auth["username_in"]:"")>0)&&(size(auth["password_in"]:"")>0)) setAuthOut(true);
+   UI::ChangeWidget(`id(`user_out),`Value, auth["username"]:"" );
+   UI::ChangeWidget(`id(`pass_out),`Value, auth["password"]:"" );
+   if ((size(auth["username"]:"")>0)&&(size(auth["password"]:"")>0)) setAuthOut(true);
+  }
+}
 // handle for enable/disable widgets in authentication dialog
 symbol handleDiscAuth(string key, map event){
  if (event["EventReason"]:"" == "ValueChanged"){

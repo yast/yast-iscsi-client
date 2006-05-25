@@ -59,6 +59,38 @@ global void oldConfig(){
  SCR::Write(.etc.iscsid.all, config);
 }
 
+
+global map<string, any> getNode(string rec){
+  map<string, any> cmd = (map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -S -m node -r $REC", $["REC":rec]);
+//  y2internal("getting record ... %1", cmd);
+ if (cmd["exit"]:0!=0) return $[];
+ map<string, any> auth = $[];
+ foreach(string row, splitstring(cmd["stdout"]:"", "\n"), {
+ string key = splitstring(row," = ")[0]:"";
+ string val = splitstring(row," = ")[3]:"";
+ if(val == "<empty>") val="";
+  switch(key){
+   case("node.session.auth.authmethod"):
+		auth["authmethod"]=val;
+		break;
+   case("node.session.auth.username"):
+		auth["username"]=val;
+		break;
+   case("node.session.auth.password"):
+		auth["password"]=val;
+		break;
+   case("node.session.auth.username_in"):
+		auth["username_in"]=val;
+		break;
+   case("node.session.auth.password_in"):
+		auth["password_in"]=val;
+		break;
+  }
+ });
+// y2internal("%1", auth);
+ return auth;
+}
+
 // create map from given map in format needed by ini-agent
 map<string, any> createMap(map<string, any> old_map, list<string> comments)
 {

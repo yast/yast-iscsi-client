@@ -141,7 +141,7 @@ map<string, map <string, any> > widgets = $[
 				`TextEntry(`id(`user_out), _("Username")), `Password(`id(`pass_out), _("Password"))
 			  )
                   ),
-		"init"  : initDiscAuth,
+		"init"  : initConnAuth,
 		"handle" : handleDiscAuth,
 		"validate_type" : `function,
 		"validate_function" : validateConnAuth,

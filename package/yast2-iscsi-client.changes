@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Jun  8 11:28:21 CEST 2006 - mzugec@suse.cz
+
+- fixed #180985 - staying current row in connected dialog
+
+-------------------------------------------------------------------
 Thu May 25 18:17:55 CEST 2006 - mzugec@suse.cz
 
 - fixed #149055 - iscsi client login always asks for credentials

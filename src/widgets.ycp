@@ -24,7 +24,7 @@ list <string> runInBg(string command){
     integer sleep_step = 20;
     while (cont_loop && ((boolean) SCR::Read(.background.output_open))) {
         if (time_spent >= script_time_out) {
-            Popup::Error("Command timed-out");
+            Popup::Error(_("Command timed-out"));
             cont_loop = false;
         }
         time_spent = time_spent + sleep_step;
@@ -93,7 +93,8 @@ boolean checkAuthEntry(){
 
 // init table of connected sessions
 void initConnectedTable(string key){
-    if (IscsiClient::readSessions()== false) Popup::Error("Error While Connecting iscsid");
+    if (IscsiClient::readSessions()== false) Popup::Error(_("Error While Connecting iscsid"));
+     integer row_current = (integer) UI::QueryWidget(`connected, `CurrentItem);
      list <term> items = [];
      integer row = 0;
      foreach(string s, IscsiClient::sessions, {
@@ -103,6 +104,7 @@ void initConnectedTable(string key){
       row = row + 1;
      });
         UI::ChangeWidget (`id (`connected), `Items, items);
+	UI::ChangeWidget(`connected, `CurrentItem, row_current);
         UI::SetFocus (`id (`connected));
 }
 

@@ -308,15 +308,15 @@ y2milestone("return value %1", ret);
 }
 
 // check if given target is connected
-global boolean connected(string ip, string target){
+global boolean connected(string rec_number){
  boolean ret = false;
  foreach(string row, sessions, {
-  if (issubstring(row, ip) && issubstring(row, target)){
+  if (issubstring(row, rec_number)){
    ret = true;
    break;
   }
  });
- y2milestone("Target %1 with IP %2 connected:%3", target, ip, ret);
+ y2milestone("Target %1 connected:%2", rec_number, ret);
  return ret;
 }
 

@@ -238,7 +238,7 @@ symbol handleDiscAuth(string key, map event){
  return nil;
 }
 
-global boolean validateDiscAuth(string key, map event){
+boolean validateDiscAuth(string key, map event){
  return checkAuthEntry();
 }
 // *******************Server Location ***********************
@@ -308,7 +308,7 @@ boolean setDiscoveredButtons(){
    any selected = UI::QueryWidget(`discovered, `CurrentItem);
    if (selected != nil) { params = splitstring( IscsiClient::discovered[tointeger(selected)]:"", " " ); }
         else  { params = []; }
- if ((params==[])||(IscsiClient::connected(params[1]:"", params[2]:""))){
+ if ((params==[])||(IscsiClient::connected( deletechars(params[0]:"", "[]") ))){
    UI::ChangeWidget (`id (`connect), `Enabled, false);
    UI::ChangeWidget (`id (`delete), `Enabled, false);
   } else{
@@ -323,9 +323,9 @@ void initDiscoveredTable(string key){
      integer row = 0;
      foreach(string s, IscsiClient::getDiscovered(), {
      list<string> row_in_string = splitstring(s, " ");
-        string record = deletechars(row_in_string[0]:"", "[]");
+//        string record = deletechars(row_in_string[0]:"", "[]");
         items = add(items, `item(`id(row), row_in_string[1]:"", row_in_string[2]:"", 
-		(IscsiClient::connected(row_in_string[1]:"", row_in_string[2]:""))?_("True"):_("False") ));
+		(IscsiClient::connected( deletechars(row_in_string[0]:"", "[]") ))?_("True"):_("False") ));
       row = row + 1;
      });
 
@@ -345,7 +345,7 @@ symbol handleDiscoveredTable (string key, map event){
   // connect new target
   if ( event["ID"]:nil == `connect) {
    // check if not already connected
-   if ( IscsiClient::connected(params[1]:"", params[2]:"") == true){
+   if ( IscsiClient::connected( curr_rec ) == true){
      Popup::Error(_("The target is already connected."));
      return nil;
     }
@@ -358,7 +358,7 @@ symbol handleDiscoveredTable (string key, map event){
   }
   // delete connected item
   if ( event["ID"]:nil == `delete) {
-   if ((params == [])||(!IscsiClient::connected(params[1]:"", params[2]:""))){
+   if ((params == [])||(!IscsiClient::connected( curr_rec ))){
 	 SCR::Execute (.target.bash_output,sformat("iscsiadm -m node -r %1 --op=delete", deletechars(params[0]:"", "[]")), $[] );
 	 IscsiClient::readSessions();
 	 initDiscoveredTable("");
@@ -381,7 +381,7 @@ void initTargetTable(string key){
      list<string> row_in_string = splitstring(s, " ");
         string record = deletechars(row_in_string[0]:"", "[]");
         items = add(items, `item(`id(row), row_in_string[1]:"", row_in_string[2]:"",
-		(IscsiClient::connected(row_in_string[1]:"", row_in_string[2]:""))?_("True"):_("False") ));
+		(IscsiClient::connected( record ))?_("True"):_("False") ));
       row = row + 1;
      });
         UI::ChangeWidget (`id (`targets), `Items, items);
@@ -394,7 +394,7 @@ symbol handleTargetTable (string key, map event){
   if ( event["ID"]:nil == `connect) {
    // check if is not already connected
    list <string> params = splitstring( IscsiClient::targets[(integer)UI::QueryWidget(`targets, `CurrentItem)]:"", " " );
-   if ( IscsiClient::connected(params[1]:"", params[2]:"") == true){
+   if ( IscsiClient::connected( deletechars(params[0]:"", "[]") ) == true){
     Popup::Error(_("The target is already connected."));
    } else {
 	 curr_rec = deletechars(params[0]:"", "[]");

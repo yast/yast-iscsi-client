@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Jun  8 15:38:37 CEST 2006 - mzugec@suse.cz
+
+- fixed #179013 - gets confused if the target names are similar
+
+-------------------------------------------------------------------
 Thu Jun  8 11:28:21 CEST 2006 - mzugec@suse.cz
 
 - fixed #180985 - staying current row in connected dialog

@@ -390,6 +390,12 @@ void initTargetTable(string key){
 
 // handle dialog for all targets from portal (connected/disconnected) - only connect button ;)
 symbol handleTargetTable (string key, map event){
+ //enable/disable connect button according target is or not already connected
+ list <term> items =(list <term>)UI::QueryWidget(`targets, `Items);
+ if ((items[(integer)UI::QueryWidget(`targets, `CurrentItem)]:nil)[3]:"" == _("True")) UI::ChangeWidget(`connect, `Enabled, false);
+	else UI::ChangeWidget(`connect, `Enabled, true);
+
+
  if ( event["EventReason"]:"" == "Activated" ){
   if ( event["ID"]:nil == `connect) {
    // check if is not already connected

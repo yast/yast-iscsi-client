@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Jun  9 18:29:16 CEST 2006 - mzugec@suse.cz
+
+- fixed #disable Connect button when already connected target is selected 
+
+-------------------------------------------------------------------
 Thu Jun  8 15:38:37 CEST 2006 - mzugec@suse.cz
 
 - fixed #179013 - gets confused if the target names are similar

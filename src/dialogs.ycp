@@ -87,7 +87,7 @@ map<string, map <string, any> > widgets = $[
 		"widget" : `custom,
 		"custom_widget"	:
 		 `VBox(
-		  `Table(`id(`targets),
+		  `Table(`id(`targets), `opt(`notify, `immediate),
 			`header(_("Portal Address"), _("Target Name"), _("Connected")),
 			[]
 			),

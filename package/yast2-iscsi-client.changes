@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Oct 17 11:24:10 CEST 2006 - mzugec@suse.cz
+
+- fixed #211890 - wrong handling .target.bash 
+
+-------------------------------------------------------------------
 Fri Jun  9 18:29:16 CEST 2006 - mzugec@suse.cz
 
 - fixed #disable Connect button when already connected target is selected 

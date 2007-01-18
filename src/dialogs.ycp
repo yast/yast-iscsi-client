@@ -40,7 +40,23 @@ map<string, map <string, any> > widgets = $[
                     _("Manually")
                 ),
             ]),
-
+	"initiator_name" : $[
+		"widget" : `custom,
+		"custom_widget"	:
+		  `HBox(
+//		   `HSpacing(7),
+			`MinWidth( 16, `TextEntry(`id(`initiator_name), _("Initiator Name")) ),
+			`VBox(
+			     `VSpacing(1),
+			     `PushButton(`id(`write), _("Save Name"))
+			     )
+//		   `HSpacing(7)
+		  ),
+		"init"	: initInitName,
+		"handle" : handleInitName,
+//		"store"	 : storeInitName,
+		"help"	: HELPS["initiator_name"]:""
+		],
 	// table of connected targets
        "connected_table" : $[
 		"widget" : `custom,
@@ -157,7 +173,18 @@ map<string, map <string, any> > widgets = $[
 		),
                    "validate_type" : `function,
                    "validate_function" : validateServerLocation
-	]
+	],
+       "bios_table" : $[
+                "widget" : `custom,
+                "custom_widget" :
+                 `VBox(
+                  `Table(`id(`bios),
+                        `header(_("Values from BIOS"), _("Key"), _("Value")), []
+                        )
+                  ),
+//                "init" : initBIOS,
+                ],
+
     ];
 
 
@@ -173,6 +200,8 @@ map tabs_descr = $[
                            `HStretch(),
                            `HSpacing (1),
                             `VBox(
+				"initiator_name",
+                                `VSpacing (2),
                                 "auto_start_up",
                                 `VSpacing (2)
                                 ),
@@ -181,7 +210,7 @@ map tabs_descr = $[
                               ),
                           `VStretch()
                         ),
-         "widget_names" : [ "auto_start_up" ]
+         "widget_names" : [ "auto_start_up", "initiator_name" ]
         ],
 
 	// list og connected targets
@@ -218,6 +247,22 @@ map tabs_descr = $[
                           `VStretch()
                         ),
          "widget_names" : [ "discovered_table" ]
+        ],
+        "bios":$[
+         "header"       : _("BIOS"),
+         "contents"     :
+                         `VBox(
+                          `VStretch(),
+                          `HBox(
+                           `HSpacing (1),
+                            `VBox(
+                                "bios_table"
+                                 ),
+                           `HSpacing (1)
+                               ),
+                          `VStretch()
+                        ),
+         "widget_names" : [ "bios_table" ]
         ]
       ];
 

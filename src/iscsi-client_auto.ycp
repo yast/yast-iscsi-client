@@ -67,6 +67,9 @@ else if (func == "Export") {
 else if (func == "Packages") {
     ret = IscsiClient::AutoPackages();
 }
+else if (func == "GetModified") {
+    ret = IscsiClient::modified;
+}
 /* Read current state */
 else if (func == "Read") {
     import "Progress";

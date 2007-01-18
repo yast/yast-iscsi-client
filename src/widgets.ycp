@@ -187,7 +187,12 @@ symbol handleInitName (string key, map event){
  }
  return nil;
 }
+// ***************** BIOS table **************************
+void initBIOS(string key){
 
+
+
+}
 // ***************** add table ***************************
 
 // set incoming widget status
@@ -426,8 +431,7 @@ symbol handleTargetTable (string key, map event){
 //***************** connection autentication *******************
 
 // login to target with authentication
-global boolean validateConnAuth(string key, map event){
-y2internal("curr_rec %1", curr_rec);
+boolean validateConnAuth(string key, map event){
  boolean ret = true;
  boolean auth_none = (boolean) UI::QueryWidget(`id(`auth_none), `Value);
  boolean auth_in = (boolean) UI::QueryWidget(`id(`auth_in), `Value);

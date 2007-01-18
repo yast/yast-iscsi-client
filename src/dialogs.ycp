@@ -179,10 +179,9 @@ map<string, map <string, any> > widgets = $[
                 "custom_widget" :
                  `VBox(
                   `Table(`id(`bios),
-                        `header(_("Values from BIOS"), _("Key"), _("Value")), []
-                        )
+                        `header(_("Key"), _("Value")), [] )
                   ),
-//                "init" : initBIOS,
+                "init" : initBIOS,
                 ],
 
     ];
@@ -282,6 +281,7 @@ any GlobalDialog() {
         ]),
     ];
 
+    if (size(IscsiClient::getBIOS())>0) widget_descr["tab", "tab_order" ]=add(widget_descr["tab", "tab_order" ]:[], "bios" );
     term contents = `VBox( "tab" );
     list<map <string, any> > w = CWM::CreateWidgets (["tab"], (map <string, map <string, any> >)widget_descr);
     string help = CWM::MergeHelps(w);

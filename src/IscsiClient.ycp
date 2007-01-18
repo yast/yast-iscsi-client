@@ -37,10 +37,14 @@ map<string, any> bios = nil;
 
 global map<string, any> getBIOS(){
  if (bios==nil){
-
- string from_bios = ((map<string, any>)SCR::Execute(.target.bash_output, "fwparam_ibft -b|grep iSCSI_INITIATOR_NAME|cut -d'=' -f2|tr -d '\n'"))["stdout"]:"";
-y2internal("from_bios %1", from_bios);
+  bios=$[];
+  string from_bios = ((map<string, any>)SCR::Execute(.target.bash_output, "fwparam_ibft -b"))["stdout"]:"";
+  foreach(string row, splitstring(from_bios, "\n"), {
+   list<string> key_val=splitstring(row, "=");
+   bios[key_val[0]:""] = key_val[1]:"";
+  });
  }
+y2internal("BIOS %1", bios);
  return bios;
 }
 
@@ -257,7 +261,7 @@ global boolean checkInitiatorName(){
  boolean ret=true;
  string initiatorname="";
  string file="/etc/initiatorname.iscsi";
- string name_from_bios = ((map<string, any>)SCR::Execute(.target.bash_output, "fwparam_ibft -b|grep iSCSI_INITIATOR_NAME|cut -d'=' -f2|tr -d '\n'"))["stdout"]:"";
+ string name_from_bios = getBIOS()["iSCSI_INITIATOR_NAME"]:"";
  y2milestone("Check %1", file);
  if (size((map<string, any>)SCR::Read (.target.lstat, file)) == 0){
    if (size(name_from_bios)>0){
@@ -436,6 +440,11 @@ global boolean Read() {
     if(false) return false;
     sleep(sl);
 
+    if(getBIOS()==nil) return false;
+    /* Progress finished */
+    Progress::NextStage();
+    sleep(sl);
+
     Progress::NextStage();
     // check if required package is installed
     if(!installed_packages()) return false;
@@ -459,10 +468,6 @@ global boolean Read() {
 	Report::Error( Message::CannotReadCurrentSettings() );
 	return false;
 	}
-    sleep(sl);
-    if(getBIOS()!=nil) return false;
-    /* Progress finished */
-    Progress::NextStage();
     sleep(sl);
 
     if(Abort()) return false;

@@ -237,11 +237,11 @@ map tabs_descr = $[
                          `VBox(
                           `VStretch(),
                           `HBox(
-                           `HSpacing (1),
+//                           `HSpacing (1),
                             `VBox(
                                 "discovered_table"
-                                 ),
-                           `HSpacing (1)
+                                 )
+//                           `HSpacing (1)
                                ),
                           `VStretch()
                         ),
@@ -273,15 +273,14 @@ any GlobalDialog() {
 
     map widget_descr = $[
 	"tab": CWMTab::CreateWidget($[
-            "tab_order": (Stage::initial()) ? ["client"] : [ "general", "client", "discovered" ],
+            "tab_order": (Stage::initial()) ? ["client"] : ((IscsiClient::getBIOS()!=$[])?[ "general", "client", "discovered", "bios" ] : [ "general", "client", "discovered" ]),
             "tabs": tabs_descr,
             "widget_descr": widgets,
             "initial_tab" : (Stage::initial()) ? "client" : current_tab,
             "tab_help" : _("<h1>iSCSI Initiator</h1>"),
         ]),
     ];
-
-    if (size(IscsiClient::getBIOS())>0) widget_descr["tab", "tab_order" ]=add(widget_descr["tab", "tab_order" ]:[], "bios" );
+//    if (size(IscsiClient::getBIOS())>0) widget_descr["tab", "tab_order" ]=add(widget_descr["tab", "tab_order" ]:[], "bios" );
     term contents = `VBox( "tab" );
     list<map <string, any> > w = CWM::CreateWidgets (["tab"], (map <string, map <string, any> >)widget_descr);
     string help = CWM::MergeHelps(w);

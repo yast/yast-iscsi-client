@@ -41,7 +41,7 @@ global map<string, any> getBIOS(){
   string from_bios = ((map<string, any>)SCR::Execute(.target.bash_output, "fwparam_ibft -b"))["stdout"]:"";
   foreach(string row, splitstring(from_bios, "\n"), {
    list<string> key_val=splitstring(row, "=");
-   bios[key_val[0]:""] = key_val[1]:"";
+   if (size(key_val[0]:"")>0) bios[key_val[0]:""] = key_val[1]:"";
   });
  }
 y2internal("BIOS %1", bios);
@@ -226,13 +226,17 @@ global boolean Modified() {
 
 // get all discovered targets
 global list<string> getDiscovered(){
-    map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -m node");
-	if (size(retcode["stderr"]:"")>0) {
 	 discovered=[];
-	} else
-	      discovered = filter(string row, splitstring(retcode["stdout"]:"", "\n"), {
+    map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -m node");
+	if (size(retcode["stderr"]:"")==0) {
+	      list<string> tmp_disc = filter(string row, splitstring(retcode["stdout"]:"", "\n"), {
                         return ( size(row)>0 && (search(row, "session")==nil) );
                         });
+	foreach(string row, tmp_disc, {
+	 list<string> tmp_row = splitstring(row, " ");
+	 discovered = add(discovered, sformat("%1 %2", tmp_row[1]:"", tmp_row[2]:""));
+	});
+	}
  y2milestone("Discovered sessions %1", discovered);
  return discovered;
 }
@@ -352,7 +356,8 @@ y2milestone("return value %1", ret);
 global boolean connected(list<string> rec){
  boolean ret = false;
  foreach(string row, sessions, {
-  if (issubstring(row, rec[1]:"")){
+y2internal("-%1-%2-", splitstring(row, " ")[1]:"", rec[1]:"");
+  if (splitstring(row, " ")[1]:"" == rec[1]:""){
    ret = true;
    break;
   }

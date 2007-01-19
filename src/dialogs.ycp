@@ -270,11 +270,12 @@ map tabs_descr = $[
 
 // main tabbed dialog
 any GlobalDialog() {
+    if (Stage::initial()) tabs_descr["general", "widget_names"] = [ "initiator_name" ];
     string caption = _("iSCSI Initiator Overview");
 
     map widget_descr = $[
 	"tab": CWMTab::CreateWidget($[
-            "tab_order": (Stage::initial()) ? ["client"] : ((IscsiClient::getiBFT()!=$[])?[ "general", "client", "discovered", "ibft" ] : [ "general", "client", "discovered" ]),
+            "tab_order": (Stage::initial()) ? ["general", "client"] : ((IscsiClient::getiBFT()!=$[])?[ "general", "client", "discovered", "ibft" ] : [ "general", "client", "discovered" ]),
             "tabs": tabs_descr,
             "widget_descr": widgets,
             "initial_tab" : (Stage::initial()) ? "client" : current_tab,

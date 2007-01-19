@@ -177,6 +177,10 @@ void initInitName(string key){
     string initiatorname=((map<string, any>)SCR::Execute(.target.bash_output, "cat /etc/initiatorname.iscsi|cut -d'=' -f2|tr -d '\n'"))["stdout"]:"";
     y2milestone("initiatorname %1", initiatorname);
     UI::ChangeWidget(`initiator_name, `Value, initiatorname);
+  if (size(IscsiClient::getiBFT()["iSCSI_INITIATOR_NAME"]:"")>0){
+   UI::ChangeWidget(`initiator_name, `Enabled, false);
+   UI::ChangeWidget(`write, `Enabled, false);
+  }
 }
 symbol handleInitName (string key, map event){
  if (event["EventReason"]:"" == "Activated" && event["ID"]:nil==`write){

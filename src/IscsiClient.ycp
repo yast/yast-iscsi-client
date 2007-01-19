@@ -356,7 +356,6 @@ y2milestone("return value %1", ret);
 global boolean connected(list<string> rec, boolean check_ip){
  boolean ret = false;
  foreach(string row, sessions, {
-y2internal("-%1-%2-", row, rec);
  list<string> list_row = splitstring(row, " ");
   if (list_row[1]:"" == rec[1]:"" && (check_ip ? splitstring(list_row[0]:"", ",")[0]:"" == splitstring(rec[0]:"", ",")[0]:"" : true)){
    ret = true;

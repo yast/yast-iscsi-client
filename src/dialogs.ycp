@@ -217,15 +217,15 @@ map tabs_descr = $[
          "header"       : _("Connected Targets"),
          "contents"     :
                           `VBox(
-                          `VStretch(),
+//                          `VStretch(),
                           `HBox(
                            `HSpacing (1),
                             `VBox(
                                 "connected_table"
                                  ),
                            `HSpacing (1)
-                               ),
-                          `VStretch()
+                               )
+//                          `VStretch()
                         ),
          "widget_names" : [ "connected_table" ]
         ],
@@ -235,20 +235,20 @@ map tabs_descr = $[
          "header"       : _("Discovered Targets"),
          "contents"     :
                          `VBox(
-                          `VStretch(),
+//                          `VStretch(),
                           `HBox(
 //                           `HSpacing (1),
                             `VBox(
                                 "discovered_table"
                                  )
 //                           `HSpacing (1)
-                               ),
-                          `VStretch()
+                               )
+//                          `VStretch()
                         ),
          "widget_names" : [ "discovered_table" ]
         ],
         "bios":$[
-         "header"       : _("BIOS"),
+         "header"       : "iBFT",
          "contents"     :
                          `VBox(
                           `VStretch(),

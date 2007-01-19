@@ -332,8 +332,7 @@ boolean setDiscoveredButtons(){
    any selected = UI::QueryWidget(`discovered, `CurrentItem);
    if (selected != nil) { params = splitstring( IscsiClient::discovered[tointeger(selected)]:"", " " ); }
         else  { params = []; }
-y2internal("params %1", params);
- if ((params==[])||(IscsiClient::connected( [ splitstring(params[0]:"", ",")[0]:"", params[1]:""] ))){
+ if ((params==[])||(IscsiClient::connected( [ splitstring(params[0]:"", ",")[0]:"", params[1]:""], true ))){
    UI::ChangeWidget (`id (`connect), `Enabled, false);
    UI::ChangeWidget (`id (`delete), `Enabled, false);
   } else{
@@ -350,7 +349,7 @@ void initDiscoveredTable(string key){
      list<string> row_in_string = splitstring(s, " ");
 //        string record = deletechars(row_in_string[0]:"", "[]");
         items = add(items, `item(`id(row), row_in_string[0]:"", row_in_string[1]:"",
-		(IscsiClient::connected( row_in_string ))?_("True"):_("False") ));
+		(IscsiClient::connected( row_in_string, true ))?_("True"):_("False") ));
       row = row + 1;
      });
 
@@ -367,15 +366,14 @@ symbol handleDiscoveredTable (string key, map event){
 	else  { params = []; }
    curr_rec = [ splitstring(params[0]:"", ",")[0]:"", params[1]:"" ] ;
     params = curr_rec;
-y2internal("curr_rec1 %1", curr_rec);
  if ( event["EventReason"]:"" == "Activated" ){
   // connect new target
   if ( event["ID"]:nil == `connect) {
    // check if not already connected
-   if ( IscsiClient::connected( curr_rec ) == true){
-     Popup::Error(_("The target is already connected."));
-     return nil;
+   if ( IscsiClient::connected( curr_rec , false) == true){
+     if (!Popup::AnyQuestion(Label::WarningMsg(), _("The target with this TargetName is already connected. Make sure that Multipathing is enabled to prevent data corruption."), _("Continue"), _("Cancel"), `focus_yes)) return nil;
     }
+
    // goto ConnAuthDialog("discovered") (initDiscAuth)
    return `conn;
   }
@@ -385,10 +383,8 @@ y2internal("curr_rec1 %1", curr_rec);
   }
   // delete connected item
   if ( event["ID"]:nil == `delete) {
-   if ((params == [])||(!IscsiClient::connected( curr_rec ))){
-y2internal("params %1", params);
+   if ((params == [])||(!IscsiClient::connected( curr_rec, true ))){
 	 SCR::Execute (.target.bash_output,sformat("iscsiadm -m node -T %1 -p %2 --op=delete", params[1]:"", params[0]:""),  $[] );
-y2internal("execute %1", sformat("iscsiadm -m node -T %1 -p %2 --op=delete", params[1]:"", params[0]:""));
 	 IscsiClient::readSessions();
 	 initDiscoveredTable("");
    if (selected != nil) { params = splitstring( IscsiClient::discovered[tointeger(selected)]:"", " " ); }
@@ -409,7 +405,7 @@ void initTargetTable(string key){
      foreach(string s, IscsiClient::targets, {
      list<string> row_in_string = splitstring(s, " ");
         items = add(items, `item(`id(row), row_in_string[0]:"", row_in_string[1]:"",
-		(IscsiClient::connected( row_in_string ))?_("True"):_("False") ));
+		(IscsiClient::connected( row_in_string, true ))?_("True"):_("False") ));
       row = row + 1;
      });
         UI::ChangeWidget (`id (`targets), `Items, items);
@@ -428,11 +424,10 @@ symbol handleTargetTable (string key, map event){
   if ( event["ID"]:nil == `connect) {
    // check if is not already connected
    list <string> params = splitstring( IscsiClient::targets[(integer)UI::QueryWidget(`targets, `CurrentItem)]:"", " " );
-   if ( IscsiClient::connected( params ) == true){
+   if ( IscsiClient::connected( params, true ) == true){
     Popup::Error(_("The target is already connected."));
    } else {
 	 curr_rec = [ splitstring(params[0]:"", ",")[0]:"", params[1]:"" ];
-y2internal("curr_rec2 %1", curr_rec);
 	// goto ConnAuthDialog("discovered") (initDiscAuth())
 	 return `conn_auth;
 	}

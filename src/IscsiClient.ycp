@@ -44,7 +44,7 @@ global map<string, any> getBIOS(){
    if (size(key_val[0]:"")>0) bios[key_val[0]:""] = key_val[1]:"";
   });
  }
-y2internal("BIOS %1", bios);
+y2milestone("BIOS %1", bios);
  return bios;
 }
 
@@ -353,17 +353,41 @@ y2milestone("return value %1", ret);
 }
 
 // check if given target is connected
-global boolean connected(list<string> rec){
+global boolean connected(list<string> rec, boolean check_ip){
  boolean ret = false;
  foreach(string row, sessions, {
-y2internal("-%1-%2-", splitstring(row, " ")[1]:"", rec[1]:"");
-  if (splitstring(row, " ")[1]:"" == rec[1]:""){
+y2internal("-%1-%2-", row, rec);
+ list<string> list_row = splitstring(row, " ");
+  if (list_row[1]:"" == rec[1]:"" && (check_ip ? splitstring(list_row[0]:"", ",")[0]:"" == splitstring(rec[0]:"", ",")[0]:"" : true)){
    ret = true;
    break;
   }
  });
- y2milestone("Target %1 connected:%2", rec, ret);
  return ret;
+}
+
+boolean autoDiscovery(){
+ map<string, any> b = getBIOS();
+ if ( b != $[] ){
+ map<string, any> result = (map<string, any>)SCR::Execute(.target.bash_output, 
+			sformat("iscsiadm -m discovery -t st -p %1:%2", b["iSCSI_TARGET_IPADDR"]:"", b["iSCSI_TARGET_PORT"]:"") );
+
+ if(result["exit"]:0 != 0) {
+  Popup::Error(sformat("%1\n%2\n%3 %4:%5", _("Error:"), result["stderr"]:"", _("while discovering"), b["iSCSI_TARGET_IPADDR"]:"", b["iSCSI_TARGET_PORT"]:""));
+ } else {
+ y2internal("result from discovery %1", result);
+  if (connected([ sformat("%1:%2", b["iSCSI_TARGET_IPADDR"]:"", b["iSCSI_TARGET_PORT"]:""), b["iSCSI_TARGET_NAME"]:""], true)) y2internal("Already connected");
+	else {
+  result = (map<string, any>)SCR::Execute(.target.bash_output, 
+	sformat("iscsiadm -m node -T %1 -p %2:%3 --login", b["iSCSI_TARGET_NAME"]:"", b["iSCSI_TARGET_IPADDR"]:"", b["iSCSI_TARGET_PORT"]:"") );
+
+   if(result["exit"]:0 != 0) Popup::Error( sformat("%1\n%2\n%3 %4", 
+				_("Error:"), result["stderr"]:"", _("while login into"), b["iSCSI_TARGET_NAME"]:""));
+   }
+  }
+ }
+
+ return true;
 }
 
 // change startup status (manual/automatic) for target
@@ -464,9 +488,6 @@ global boolean Read() {
     if(!getServiceStatus()) return false;
     sleep(sl);
 
-    // read current settings
-    if(Abort()) return false;
-    Progress::NextStage();
     // read config file
     if(readSessions()==false)
 	{
@@ -474,6 +495,11 @@ global boolean Read() {
 	return false;
 	}
     sleep(sl);
+
+    // read current settings
+    if(!autoDiscovery()) return false;
+    Progress::NextStage();
+
 
     if(Abort()) return false;
     modified = false;

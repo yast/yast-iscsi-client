@@ -286,7 +286,7 @@ global boolean checkInitiatorName(){
  } else {
     string initiatorname=((map<string, any>)SCR::Execute(.target.bash_output, "cat /etc/initiatorname.iscsi|cut -d'=' -f2|tr -d '\n'"))["stdout"]:"";
    if (size(name_from_bios)>0 && name_from_bios!=initiatorname){
-    Popup::AnyQuestion(Label::WarningMsg(), _("InitiatorName from iBFT and from /etc/initiatorname.iscsi are differ.\nOld initiatorname will be replaced by value from iBFT and create a backup.\nIf you want to use different initiatorname change it in BIOS."), )
+    Popup::Warning( _("InitiatorName from iBFT and from /etc/initiatorname.iscsi are differ.\nOld initiatorname will be replaced by value from iBFT and create a backup.\nIf you want to use different initiatorname change it in BIOS.") );
     y2milestone("replacing old name %1 by name %2 from iBFT", initiatorname, name_from_bios);
     SCR::Execute(.target.bash, sformat("mv /etc/initiatorname.iscsi /etc/initiatorname.yastbackup ;echo \"InitiatorName=%1\">/etc/initiatorname.iscsi", name_from_bios));
 

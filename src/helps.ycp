@@ -101,6 +101,8 @@ _("<h1>Warning</h1>") + _("<p>When accessing an iSCSI device <b>READ</b>/<b>WRIT
  // list of discovered targets
  "discovered"	: _("List of discovered targets. Start a new <b>Discovery</b> or <b>Connect</b> to any target."),
 
+  "ibft_table" : _("<h1>iBTF</h1>") + ("The <p>iSCSI Boot Firmware Table</p> is a table created by the iSCSI boot firmware in order to
+pass parameters about the iSCSI boot device to the loaded OS.")
 ];
 
 /* EOF */

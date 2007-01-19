@@ -174,14 +174,15 @@ map<string, map <string, any> > widgets = $[
                    "validate_type" : `function,
                    "validate_function" : validateServerLocation
 	],
-       "bios_table" : $[
+       "ibft_table" : $[
                 "widget" : `custom,
                 "custom_widget" :
                  `VBox(
                   `Table(`id(`bios),
                         `header(_("Key"), _("Value")), [] )
                   ),
-                "init" : initBIOS,
+                "init" : initiBFT,
+		"help" : HELPS["ibft_table"]:""
                 ],
 
     ];
@@ -247,7 +248,7 @@ map tabs_descr = $[
                         ),
          "widget_names" : [ "discovered_table" ]
         ],
-        "bios":$[
+        "ibft":$[
          "header"       : "iBFT",
          "contents"     :
                          `VBox(
@@ -255,13 +256,13 @@ map tabs_descr = $[
                           `HBox(
                            `HSpacing (1),
                             `VBox(
-                                "bios_table"
+                                "ibft_table"
                                  ),
                            `HSpacing (1)
                                )
 //                          `VStretch()
                         ),
-         "widget_names" : [ "bios_table" ]
+         "widget_names" : [ "ibft_table" ]
         ]
       ];
 
@@ -273,14 +274,13 @@ any GlobalDialog() {
 
     map widget_descr = $[
 	"tab": CWMTab::CreateWidget($[
-            "tab_order": (Stage::initial()) ? ["client"] : ((IscsiClient::getBIOS()!=$[])?[ "general", "client", "discovered", "bios" ] : [ "general", "client", "discovered" ]),
+            "tab_order": (Stage::initial()) ? ["client"] : ((IscsiClient::getiBFT()!=$[])?[ "general", "client", "discovered", "ibft" ] : [ "general", "client", "discovered" ]),
             "tabs": tabs_descr,
             "widget_descr": widgets,
             "initial_tab" : (Stage::initial()) ? "client" : current_tab,
             "tab_help" : _("<h1>iSCSI Initiator</h1>"),
         ]),
     ];
-//    if (size(IscsiClient::getBIOS())>0) widget_descr["tab", "tab_order" ]=add(widget_descr["tab", "tab_order" ]:[], "bios" );
     term contents = `VBox( "tab" );
     list<map <string, any> > w = CWM::CreateWidgets (["tab"], (map <string, map <string, any> >)widget_descr);
     string help = CWM::MergeHelps(w);

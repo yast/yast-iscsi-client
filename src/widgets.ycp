@@ -187,10 +187,10 @@ symbol handleInitName (string key, map event){
  }
  return nil;
 }
-// ***************** BIOS table **************************
-void initBIOS(string key){
+// ***************** iBFT table **************************
+void initiBFT(string key){
  list<term> items = [];
- foreach(string key, any value, IscsiClient::getBIOS(), {
+ foreach(string key, any value, IscsiClient::getiBFT(), {
   items = add(items, `item(`id(size(items)), key, value));
  });
  UI::ChangeWidget(`bios, `Items, items);

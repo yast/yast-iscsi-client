@@ -428,6 +428,11 @@ symbol handleTargetTable (string key, map event){
     Popup::Error(_("The target is already connected."));
    } else {
 	 curr_rec = [ splitstring(params[0]:"", ",")[0]:"", params[1]:"" ];
+   // check if not already connected
+   if ( IscsiClient::connected( curr_rec , false) == true){
+     if (!Popup::AnyQuestion(Label::WarningMsg(), _("The target with this TargetName is already connected. Make sure that Multipathing is enabled to prevent data corruption."), _("Continue"), _("Cancel"), `focus_yes)) return nil;
+    }
+
 	// goto ConnAuthDialog("discovered") (initDiscAuth())
 	 return `conn_auth;
 	}

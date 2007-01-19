@@ -375,8 +375,8 @@ boolean autoDiscovery(){
  if(result["exit"]:0 != 0) {
   Popup::Error(sformat("%1\n%2\n%3 %4:%5", _("Error:"), result["stderr"]:"", _("while discovering"), b["iSCSI_TARGET_IPADDR"]:"", b["iSCSI_TARGET_PORT"]:""));
  } else {
- y2internal("result from discovery %1", result);
-  if (connected([ sformat("%1:%2", b["iSCSI_TARGET_IPADDR"]:"", b["iSCSI_TARGET_PORT"]:""), b["iSCSI_TARGET_NAME"]:""], true)) y2internal("Already connected");
+  if (connected([ sformat("%1:%2", b["iSCSI_TARGET_IPADDR"]:"", b["iSCSI_TARGET_PORT"]:""), b["iSCSI_TARGET_NAME"]:""], true))
+											y2milestone("Target given from BIOS is already connected");
 	else {
   result = (map<string, any>)SCR::Execute(.target.bash_output, 
 	sformat("iscsiadm -m node -T %1 -p %2:%3 --login", b["iSCSI_TARGET_NAME"]:"", b["iSCSI_TARGET_IPADDR"]:"", b["iSCSI_TARGET_PORT"]:"") );

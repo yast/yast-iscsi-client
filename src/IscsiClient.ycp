@@ -24,12 +24,30 @@ import "Package";
 import "Popup";
 import "Stage";
 import "Confirm";
+import "Label";
 
 global list <string> sessions = [];
 global list <string> discovered = [];
 global list <string> targets = [];
+global boolean configured = false;
 boolean serviceStatus = false;
 map<string, any> config = $[];
+map<string, any> ibft = nil;
+
+
+global map<string, any> getiBFT(){
+ if (ibft==nil){
+  ibft=$[];
+  string from_bios = ((map<string, any>)SCR::Execute(.target.bash_output, "fwparam_ibft -b"))["stdout"]:"";
+  foreach(string row, splitstring(from_bios, "\n"), {
+   list<string> key_val=splitstring(row, "=");
+   if (size(key_val[0]:"")>0) ibft[key_val[0]:""] = key_val[1]:"";
+  });
+ }
+y2milestone("iBFT %1", ibft);
+ return ibft;
+}
+
 
 // get accessor for service status
 global boolean GetStartService() {
@@ -60,9 +78,8 @@ global void oldConfig(){
 }
 
 
-global map<string, any> getNode(string rec){
-  map<string, any> cmd = (map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -S -m node -r $REC", $["REC":rec]);
-//  y2internal("getting record ... %1", cmd);
+global map<string, any> getNode(list<string> rec){
+  map<string, any> cmd = (map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -S -m node -T $TARGET", $["TARGET":rec[1]:"", "IP":rec[0]:""]);
  if (cmd["exit"]:0!=0) return $[];
  map<string, any> auth = $[];
  foreach(string row, splitstring(cmd["stdout"]:"", "\n"), {
@@ -87,7 +104,6 @@ global map<string, any> getNode(string rec){
 		break;
   }
  });
-// y2internal("%1", auth);
  return auth;
 }
 
@@ -210,13 +226,17 @@ global boolean Modified() {
 
 // get all discovered targets
 global list<string> getDiscovered(){
-    map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -m node");
-	if (size(retcode["stderr"]:"")>0) {
 	 discovered=[];
-	} else
-	      discovered = filter(string row, splitstring(retcode["stdout"]:"", "\n"), {
+    map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -m node");
+	if (size(retcode["stderr"]:"")==0) {
+	      list<string> tmp_disc = filter(string row, splitstring(retcode["stdout"]:"", "\n"), {
                         return ( size(row)>0 && (search(row, "session")==nil) );
                         });
+	foreach(string row, tmp_disc, {
+	 list<string> tmp_row = splitstring(row, " ");
+	 discovered = add(discovered, sformat("%1 %2", tmp_row[1]:"", tmp_row[2]:""));
+	});
+	}
  y2milestone("Discovered sessions %1", discovered);
  return discovered;
 }
@@ -225,11 +245,17 @@ global list<string> getDiscovered(){
 global boolean readSessions(){
  y2milestone("reading current settings");
     map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -m session");
-	if (size(retcode["stderr"]:"")>0) return false;
-//y2internal("retcode %1", retcode);
-      sessions = filter(string row, splitstring(retcode["stdout"]:"", "\n"), {
+//	if ( retcode["exit"]:0 != 0 ) return false;
+      list<string> tmp_sessions = [];
+      tmp_sessions = filter(string row, splitstring(retcode["stdout"]:"", "\n"), {
                         return ( size(row)>0 && (search(row, "session")==nil) );
                         });
+	sessions=[];
+	foreach(string row, tmp_sessions, {
+	list<string> tmp_row = splitstring(row, " ");
+	sessions = add(sessions, sformat("%1 %2", tmp_row[2]:"", tmp_row[3]:""));
+	});
+
   y2milestone("Return list from iscsiadm -m session: %1", sessions);
  return true;
 }
@@ -237,17 +263,36 @@ global boolean readSessions(){
 // check initiatorname if exist, if no - create it
 global boolean checkInitiatorName(){
  boolean ret=true;
+ string initiatorname="";
  string file="/etc/initiatorname.iscsi";
+ string name_from_bios = getiBFT()["iSCSI_INITIATOR_NAME"]:"";
  y2milestone("Check %1", file);
+
  if (size((map<string, any>)SCR::Read (.target.lstat, file)) == 0){
- y2milestone("%1 not exist, create", file);
- map<string, any> output = (map<string, any>)SCR::Execute (.target.bash_output,
+   if (size(name_from_bios)>0){
+    y2milestone("/etc/initiatorname.iscsi is empty or doesnt exists - replace with name stored in iBFT");
+    initiatorname = name_from_bios;
+   } else {
+	y2milestone("%1 not exist, create", file);
+
+	 map<string, any> output = (map<string, any>)SCR::Execute (.target.bash_output,
 								"/sbin/iscsi-iname -p iqn.`date +%Y-%m`.de.suse:01", $[]);
- if (size(output["stderr"]:"")==0){
-  ret = (boolean)SCR::Write (.target.string, file, sformat("InitiatorName=%1", output["stdout"]:""));
-	SCR::Execute (.target.bash, "chmod 0600 $FILE" ,$["FILE":file]);
-  } else ret = false;
- }
+	 if (size(output["stderr"]:"")==0){
+	  initiatorname=output["stdout"]:"";
+	} else ret = false;
+    }
+	  ret = (boolean)SCR::Write (.target.string, file, sformat("InitiatorName=%1", initiatorname));
+		SCR::Execute (.target.bash, "chmod 0600 $FILE" ,$["FILE":file]);
+ } else {
+    string initiatorname=((map<string, any>)SCR::Execute(.target.bash_output, "cat /etc/initiatorname.iscsi|cut -d'=' -f2|tr -d '\n'"))["stdout"]:"";
+   if (size(name_from_bios)>0 && name_from_bios!=initiatorname){
+    Popup::Warning( _("InitiatorName from iBFT and from /etc/initiatorname.iscsi are differ.\nOld initiatorname will be replaced by value from iBFT and create a backup.\nIf you want to use different initiatorname change it in BIOS.") );
+    y2milestone("replacing old name %1 by name %2 from iBFT", initiatorname, name_from_bios);
+    SCR::Execute(.target.bash, sformat("mv /etc/initiatorname.iscsi /etc/initiatorname.yastbackup ;echo \"InitiatorName=%1\">/etc/initiatorname.iscsi", name_from_bios));
+
+   }
+
+  }
  return ret;
 }
 
@@ -265,11 +310,11 @@ boolean installed_packages(){
 }
 
 // delete deiscovered target from database
-global boolean deleteRecord(string record){
+global boolean deleteRecord(list<string> record){
  boolean ret = true;
  y2milestone("Delete record %1", record);
 
-    map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, sformat("iscsiadm -m node -r %1 --logout", record));
+    map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, sformat("iscsiadm -m node -T %1 -p %2 --logout", record[1]:"", record[0]:""));
         if (size(retcode["stderr"]:"")>0) return false;
 
  readSessions();
@@ -277,10 +322,10 @@ global boolean deleteRecord(string record){
 }
 
 // get (manual/automatic) status of target connecting
-global string getStartupStatus(string record){
+global string getStartupStatus(list<string> record){
  string status = "";
  y2milestone("Getting status of record %1", record);
-     map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, sformat("iscsiadm -m node -r %1 ", record));
+     map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, sformat("iscsiadm -m node -T %1 -p %2", record[1]:"", record[0]:""));
     if (size(retcode["stderr"]:"")>0) return "";
     foreach(string row, splitstring(retcode["stdout"]:"", "\n"), {
      if (issubstring(row, "node.conn[0].startup")){
@@ -293,9 +338,9 @@ global string getStartupStatus(string record){
 }
 
 // update authentication value
-global boolean setValue(string record, string name, string value){
+global boolean setValue(list<string> record, string name, string value){
  y2milestone("set %1  for record %3", name, record);
- string command = sformat("iscsiadm -m node -r %1 --op=update --name=%2 --value=%3", record, name, value);
+ string command = sformat("iscsiadm -m node -T %1 -p %2 --op=update --name=%3 --value=%4", record[1]:"", record[0]:"", name, value);
  y2milestone("execute command - %1", command );
  boolean ret = true;
         map<string, any> retcode = (map<string, any>) SCR::Execute(.target.bash_output, command);
@@ -308,24 +353,48 @@ y2milestone("return value %1", ret);
 }
 
 // check if given target is connected
-global boolean connected(string rec_number){
+global boolean connected(list<string> rec, boolean check_ip){
  boolean ret = false;
  foreach(string row, sessions, {
-  if (issubstring(row, rec_number)){
+ list<string> list_row = splitstring(row, " ");
+  if (list_row[1]:"" == rec[1]:"" && (check_ip ? splitstring(list_row[0]:"", ",")[0]:"" == splitstring(rec[0]:"", ",")[0]:"" : true)){
    ret = true;
    break;
   }
  });
- y2milestone("Target %1 connected:%2", rec_number, ret);
  return ret;
 }
 
+boolean autoDiscovery(){
+ map<string, any> b = getiBFT();
+ if ( b != $[] ){
+ map<string, any> result = (map<string, any>)SCR::Execute(.target.bash_output, 
+			sformat("iscsiadm -m discovery -t st -p %1:%2", b["iSCSI_TARGET_IPADDR"]:"", b["iSCSI_TARGET_PORT"]:"") );
+
+ if(result["exit"]:0 != 0) {
+  Popup::Error(sformat("%1\n%2\n%3 %4:%5", _("Error:"), result["stderr"]:"", _("while discovering"), b["iSCSI_TARGET_IPADDR"]:"", b["iSCSI_TARGET_PORT"]:""));
+ } else {
+  if (connected([ sformat("%1:%2", b["iSCSI_TARGET_IPADDR"]:"", b["iSCSI_TARGET_PORT"]:""), b["iSCSI_TARGET_NAME"]:""], true))
+											y2milestone("Target given from iBFT is already connected");
+	else {
+  result = (map<string, any>)SCR::Execute(.target.bash_output, 
+	sformat("iscsiadm -m node -T %1 -p %2:%3 --login", b["iSCSI_TARGET_NAME"]:"", b["iSCSI_TARGET_IPADDR"]:"", b["iSCSI_TARGET_PORT"]:"") );
+
+   if(result["exit"]:0 != 0) Popup::Error( sformat("%1\n%2\n%3 %4", 
+				_("Error:"), result["stderr"]:"", _("while login into"), b["iSCSI_TARGET_NAME"]:""));
+   }
+  }
+ }
+
+ return true;
+}
+
 // change startup status (manual/automatic) for target
-global boolean setStartupStatus(string record, string status){
+global boolean setStartupStatus(list<string> record, string status){
  y2milestone("Set startup status for %1 to %2", record, status);
  boolean ret = true;
        map<string, any> retcode = (map<string, any>) SCR::Execute(.target.bash_output, 
-			sformat("iscsiadm -m node -r %1 --op=update --name=node.conn[0].startup --value=%2", record, status));
+			sformat("iscsiadm -m node -T %1 -p %2 --op=update --name=node.conn[0].startup --value=%3", record[1]:"", record[0]:"", status));
     if (size(retcode["stderr"]:"")>0) return false;
  return ret;
 }
@@ -399,6 +468,11 @@ global boolean Read() {
     if(false) return false;
     sleep(sl);
 
+    if(getiBFT()==nil) return false;
+    /* Progress finished */
+    Progress::NextStage();
+    sleep(sl);
+
     Progress::NextStage();
     // check if required package is installed
     if(!installed_packages()) return false;
@@ -408,14 +482,11 @@ global boolean Read() {
     sleep(sl);
 
     if(Abort()) return false;
-    Progress::NextStep();
+//    Progress::NextStep();
     // read status of service
     if(!getServiceStatus()) return false;
     sleep(sl);
 
-    // read current settings
-    if(Abort()) return false;
-    Progress::NextStage();
     // read config file
     if(readSessions()==false)
 	{
@@ -424,10 +495,10 @@ global boolean Read() {
 	}
     sleep(sl);
 
-    if(Abort()) return false;
-    /* Progress finished */
+    // read current settings
+    if(!autoDiscovery()) return false;
     Progress::NextStage();
-    sleep(sl);
+
 
     if(Abort()) return false;
     modified = false;
@@ -503,8 +574,18 @@ global boolean Import (map settings) {
  * @return map Dumped settings (later acceptable by Import ())
  */
 global map Export () {
-    // TODO FIXME: your code here (return the above mentioned variables)...
-    return $[];
+ map result = $[
+               "version" : "1.0",
+               "service" : serviceStatus,
+//               "auth"    : IscsiServerFunctions::getConfig()["auth"]:[],
+		"discovered" : discovered,
+               "sessions" : sessions,
+		"targets" : targets,
+		"config" : getConfig()
+                ];
+  configured = true;
+    return result;
+
 }
 
 /**

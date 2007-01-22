@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jan 22 09:13:50 CET 2007 - mzugec@suse.cz
+
+- fate #300684 - support for iBFT 
+
+-------------------------------------------------------------------
 Mon Oct 23 17:58:05 CEST 2006 - mzugec@suse.cz
 
 - fixed #211890 - wrong handling .target.bash

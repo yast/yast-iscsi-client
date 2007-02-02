@@ -45,7 +45,7 @@ map<string, map <string, any> > widgets = $[
 		"custom_widget"	:
 		  `HBox(
 //		   `HSpacing(7),
-			`MinWidth( 16, `TextEntry(`id(`initiator_name), _("Initiator Name")) ),
+			`MinWidth( 16, `TextEntry(`id(`initiator_name), `opt(`notify), _("Initiator Name")) ),
 			`VBox(
 			     `VSpacing(1),
 			     `PushButton(`id(`write), _("Save Name"))

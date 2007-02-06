@@ -26,6 +26,7 @@ import "Report";
 import "Summary";
 import "ModuleLoading";
 import "Packages";
+import "Installation";
 include "iscsi-client/wizards.ycp";
 
 /* main ui function */
@@ -33,7 +34,9 @@ any ret = nil;
 
 y2milestone("start open-iscsi");
 // check initiator name, create if not exists
+WFM::Execute (.local.bash,"test -d /etc/iscsi/ && /bin/cp -a /etc/iscsi/* " + Installation::destdir + "/etc/iscsi/");
 IscsiClient::checkInitiatorName();
+
 ModuleLoading::Load("iscsi_tcp", "", "", "", false, true);
 // start daemon before
 SCR::Execute(.background.run_output_err, "iscsid");

@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Tue Feb  6 10:51:37 CET 2007 - mzugec@suse.de
+
+- wrong initiatorname.iscsi path (#238738)
+- no feedback from SaveName button (#239344)
+- allow define of initiator (#232501)
+- 2.14.2
+
+-------------------------------------------------------------------
 Mon Jan 22 09:13:50 CET 2007 - mzugec@suse.cz
 
 - fate #300684 - support for iBFT 

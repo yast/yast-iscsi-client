@@ -173,7 +173,7 @@ symbol handleConnectedTable (string key, map event){
 }
 
 void initInitName(string key){
-    initiatorname = ((map<string, any>)SCR::Execute(.target.bash_output, "cat /etc/iscsi/initiatorname.iscsi|cut -d'=' -f2|tr -d '\n'"))["stdout"]:"";
+    initiatorname = ((map<string, any>)SCR::Execute(.target.bash_output, "cat /etc/iscsi/initiatorname.iscsi|grep InitiatorName|cut -d'=' -f2|tr -d '\n'"))["stdout"]:"";
 
     y2milestone("initiatorname %1", initiatorname);
     UI::ChangeWidget(`initiator_name, `Value, initiatorname);
@@ -184,17 +184,12 @@ void initInitName(string key){
 }
 
 
-symbol handleInitName (string key, map event){
- if (event["EventReason"]:"" == "Activated" && event["ID"]:nil==`write){
+symbol storeInitName (string key, map event){
+ if ((string)UI::QueryWidget(`initiator_name, `Value) != initiatorname){
 	// write initiatorname
 	initiatorname = (string)UI::QueryWidget(`initiator_name, `Value);
 	SCR::Execute(.target.bash, sformat("echo \"InitiatorName=%1\">/etc/iscsi/initiatorname.iscsi", initiatorname));
 	y2milestone("write initiatorname %1", initiatorname);
- }
- if ((string)UI::QueryWidget(`initiator_name, `Value) == initiatorname){
-   UI::ChangeWidget(`write, `Enabled, false);
- } else {
-	   UI::ChangeWidget(`write, `Enabled, true);
  }
  return nil;
 }
@@ -325,7 +320,8 @@ boolean validateServerLocation(string key, map event){
  IscsiClient::targets = [];
 foreach(string row, trg_list, {
  list<string> tmp_list=splitstring(row, " ");
- IscsiClient::targets=add(IscsiClient::targets, sformat("%1 %2", tmp_list[1]:"", tmp_list[2]:""));
+y2internal("%1:%2 || %3", ip, port, tmp_list);
+ if (issubstring(tmp_list[1]:"", sformat("%1:%2",ip,port))) IscsiClient::targets=add(IscsiClient::targets, sformat("%1 %2", tmp_list[1]:"", tmp_list[2]:""));
 });
  while(!bg_finish){};
  // restore old config
@@ -411,10 +407,12 @@ symbol handleDiscoveredTable (string key, map event){
 
 // initialize dialog for all targets from portal (connected/disconnected)
 void initTargetTable(string key){
+y2internal("curr_rec %1", curr_rec);
      list <term> items = [];
      integer row = 0;
      foreach(string s, IscsiClient::targets, {
      list<string> row_in_string = splitstring(s, " ");
+y2internal("row_in_string %1", row_in_string);
         items = add(items, `item(`id(row), row_in_string[0]:"", row_in_string[1]:"",
 		(IscsiClient::connected( row_in_string, true ))?_("True"):_("False") ));
       row = row + 1;

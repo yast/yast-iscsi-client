@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Wed Feb 14 19:00:23 CET 2007 - mzugec@suse.de
+
+- lost chars from user input caused by #245476 (#244388)
+- InitiatorName is not saved when exiting dialog (#244385)
+- InitiatorName widget has entire contents of file (#244767)
+- 2.14.4 
+
+-------------------------------------------------------------------
 Wed Feb  7 16:16:03 CET 2007 - mzugec@suse.de
 
 - quote dirpath (#242989)

@@ -173,7 +173,7 @@ symbol handleConnectedTable (string key, map event){
 }
 
 void initInitName(string key){
-    initiatorname = ((map<string, any>)SCR::Execute(.target.bash_output, "cat /etc/iscsi/initiatorname.iscsi|grep InitiatorName|cut -d'=' -f2|tr -d '\n'"))["stdout"]:"";
+    initiatorname = ((map<string, any>)SCR::Execute(.target.bash_output, "grep -v '^#' /etc/iscsi/initiatorname.iscsi|grep InitiatorName|cut -d'=' -f2|tr -d '\n'"))["stdout"]:"";
 
     y2milestone("initiatorname %1", initiatorname);
     UI::ChangeWidget(`initiator_name, `Value, initiatorname);

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Feb 26 16:09:22 CET 2007 - mzugec@suse.cz
+
+- parsing initiatorname.iscsi file fixed (#244767)
+- 2.14.28 
+
+-------------------------------------------------------------------
 Wed Feb 14 18:26:26 CET 2007 - mzugec@suse.de
 
 - lost chars from user input caused by #245476 (#244388)

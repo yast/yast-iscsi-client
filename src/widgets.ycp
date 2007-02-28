@@ -4,7 +4,7 @@
  boolean stat = false;
  list<string> curr_rec = [];
  boolean bg_finish = false;
- string initiatorname="";
+// string initiatorname="";
 // function for run command in background
 list <string> runInBg(string command){
     bg_finish=false;
@@ -173,10 +173,10 @@ symbol handleConnectedTable (string key, map event){
 }
 
 void initInitName(string key){
-    initiatorname = ((map<string, any>)SCR::Execute(.target.bash_output, "grep -v '^#' /etc/iscsi/initiatorname.iscsi|grep InitiatorName|cut -d'=' -f2|tr -d '\n'"))["stdout"]:"";
+//    initiatorname = ((map<string, any>)SCR::Execute(.target.bash_output, "grep -v '^#' /etc/iscsi/initiatorname.iscsi|grep InitiatorName|cut -d'=' -f2|tr -d '\n'"))["stdout"]:"";
 
-    y2milestone("initiatorname %1", initiatorname);
-    UI::ChangeWidget(`initiator_name, `Value, initiatorname);
+    y2milestone("initiatorname %1", IscsiClient::initiatorname);
+    UI::ChangeWidget(`initiator_name, `Value, IscsiClient::initiatorname);
   if (size(IscsiClient::getiBFT()["iSCSI_INITIATOR_NAME"]:"")>0){
    UI::ChangeWidget(`initiator_name, `Enabled, false);
    UI::ChangeWidget(`write, `Enabled, false);
@@ -185,11 +185,12 @@ void initInitName(string key){
 
 
 symbol storeInitName (string key, map event){
- if ((string)UI::QueryWidget(`initiator_name, `Value) != initiatorname){
+ if ((string)UI::QueryWidget(`initiator_name, `Value) != IscsiClient::initiatorname){
 	// write initiatorname
-	initiatorname = (string)UI::QueryWidget(`initiator_name, `Value);
-	SCR::Execute(.target.bash, sformat("echo \"InitiatorName=%1\">/etc/iscsi/initiatorname.iscsi", initiatorname));
-	y2milestone("write initiatorname %1", initiatorname);
+	IscsiClient::initiatorname = (string)UI::QueryWidget(`initiator_name, `Value);
+	SCR::Execute(.target.bash, sformat("echo \"InitiatorName=%1\">/etc/iscsi/initiatorname.iscsi",
+				IscsiClient::initiatorname));
+	y2milestone("write initiatorname %1", IscsiClient::initiatorname);
  }
  return nil;
 }
@@ -320,7 +321,6 @@ boolean validateServerLocation(string key, map event){
  IscsiClient::targets = [];
 foreach(string row, trg_list, {
  list<string> tmp_list=splitstring(row, " ");
-y2internal("%1:%2 || %3", ip, port, tmp_list);
  if (issubstring(tmp_list[1]:"", sformat("%1:%2",ip,port))) IscsiClient::targets=add(IscsiClient::targets, sformat("%1 %2", tmp_list[1]:"", tmp_list[2]:""));
 });
  while(!bg_finish){};
@@ -407,12 +407,10 @@ symbol handleDiscoveredTable (string key, map event){
 
 // initialize dialog for all targets from portal (connected/disconnected)
 void initTargetTable(string key){
-y2internal("curr_rec %1", curr_rec);
      list <term> items = [];
      integer row = 0;
      foreach(string s, IscsiClient::targets, {
      list<string> row_in_string = splitstring(s, " ");
-y2internal("row_in_string %1", row_in_string);
         items = add(items, `item(`id(row), row_in_string[0]:"", row_in_string[1]:"",
 		(IscsiClient::connected( row_in_string, true ))?_("True"):_("False") ));
       row = row + 1;

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Feb 28 14:36:09 CET 2007 - mzugec@suse.cz
+
+- Specified initiatorname not used (#244385)
+- 2.14.29 
+
+-------------------------------------------------------------------
 Mon Feb 26 16:09:22 CET 2007 - mzugec@suse.cz
 
 - parsing initiatorname.iscsi file fixed (#244767)

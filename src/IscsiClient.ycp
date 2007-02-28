@@ -33,7 +33,7 @@ global boolean configured = false;
 boolean serviceStatus = false;
 map<string, any> config = $[];
 map<string, any> ibft = nil;
-
+global string initiatorname = "";
 
 global map<string, any> getiBFT(){
  if (ibft==nil){
@@ -263,7 +263,7 @@ global boolean readSessions(){
 // check initiatorname if exist, if no - create it
 global boolean checkInitiatorName(){
  boolean ret=true;
- string initiatorname="";
+// string initiatorname="";
  string file="/etc/iscsi/initiatorname.iscsi";
  string name_from_bios = getiBFT()["iSCSI_INITIATOR_NAME"]:"";
  y2milestone("Check %1", file);
@@ -284,7 +284,7 @@ global boolean checkInitiatorName(){
 	  ret = (boolean)SCR::Write (.target.string, file, sformat("InitiatorName=%1", initiatorname));
 		SCR::Execute (.target.bash, "chmod 0600 $FILE" ,$["FILE":file]);
  } else {
-    string initiatorname=((map<string, any>)SCR::Execute(.target.bash_output, sformat("grep -v '^#' %1 | cut -d'=' -f2 | tr -d '\n'", file)))["stdout"]:"";
+    initiatorname=((map<string, any>)SCR::Execute(.target.bash_output, sformat("grep -v '^#' %1 | cut -d'=' -f2 | tr -d '\n'", file)))["stdout"]:"";
    if (size(name_from_bios)>0 && name_from_bios!=initiatorname){
     Popup::Warning( _("InitiatorName from iBFT and from /etc/iscsi/initiatorname.iscsi are differ.\nOld initiatorname will be replaced by value from iBFT and create a backup.\nIf you want to use different initiatorname change it in BIOS.") );
     y2milestone("replacing old name %1 by name %2 from iBFT", initiatorname, name_from_bios);

@@ -116,6 +116,16 @@ list<string> getRecord(){
  return record;
 }
 
+list<string> parseOutput(string row){
+// list<string> output=[];
+ list<string> tmplist=splitstring(row, " ");
+ if (size(tmplist)==2) return [tmplist[0]:"", tmplist[1]:""];
+	else return [tmplist[1]:"", tmplist[2]:""];
+// return [];
+}
+
+
+
 // handle for table of connected sessions
 symbol handleConnectedTable (string key, map event){
  if (event["EventReason"]:"" == "Activated"){
@@ -320,8 +330,8 @@ boolean validateServerLocation(string key, map event){
  list<string>trg_list = runInBg( sformat("iscsiadm -m discovery -t st -p %1:%2", ip, port) );
  IscsiClient::targets = [];
 foreach(string row, trg_list, {
- list<string> tmp_list=splitstring(row, " ");
- if (issubstring(tmp_list[1]:"", sformat("%1:%2",ip,port))) IscsiClient::targets=add(IscsiClient::targets, sformat("%1 %2", tmp_list[1]:"", tmp_list[2]:""));
+ list<string> tmp_list=parseOutput(row);
+ if (issubstring(tmp_list[0]:"", sformat("%1:%2",ip,port))) IscsiClient::targets=add(IscsiClient::targets, sformat("%1 %2", tmp_list[0]:"", tmp_list[1]:""));
 });
  while(!bg_finish){};
  // restore old config

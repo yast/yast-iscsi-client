@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Mar  7 19:20:56 CET 2007 - mzugec@suse.cz
+
+- improved parsing of iscsiadm output 
+
+-------------------------------------------------------------------
 Wed Feb 28 14:02:09 CET 2007 - mzugec@suse.cz
 
 - Specified initiatorname not used (#244385)

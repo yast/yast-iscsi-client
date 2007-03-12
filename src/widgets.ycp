@@ -200,6 +200,10 @@ symbol storeInitName (string key, map event){
 	IscsiClient::initiatorname = (string)UI::QueryWidget(`initiator_name, `Value);
 	SCR::Execute(.target.bash, sformat("echo \"InitiatorName=%1\">/etc/iscsi/initiatorname.iscsi",
 				IscsiClient::initiatorname));
+	if (Stage::initial()){
+	 SCR::Execute(.target.bash, "killproc /sbin/iscsid");
+	 SCR::Execute(.background.run_output_err, "iscsid");
+	} SCR::Execute(.target.bash, "rcopen-iscsi restart");
 	y2milestone("write initiatorname %1", IscsiClient::initiatorname);
  }
  return nil;

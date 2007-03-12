@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Mon Mar 12 15:19:36 CET 2007 - mzugec@suse.cz
+
+- restart iscsid when InitiatorName is changed (#244385) 
+
+-------------------------------------------------------------------
+Mon Mar 12 13:50:38 CET 2007 - mzugec@suse.cz
+
+- yast2-iscsi-client requires yast2-packager (#253522) 
+
+-------------------------------------------------------------------
 Wed Mar  7 19:20:56 CET 2007 - mzugec@suse.cz
 
 - improved parsing of iscsiadm output 

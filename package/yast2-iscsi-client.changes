@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Mar 21 14:49:45 CET 2007 - mzugec@suse.cz
+
+- restart iscsid when initiatorname changed inst-sys (#244385)
+- 2.14.31 
+
+-------------------------------------------------------------------
 Mon Mar 12 15:42:27 CET 2007 - mzugec@suse.cz
 
 - restart iscsid when InitiatorName is changed (#244385)

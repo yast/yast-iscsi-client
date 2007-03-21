@@ -270,7 +270,7 @@ global boolean checkInitiatorName(){
 
  if (size((map<string, any>)SCR::Read (.target.lstat, file)) == 0){
    if (size(name_from_bios)>0){
-    y2milestone("/etc/initiatorname.iscsi is empty or doesnt exists - replace with name stored in iBFT");
+    y2milestone("%1 is empty or doesnt exists - replace with name stored in iBFT", file);
     initiatorname = name_from_bios;
    } else {
 	y2milestone("%1 not exist, create", file);

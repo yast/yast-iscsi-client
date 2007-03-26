@@ -365,30 +365,6 @@ global boolean connected(list<string> rec, boolean check_ip){
  return ret;
 }
 
-boolean autoDiscovery(){
- map<string, any> b = getiBFT();
- if ( b != $[] ){
- map<string, any> result = (map<string, any>)SCR::Execute(.target.bash_output, 
-			sformat("iscsiadm -m discovery -t st -p %1:%2", b["iSCSI_TARGET_IPADDR"]:"", b["iSCSI_TARGET_PORT"]:"") );
-
- if(result["exit"]:0 != 0) {
-  Popup::Error(sformat("%1\n%2\n%3 %4:%5", _("Error:"), result["stderr"]:"", _("while discovering"), b["iSCSI_TARGET_IPADDR"]:"", b["iSCSI_TARGET_PORT"]:""));
- } else {
-  if (connected([ sformat("%1:%2", b["iSCSI_TARGET_IPADDR"]:"", b["iSCSI_TARGET_PORT"]:""), b["iSCSI_TARGET_NAME"]:""], true))
-											y2milestone("Target given from iBFT is already connected");
-	else {
-  result = (map<string, any>)SCR::Execute(.target.bash_output, 
-	sformat("iscsiadm -m node -T %1 -p %2:%3 --login", b["iSCSI_TARGET_NAME"]:"", b["iSCSI_TARGET_IPADDR"]:"", b["iSCSI_TARGET_PORT"]:"") );
-
-   if(result["exit"]:0 != 0) Popup::Error( sformat("%1\n%2\n%3 %4", 
-				_("Error:"), result["stderr"]:"", _("while login into"), b["iSCSI_TARGET_NAME"]:""));
-   }
-  }
- }
-
- return true;
-}
-
 // change startup status (manual/automatic) for target
 global boolean setStartupStatus(list<string> record, string status){
  y2milestone("Set startup status for %1 to %2", record, status);
@@ -397,6 +373,34 @@ global boolean setStartupStatus(list<string> record, string status){
 			sformat("iscsiadm -m node -T %1 -p %2 --op=update --name=node.conn[0].startup --value=%3", record[1]:"", record[0]:"", status));
     if (size(retcode["stderr"]:"")>0) return false;
  return ret;
+}
+
+boolean autoLogOn(){
+ map<string, any> b = getiBFT();
+ if ( b != $[] ){
+  if (size(b["iSCSI_TARGET_NAME"]:"")>0 && size(b["iSCSI_TARGET_IPADDR"]:"")>0){
+   list <string> curr_rec = [sformat("%1:%2", b["iSCSI_TARGET_IPADDR"]:"", b["iSCSI_TARGET_PORT"]:"3260"), b["iSCSI_TARGET_NAME"]:""];
+   if (connected( curr_rec , false) == false){
+
+  // do discovery
+  SCR::Execute(.target.bash, sformat("iscsiadm -m discovery -t st -p %1:%2", b["iSCSI_TARGET_IPADDR"]:"", b["iSCSI_TARGET_PORT"]:"3260")); 
+
+  // do authentication if needed
+  if (size(b["iSCSI_TARGET_CHAP_NAME"]:"")>0 && size(b["iSCSI_TARGET_CHAP_PASSWORD"]:"")>0){
+	setValue(curr_rec, "node.session.auth.username", b["iSCSI_TARGET_CHAP_NAME"]:"");
+	setValue(curr_rec, "node.session.auth.password", b["iSCSI_TARGET_CHAP_PASSWORD"]:"");
+	setValue(curr_rec, "node.session.auth.authmethod", "CHAP");
+       } else y2milestone("No authentication used for autoLogOn");
+
+  // log on into target
+  SCR::Execute(.target.bash, sformat("iscsiadm -m node -T %1 -p %2:%3 --login ", b["iSCSI_TARGET_NAME"]:"", b["iSCSI_TARGET_IPADDR"]:"", b["iSCSI_TARGET_PORT"]:"3260"));
+
+  // set startup status to automatic
+  setStartupStatus(curr_rec, "automatic");
+   } else y2error("Already connected, no autoLogOn needed");
+  } else y2error("iSCSI_TARGET_NAME or iSCSI_TARGET_IPADDR are not available. Couldn't do autoLogOn");
+ }
+ return true;
 }
 
 // get status of open-iscsi
@@ -496,7 +500,7 @@ global boolean Read() {
     sleep(sl);
 
     // read current settings
-    if(!autoDiscovery()) return false;
+    if(!autoLogOn()) return false;
     Progress::NextStage();
 
 

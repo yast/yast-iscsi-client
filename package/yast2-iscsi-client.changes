@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Mar 26 12:53:10 CEST 2007 - mzugec@suse.cz
+
+- auto log on when needed parameters read from iBFT card (#256227)
+- 2.14.32 
+
+-------------------------------------------------------------------
 Wed Mar 21 14:49:45 CET 2007 - mzugec@suse.cz
 
 - restart iscsid when initiatorname changed inst-sys (#244385)

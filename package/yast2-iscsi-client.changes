@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Apr 16 17:47:06 CEST 2007 - mzugec@suse.cz
+
+- bugfix for checkInitiatorname (#264818)
+- 2.14.33 
+
+-------------------------------------------------------------------
 Mon Mar 26 12:53:10 CEST 2007 - mzugec@suse.cz
 
 - auto log on when needed parameters read from iBFT card (#256227)

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Apr 25 18:36:17 CEST 2007 - mzugec@suse.cz
+
+- tested and fixed with iBFT card hardware (#256227)
+- 2.14.34 
+
+-------------------------------------------------------------------
 Mon Apr 16 17:47:06 CEST 2007 - mzugec@suse.cz
 
 - bugfix for checkInitiatorname (#264818)

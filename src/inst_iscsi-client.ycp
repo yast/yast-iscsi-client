@@ -36,12 +36,15 @@ any ret = nil;
 y2milestone("start open-iscsi");
 SCR::Execute(.target.bash, "mkdir -p /etc/iscsi; touch /etc/iscsi/initiatorname.iscsi; ln -s /etc/iscsi/initiatorname.iscsi /etc/initiatorname.iscsi");
 // check initiator name, create if not exists
-WFM::Execute (.local.bash,"test -d /etc/iscsi/ && /bin/cp -a /etc/iscsi/* " + String::Quote(Installation::destdir) + "/etc/iscsi/");
+//WFM::Execute (.local.bash,"test -d /etc/iscsi/ && /bin/cp -a /etc/iscsi/* " + String::Quote(Installation::destdir) + "/etc/iscsi/");
 IscsiClient::checkInitiatorName();
+
 
 ModuleLoading::Load("iscsi_tcp", "", "", "", false, true);
 // start daemon before
 SCR::Execute(.background.run_output_err, "iscsid");
+
+if (size(IscsiClient::getiBFT())>0) IscsiClient::autoLogOn();
 // run dialog
 ret = MainSequence();
 y2debug("MainSequence ret=%1", ret);

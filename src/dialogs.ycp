@@ -44,18 +44,9 @@ map<string, map <string, any> > widgets = $[
 		"widget" : `custom,
 		"custom_widget"	:
 		  `HBox(
-//		   `HSpacing(7),
 			`MinWidth( 16, `TextEntry(`id(`initiator_name), /*`opt(`notify),*/ _("Initiator Name")) )
-/*
-			`VBox(
-			     `VSpacing(1),
-			     `PushButton(`id(`write), _("Save Name"))
-			     )
-*/
-//		   `HSpacing(7)
 		  ),
 		"init"	: initInitName,
-//		"handle" : handleInitName,
 		"store"	 : storeInitName,
 		"help"	: HELPS["initiator_name"]:""
 		],
@@ -220,7 +211,6 @@ map tabs_descr = $[
          "header"       : _("Connected Targets"),
          "contents"     :
                           `VBox(
-//                          `VStretch(),
                           `HBox(
                            `HSpacing (1),
                             `VBox(
@@ -228,7 +218,6 @@ map tabs_descr = $[
                                  ),
                            `HSpacing (1)
                                )
-//                          `VStretch()
                         ),
          "widget_names" : [ "connected_table" ]
         ],
@@ -238,15 +227,11 @@ map tabs_descr = $[
          "header"       : _("Discovered Targets"),
          "contents"     :
                          `VBox(
-//                          `VStretch(),
                           `HBox(
-//                           `HSpacing (1),
                             `VBox(
                                 "discovered_table"
                                  )
-//                           `HSpacing (1)
                                )
-//                          `VStretch()
                         ),
          "widget_names" : [ "discovered_table" ]
         ],
@@ -254,7 +239,6 @@ map tabs_descr = $[
          "header"       : "iBFT",
          "contents"     :
                          `VBox(
-//                          `VStretch(),
                           `HBox(
                            `HSpacing (1),
                             `VBox(
@@ -262,7 +246,6 @@ map tabs_descr = $[
                                  ),
                            `HSpacing (1)
                                )
-//                          `VStretch()
                         ),
          "widget_names" : [ "ibft_table" ]
         ]
@@ -275,9 +258,13 @@ any GlobalDialog() {
     if (Stage::initial()) tabs_descr["general", "widget_names"] = [ "initiator_name" ];
     string caption = _("iSCSI Initiator Overview");
 
+    list tab_order = ["general", "client"];
+    if (!Stage::initial()) tab_order = add(tab_order, "discovered");
+    if (size(IscsiClient::getiBFT())>0) tab_order = add(tab_order, "ibft");
+
     map widget_descr = $[
 	"tab": CWMTab::CreateWidget($[
-            "tab_order": (Stage::initial()) ? ["general", "client"] : ((IscsiClient::getiBFT()!=$[])?[ "general", "client", "discovered", "ibft" ] : [ "general", "client", "discovered" ]),
+            "tab_order": tab_order,
             "tabs": tabs_descr,
             "widget_descr": widgets,
             "initial_tab" : (Stage::initial()) ? "client" : current_tab,
@@ -333,7 +320,6 @@ any TargetsDialog(){
     string caption = _("iSCSI Initiator Discovery");
     list<map <string, any> > w = CWM::CreateWidgets (["targets_table"], (map <string, map <string, any> >)widgets);
         term contents =`VBox(
-//                          `VStretch(),
                           `HBox(
                            `HSpacing (1),
                             `VBox(
@@ -341,7 +327,6 @@ any TargetsDialog(){
                                  ),
                            `HSpacing (1)
                                )
-//                          `VStretch()
                         );
     string help = CWM::MergeHelps(w);
     contents = CWM::PrepareDialog(contents, w);

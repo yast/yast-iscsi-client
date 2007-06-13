@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jun 13 18:23:41 CEST 2007 - mzugec@suse.cz
+
+- added validation for InitiatorName (#245364)
+- 2.14.35 
+
+-------------------------------------------------------------------
 Wed Apr 25 18:36:17 CEST 2007 - mzugec@suse.cz
 
 - tested and fixed with iBFT card hardware (#256227)

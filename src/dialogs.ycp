@@ -55,6 +55,8 @@ map<string, map <string, any> > widgets = $[
 //		   `HSpacing(7)
 		  ),
 		"init"	: initInitName,
+		"validate_type" : `function,
+		"validate_function" : validateInitName,
 //		"handle" : handleInitName,
 		"store"	 : storeInitName,
 		"help"	: HELPS["initiator_name"]:""

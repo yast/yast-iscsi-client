@@ -173,14 +173,45 @@ symbol handleConnectedTable (string key, map event){
 }
 
 void initInitName(string key){
-//    initiatorname = ((map<string, any>)SCR::Execute(.target.bash_output, "grep -v '^#' /etc/iscsi/initiatorname.iscsi|grep InitiatorName|cut -d'=' -f2|tr -d '\n'"))["stdout"]:"";
-
     y2milestone("initiatorname %1", IscsiClient::initiatorname);
     UI::ChangeWidget(`initiator_name, `Value, IscsiClient::initiatorname);
   if (size(IscsiClient::getiBFT()["iSCSI_INITIATOR_NAME"]:"")>0){
    UI::ChangeWidget(`initiator_name, `Enabled, false);
    UI::ChangeWidget(`write, `Enabled, false);
   }
+}
+
+boolean validateInitName(string key, map event){
+/*
+ Targets definitions start with "Target" and the target name.
+ The target name must be a globally unique name, the iSCSI
+ standard defines the "iSCSI Qualified Name" as follows:
+
+ iqn.yyyy-mm.reversed domain name[:identifier]
+
+ "yyyy-mm" is the date at which the domain is valid and the identifier
+ is freely selectable. For further details please check the iSCSI spec.
+*/
+
+ string i_name = (string)UI::QueryWidget(`initiator_name, `Value);
+ // regexp for "iqn.yyyy-mm."
+ string reg1 = "^iqn\.[[:digit:]]\{4\}\-[[:digit:]]\{2\}\.";
+ // regexp for "cz.suse" or just "suse"
+ string reg2 = "[[:alnum:]\.]*[[:alnum:]]";
+ // regexp for [:identifier]
+ string reg3 = "[:[:alnum:]*.{,1}]*";
+
+ boolean correct = regexpmatch(i_name, sformat("%1%2%3\$", reg1, reg2, reg3));
+
+ if (!correct) Popup::Warning(_("Incorrect InitiatorName
+Correct syntax is
+iqn.yyyy-mm.reversed domain name[:identifier]
+
+Example:
+iqn.2007-04.cz.server:storage.disk.sdb
+"));
+
+ return correct;
 }
 
 

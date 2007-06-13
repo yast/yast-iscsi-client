@@ -47,6 +47,8 @@ map<string, map <string, any> > widgets = $[
 			`MinWidth( 16, `TextEntry(`id(`initiator_name), /*`opt(`notify),*/ _("Initiator Name")) )
 		  ),
 		"init"	: initInitName,
+		"validate_type" : `function,
+		"validate_function" : validateInitName,
 		"store"	 : storeInitName,
 		"help"	: HELPS["initiator_name"]:""
 		],

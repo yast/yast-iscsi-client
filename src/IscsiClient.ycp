@@ -66,15 +66,34 @@ global void SetStartService(boolean status) {
 
 // read configuration file
 global list <map<string, any> > getConfig(){
- config = (map<string, any>) SCR::Read(.etc.iscsid.all);
- y2milestone("read config %1", config);
+ // use cache if available
+ if (size(config)==0){
+  config = (map<string, any>) SCR::Read(.etc.iscsid.all);
+  y2milestone("read config %1", config);
+ }
  return config["value"]:[];
 }
 
+global void setConfig(list new_config){
+ config["value"]=new_config;
+}
+
+global boolean useISNS(){
+ boolean use = false;
+ foreach(map<string, any> row, getConfig(), {
+  if (row["name"]:""=="isns.address" || row["name"]:""=="isns.port") {
+	 use = true;
+	}
+ });
+ return use;
+}
+
+
 // write temporary changed old config
 global void oldConfig(){
- y2milestone("Store temporary config");
+ y2milestone("Store temporary config %1", config);
  SCR::Write(.etc.iscsid.all, config);
+ SCR::Write(.etc.iscsid, nil);
 }
 
 

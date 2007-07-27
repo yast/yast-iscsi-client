@@ -40,24 +40,31 @@ map<string, map <string, any> > widgets = $[
                     _("Manually")
                 ),
             ]),
+	"isns" : $[
+		"widget" : `custom,
+		"custom_widget"	:
+		  `HBox(
+			`MinWidth( 16,
+			  `HBox(
+				`TextEntry(`id(`isns_address), _("iSNS Address")),
+				`TextEntry(`id(`isns_port),    _("iSNS Port"))
+				))
+		  ),
+		"init"	: initISNS,
+		"validate_type" : `function,
+		"validate_function" : validateISNS,
+		"store"	 : storeISNS,
+		"help"	: HELPS["isns"]:""
+		],
 	"initiator_name" : $[
 		"widget" : `custom,
 		"custom_widget"	:
 		  `HBox(
-//		   `HSpacing(7),
-			`MinWidth( 16, `TextEntry(`id(`initiator_name), /*`opt(`notify),*/ _("Initiator Name")) )
-/*
-			`VBox(
-			     `VSpacing(1),
-			     `PushButton(`id(`write), _("Save Name"))
-			     )
-*/
-//		   `HSpacing(7)
+			`MinWidth( 16, `TextEntry(`id(`initiator_name), _("Initiator Name")) )
 		  ),
 		"init"	: initInitName,
 		"validate_type" : `function,
 		"validate_function" : validateInitName,
-//		"handle" : handleInitName,
 		"store"	 : storeInitName,
 		"help"	: HELPS["initiator_name"]:""
 		],
@@ -175,6 +182,7 @@ map<string, map <string, any> > widgets = $[
 		`TextEntry(`id(`hostname), _("IP Address")),
                 `IntField(`id(`port), _("Port"), 0,65535,3260)
 		),
+		   "init" : initServerLocation,
                    "validate_type" : `function,
                    "validate_function" : validateServerLocation
 	],
@@ -204,9 +212,11 @@ map tabs_descr = $[
                            `HStretch(),
                            `HSpacing (1),
                             `VBox(
+                                "auto_start_up",
+                                `VSpacing (2),
 				"initiator_name",
                                 `VSpacing (2),
-                                "auto_start_up",
+				"isns",
                                 `VSpacing (2)
                                 ),
                            `HSpacing (1),
@@ -214,7 +224,7 @@ map tabs_descr = $[
                               ),
                           `VStretch()
                         ),
-         "widget_names" : [ "auto_start_up", "initiator_name" ]
+         "widget_names" : [ "auto_start_up", "initiator_name", "isns" ]
         ],
 
 	// list og connected targets
@@ -222,7 +232,6 @@ map tabs_descr = $[
          "header"       : _("Connected Targets"),
          "contents"     :
                           `VBox(
-//                          `VStretch(),
                           `HBox(
                            `HSpacing (1),
                             `VBox(
@@ -230,7 +239,6 @@ map tabs_descr = $[
                                  ),
                            `HSpacing (1)
                                )
-//                          `VStretch()
                         ),
          "widget_names" : [ "connected_table" ]
         ],
@@ -240,15 +248,11 @@ map tabs_descr = $[
          "header"       : _("Discovered Targets"),
          "contents"     :
                          `VBox(
-//                          `VStretch(),
                           `HBox(
-//                           `HSpacing (1),
                             `VBox(
                                 "discovered_table"
                                  )
-//                           `HSpacing (1)
                                )
-//                          `VStretch()
                         ),
          "widget_names" : [ "discovered_table" ]
         ],
@@ -256,7 +260,6 @@ map tabs_descr = $[
          "header"       : "iBFT",
          "contents"     :
                          `VBox(
-//                          `VStretch(),
                           `HBox(
                            `HSpacing (1),
                             `VBox(
@@ -264,7 +267,6 @@ map tabs_descr = $[
                                  ),
                            `HSpacing (1)
                                )
-//                          `VStretch()
                         ),
          "widget_names" : [ "ibft_table" ]
         ]
@@ -277,9 +279,13 @@ any GlobalDialog() {
     if (Stage::initial()) tabs_descr["general", "widget_names"] = [ "initiator_name" ];
     string caption = _("iSCSI Initiator Overview");
 
+    list tab_order = ["general", "client"];
+    if (!Stage::initial()) tab_order = add(tab_order, "discovered");
+    if (size(IscsiClient::getiBFT())>0) tab_order = add(tab_order, "ibft");
+
     map widget_descr = $[
 	"tab": CWMTab::CreateWidget($[
-            "tab_order": (Stage::initial()) ? ["general", "client"] : ((IscsiClient::getiBFT()!=$[])?[ "general", "client", "discovered", "ibft" ] : [ "general", "client", "discovered" ]),
+            "tab_order": tab_order,
             "tabs": tabs_descr,
             "widget_descr": widgets,
             "initial_tab" : (Stage::initial()) ? "client" : current_tab,
@@ -291,7 +297,7 @@ any GlobalDialog() {
     string help = CWM::MergeHelps(w);
     contents = CWM::PrepareDialog(contents, w);
     Wizard::SetContentsButtons(caption, contents, help, Label::NextButton (), Label::FinishButton ());
-    Wizard::HideBackButton();
+    Wizard::DisableBackButton();
     symbol ret = CWM::Run(w, $[`abort:ReallyAbort ]);
     return ret;
 }
@@ -335,7 +341,6 @@ any TargetsDialog(){
     string caption = _("iSCSI Initiator Discovery");
     list<map <string, any> > w = CWM::CreateWidgets (["targets_table"], (map <string, map <string, any> >)widgets);
         term contents =`VBox(
-//                          `VStretch(),
                           `HBox(
                            `HSpacing (1),
                             `VBox(
@@ -343,7 +348,6 @@ any TargetsDialog(){
                                  ),
                            `HSpacing (1)
                                )
-//                          `VStretch()
                         );
     string help = CWM::MergeHelps(w);
     contents = CWM::PrepareDialog(contents, w);

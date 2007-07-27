@@ -1,5 +1,6 @@
 {
  textdomain "iscsi-client";
+ import "IP";
 
  boolean stat = false;
  list<string> curr_rec = [];
@@ -172,6 +173,63 @@ symbol handleConnectedTable (string key, map event){
  return nil;
 }
 
+void initISNS(string key){
+ foreach(map<string, any> row, IscsiClient::getConfig(), {
+  if (row["name"]:""=="isns.address") UI::ChangeWidget(`isns_address, `Value, row["value"]:"");
+  if (row["name"]:""=="isns.port")    UI::ChangeWidget(`isns_port,    `Value, row["value"]:"");
+ });
+ UI::ChangeWidget(`isns_port, `ValidChars, "0123456789");
+}
+
+boolean validateISNS(string key, map event){
+ string address = (string)UI::QueryWidget(`isns_address, `Value);
+ string port	= (string)UI::QueryWidget(`isns_port,	 `Value);
+ if (size(address)==0 && size(port)==0) return true;
+ if(!IP::Check4(address)){
+  Popup::Error(_("Not valid IP address"));
+  UI::SetFocus(`isns_address);
+  return false;
+ }
+ if (size(port)==0){
+  Popup::Error(_("Port field can't be empty"));
+  UI::SetFocus(`isns_port);
+  return false;
+ }
+ return true;
+}
+
+
+symbol storeISNS (string key, map event){
+ string address = (string)UI::QueryWidget(`isns_address, `Value);
+ string port    = (string)UI::QueryWidget(`isns_port,    `Value);
+ boolean found_addr = false;
+ boolean found_port = false;
+ list tmp_config=[];
+
+ foreach(map<string, any> row, IscsiClient::getConfig(), {
+  if (row["name"]:""=="isns.address") {
+	 row["value"]=address;
+	 found_addr = true;
+	}
+  if (row["name"]:""=="isns.port") {
+	 row["value"]=port;
+	 found_port = true;
+	}
+  if (((row["name"]:""=="isns.address" || row["name"]:""=="isns.port")&&(size(address)>0&&size(port)>0))
+	|| (row["name"]:""!="isns.address"&&row["name"]:""!="isns.port"))  tmp_config = add(tmp_config, row);
+ });
+ if (size(address)>0&&size(port)>0){
+  if (!found_addr) tmp_config = add(tmp_config, $["name":"isns.address", "value":address, "kind":"value", "type":1, "comment":""]);
+  if (!found_port) tmp_config = add(tmp_config, $["name":"isns.port",    "value":port, "kind":"value", "type":1, "comment":""]);
+ }
+
+ IscsiClient::setConfig(tmp_config);
+ IscsiClient::oldConfig();
+ return nil;
+}
+
+
+
 void initInitName(string key){
     y2milestone("initiatorname %1", IscsiClient::initiatorname);
     UI::ChangeWidget(`initiator_name, `Value, IscsiClient::initiatorname);
@@ -305,23 +363,34 @@ boolean validateDiscAuth(string key, map event){
 }
 // *******************Server Location ***********************
 
+void initServerLocation(string key){
+y2internal("is iSNS %1", IscsiClient::useISNS());
+ if (IscsiClient::useISNS()){
+  UI::ChangeWidget(`hostname, `Enabled, false);
+  UI::ChangeWidget(`port, `Enabled, false);
+ }
+}
+
 // do discovery to selected portal
 boolean validateServerLocation(string key, map event){
  boolean ret = true;
  string ip = tostring(UI::QueryWidget(`hostname, `Value));
  string port = tostring(UI::QueryWidget(`port, `Value));
  // validate IP address
- if (size(ip)==0) {
+if (!IscsiClient::useISNS()) 
+ {
+  if (size(ip)==0) {
 		Popup::Error(_("Insert the IP address."));
 		UI::SetFocus(`hostname);
 		return false;
 		}
- // validate port number
- if (size(port)==0) {
+   // validate port number
+   if (size(port)==0) {
 		Popup::Error(_("Insert the port."));
 		UI::SetFocus(`port);
 		return false;
 		}
+  }
  // store old config
  IscsiClient::getConfig();
 
@@ -352,8 +421,9 @@ boolean validateServerLocation(string key, map event){
  IscsiClient::saveConfig(user_in, pass_in, user_out, pass_out);
 
  bg_finish=false;
- // discovery with authentication
- list<string>trg_list = runInBg( sformat("iscsiadm -m discovery -t st -p %1:%2", ip, port) );
+ // ` with authentication
+ string command = IscsiClient::useISNS()? "iscsiadm -m discovery -t isns" : sformat("iscsiadm -m discovery -t st -p %1:%2", ip, port);
+ list<string>trg_list = runInBg( command );
  IscsiClient::targets = [];
 foreach(string row, trg_list, {
  list<string> tmp_list=splitstring(row, " ");

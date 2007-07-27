@@ -60,7 +60,7 @@ map<string, map <string, any> > widgets = $[
 		"widget" : `custom,
 		"custom_widget"	:
 		  `HBox(
-			`MinWidth( 16, `TextEntry(`id(`initiator_name), _("iSNS")) )
+			`MinWidth( 16, `TextEntry(`id(`initiator_name), _("Initiator Name")) )
 		  ),
 		"init"	: initInitName,
 		"validate_type" : `function,
@@ -212,11 +212,11 @@ map tabs_descr = $[
                            `HStretch(),
                            `HSpacing (1),
                             `VBox(
+                                "auto_start_up",
+                                `VSpacing (2),
 				"initiator_name",
                                 `VSpacing (2),
 				"isns",
-                                `VSpacing (2),
-                                "auto_start_up",
                                 `VSpacing (2)
                                 ),
                            `HSpacing (1),
@@ -224,7 +224,7 @@ map tabs_descr = $[
                               ),
                           `VStretch()
                         ),
-         "widget_names" : [ "auto_start_up", "isns", "initiator_name" ]
+         "widget_names" : [ "auto_start_up", "initiator_name", "isns" ]
         ],
 
 	// list og connected targets

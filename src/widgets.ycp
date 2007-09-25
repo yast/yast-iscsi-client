@@ -379,10 +379,18 @@ boolean validateServerLocation(string key, map event){
  // validate IP address
 if (!IscsiClient::useISNS()) 
  {
-  if (size(ip)==0) {
-		Popup::Error(_("Insert the IP address."));
-		UI::SetFocus(`hostname);
-		return false;
+  if (!IP::Check4(ip)) {
+		map<string, any> output = (map<string, any>)SCR::Execute(.target.bash_output, sformat("host -4 %1|tr -d '\n'", ip));
+		list<string> out=splitstring(output["stdout"]:"", " ");
+		ip=out[size(out)-1]:"";
+		y2internal("%1", out);
+		if (output["exit"]:-1==0){
+		
+		} else {
+		  Popup::Error(output["stdout"]:"");
+		  UI::SetFocus(`hostname);
+		  return false;
+		 }
 		}
    // validate port number
    if (size(port)==0) {

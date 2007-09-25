@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Sep 25 14:54:57 CEST 2007 - mzugec@suse.cz
+
+- possible to use portal hostname instead of IP
+- 2.16.0 
+
+-------------------------------------------------------------------
 Fri Jul 27 17:11:42 CEST 2007 - mzugec@suse.cz
 
 - support for iSNS (fate #302083)

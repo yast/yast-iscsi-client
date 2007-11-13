@@ -558,38 +558,33 @@ symbol handleTargetTable (string key, map event){
 
 // login to target with authentication
 boolean validateConnAuth(string key, map event){
- boolean ret = true;
  boolean auth_none = (boolean) UI::QueryWidget(`id(`auth_none), `Value);
  boolean auth_in = (boolean) UI::QueryWidget(`id(`auth_in), `Value);
  boolean auth_out = (boolean) UI::QueryWidget(`id(`auth_out), `Value);
- string user_in = tostring( UI::QueryWidget(`id(`user_in), `Value) );
- string pass_in = tostring( UI::QueryWidget(`id(`pass_in), `Value) );
- string user_out = tostring( UI::QueryWidget(`id(`user_out), `Value) );
- string pass_out = tostring( UI::QueryWidget(`id(`pass_out), `Value) );
+ string user_in = "";
+ string pass_in = "";
+ string user_out = "";
+ string pass_out = "";
+ if (auth_in){
+  user_in = tostring( UI::QueryWidget(`id(`user_in), `Value) );
+  pass_in = tostring( UI::QueryWidget(`id(`pass_in), `Value) );
+ }
+ if (auth_out){
+  user_out = tostring( UI::QueryWidget(`id(`user_out), `Value) );
+  pass_out = tostring( UI::QueryWidget(`id(`pass_out), `Value) );
+ }
 
- if (!auth_none){
+ map<string, any> target=$[
+		"target" : curr_rec[1]:"",
+		"portal" : curr_rec[0]:"",
+		"authmethod" : (auth_none)?"None":"CHAP",
+		"username" : user_out,
+		"password" : pass_out,
+		"username_in" : user_in,
+		"password_in" : pass_in
+		];
   if(!checkAuthEntry()) return false;
-
-  if (auth_in){
-   IscsiClient::setValue(curr_rec, "node.session.auth.username_in", user_in);
-   IscsiClient::setValue(curr_rec, "node.session.auth.password_in", pass_in);
-  } else{
-	   IscsiClient::setValue(curr_rec, "node.session.auth.username_in", "");
-	   IscsiClient::setValue(curr_rec, "node.session.auth.password_in", "");
-   }
-  if (auth_out){
-   IscsiClient::setValue(curr_rec, "node.session.auth.username", user_out);
-   IscsiClient::setValue(curr_rec, "node.session.auth.password", pass_out);
-   IscsiClient::setValue(curr_rec, "node.session.auth.authmethod", "CHAP");
-  } else {
-	   IscsiClient::setValue(curr_rec, "node.session.auth.username", "");
-	   IscsiClient::setValue(curr_rec, "node.session.auth.password", "");
-	   IscsiClient::setValue(curr_rec, "node.session.auth.authmethod", "");
-    }
- } else IscsiClient::setValue(curr_rec, "node.session.auth.authmethod", "None");
-
-  runInBg(sformat("iscsiadm -m node -T %1 -p %2 --login", curr_rec[1]:"", curr_rec[0]:""));
-  if(!stat) ret = false;
+ boolean ret=IscsiClient::loginIntoTarget(target);
   if (ret) IscsiClient::readSessions();
  return ret;
 }

@@ -15,6 +15,7 @@ X-SuSE-YaST-AutoInst=all
 X-SuSE-YaST-Geometry=
 X-SuSE-YaST-SortKey=
 X-SuSE-YaST-AutoInstResource=iscsi-client
+X-SuSE-YaST-AutoInstClonable=true
 
 Icon=yast-iscsi-client
 Exec=/sbin/yast2 iscsi-client 

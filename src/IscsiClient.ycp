@@ -686,8 +686,12 @@ global boolean Write() {
  * @return boolean True on success
  */
 global boolean Import (map settings) {
-    // TODO FIXME: your code here (fill the above mentioned variables)...
  initiatorname = settings["initiatorname"]:"";
+ if (size(initiatorname)>0){
+  string file="/etc/iscsi/initiatorname.iscsi";
+  SCR::Write (.target.string, file, sformat("InitiatorName=%1", initiatorname));
+  SCR::Execute (.target.bash, "chmod 0600 $FILE" ,$["FILE":file]);
+ }
  foreach(map target, settings["targets"]:[], {
   loginIntoTarget(target);
   setStartupStatus([target["portal"]:"", target["target"]:""], target["startup"]:"manual");

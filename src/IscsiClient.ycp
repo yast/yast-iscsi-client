@@ -358,7 +358,7 @@ global string getStartupStatus(list<string> record){
 
 // update authentication value
 global boolean setValue(list<string> record, string name, string value){
- y2milestone("set %1  for record %3", name, record);
+ y2milestone("set %1  for record %2", name, record);
  string command = sformat("iscsiadm -m node -T %1 -p %2 --op=update --name=%3 --value=%4", record[1]:"", record[0]:"", name, value);
  y2milestone("execute command - %1", command );
  boolean ret = true;
@@ -389,7 +389,7 @@ y2internal("check connected status for %1 with IP check:%2", rec, check_ip);
 global boolean setStartupStatus(list<string> record, string status){
  y2milestone("Set startup status for %1 to %2", record, status);
  boolean ret = true;
-       map<string, any> retcode = (map<string, any>) SCR::Execute(.target.bash_output, 
+       map<string, any> retcode = (map<string, any>) SCR::Execute(.target.bash_output,
 			sformat("iscsiadm -m node -T %1 -p %2 --op=update --name=node.conn[0].startup --value=%3", record[1]:"", record[0]:"", status));
     if (size(retcode["stderr"]:"")>0) return false;
  return ret;
@@ -430,10 +430,10 @@ y2milestone("set startup status to automatic");
 }
 
 global boolean loginIntoTarget(map target){
- list<string> curr_rec = [target["portal"]:"", target["targetname"]:""];
+ list<string> curr_rec = [target["portal"]:"", target["target"]:""];
  if (target["authmethod"]:"None"!="None"){
- string user_in = target["username_in"]:"";
- string pass_in = target["password_in"]:"";
+  string user_in = target["username_in"]:"";
+  string pass_in = target["password_in"]:"";
   if (size(user_in)>0 && size(pass_in)>0){
    setValue(curr_rec, "node.session.auth.username_in", user_in);
    setValue(curr_rec, "node.session.auth.password_in", pass_in);
@@ -441,8 +441,8 @@ global boolean loginIntoTarget(map target){
            setValue(curr_rec, "node.session.auth.username_in", "");
            setValue(curr_rec, "node.session.auth.password_in", "");
    }
- string user_out = target["username"]:"";
- string pass_out = target["password"]:"";
+  string user_out = target["username"]:"";
+  string pass_out = target["password"]:"";
   if (size(user_out)>0 && size(pass_out)>0){
    setValue(curr_rec, "node.session.auth.username", user_out);
    setValue(curr_rec, "node.session.auth.password", pass_out);
@@ -514,7 +514,6 @@ global map Export () {
                 ];
   configured = true;
   modified = true;
-y2milestone("Export : %1", result);
  return result;
 /*
 return $[
@@ -691,6 +690,7 @@ global boolean Import (map settings) {
  initiatorname = settings["initiatorname"]:"";
  foreach(map target, settings["targets"]:[], {
   loginIntoTarget(target);
+  setStartupStatus([target["portal"]:"", target["target"]:""], target["startup"]:"manual");
  });
     return true;
 }

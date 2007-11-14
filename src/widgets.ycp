@@ -583,10 +583,11 @@ boolean validateConnAuth(string key, map event){
 		"username_in" : user_in,
 		"password_in" : pass_in
 		];
-  if(!checkAuthEntry()) return false;
- boolean ret=IscsiClient::loginIntoTarget(target);
-  if (ret) IscsiClient::readSessions();
- return ret;
+  if (checkAuthEntry() && IscsiClient::loginIntoTarget(target)) {
+		 IscsiClient::readSessions();
+		 return true;
+		}
+	else return false;
 }
 
 

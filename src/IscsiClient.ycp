@@ -98,7 +98,7 @@ global void oldConfig(){
 
 
 global map<string, any> getNode(list<string> rec){
-  map<string, any> cmd = (map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -S -m node -T $TARGET", $["TARGET":rec[1]:"", "IP":rec[0]:""]);
+  map<string, any> cmd = (map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -S -m node -T $TARGET -p $IP", $["TARGET":rec[1]:"", "IP":rec[0]:""]);
  if (cmd["exit"]:0!=0) return $[];
  map<string, any> auth = $[];
  foreach(string row, splitstring(cmd["stdout"]:"", "\n"), {
@@ -253,7 +253,7 @@ global list<string> getDiscovered(){
                         });
 	foreach(string row, tmp_disc, {
 	 list<string> tmp_row = splitstring(row, " ");
-	 discovered = add(discovered, sformat("%1 %2 %3", tmp_row[0]:"", tmp_row[1]:"", tmp_row[2]:""));
+	 discovered = add(discovered, sformat("%1 %2", tmp_row[1]:"", tmp_row[2]:""));
 	});
 	}
  y2milestone("Discovered sessions %1", discovered);
@@ -358,7 +358,7 @@ global string getStartupStatus(list<string> record){
 
 // update authentication value
 global boolean setValue(list<string> record, string name, string value){
- y2milestone("set %1  for record %3", name, record);
+ y2milestone("set %1  for record %2", name, record);
  string command = sformat("iscsiadm -m node -T %1 -p %2 --op=update --name=%3 --value=%4", record[1]:"", record[0]:"", name, value);
  y2milestone("execute command - %1", command );
  boolean ret = true;
@@ -389,7 +389,7 @@ y2internal("check connected status for %1 with IP check:%2", rec, check_ip);
 global boolean setStartupStatus(list<string> record, string status){
  y2milestone("Set startup status for %1 to %2", record, status);
  boolean ret = true;
-       map<string, any> retcode = (map<string, any>) SCR::Execute(.target.bash_output, 
+       map<string, any> retcode = (map<string, any>) SCR::Execute(.target.bash_output,
 			sformat("iscsiadm -m node -T %1 -p %2 --op=update --name=node.conn[0].startup --value=%3", record[1]:"", record[0]:"", status));
     if (size(retcode["stderr"]:"")>0) return false;
  return ret;
@@ -429,6 +429,38 @@ y2milestone("set startup status to automatic");
  return true;
 }
 
+global boolean loginIntoTarget(map target){
+ list<string> curr_rec = [target["portal"]:"", target["target"]:""];
+ if (target["authmethod"]:"None"!="None"){
+  string user_in = target["username_in"]:"";
+  string pass_in = target["password_in"]:"";
+  if (size(user_in)>0 && size(pass_in)>0){
+   setValue(curr_rec, "node.session.auth.username_in", user_in);
+   setValue(curr_rec, "node.session.auth.password_in", pass_in);
+  } else{
+           setValue(curr_rec, "node.session.auth.username_in", "");
+           setValue(curr_rec, "node.session.auth.password_in", "");
+   }
+  string user_out = target["username"]:"";
+  string pass_out = target["password"]:"";
+  if (size(user_out)>0 && size(pass_out)>0){
+   setValue(curr_rec, "node.session.auth.username", user_out);
+   setValue(curr_rec, "node.session.auth.password", pass_out);
+   setValue(curr_rec, "node.session.auth.authmethod", "CHAP");
+  } else {
+           setValue(curr_rec, "node.session.auth.username", "");
+           setValue(curr_rec, "node.session.auth.password", "");
+           setValue(curr_rec, "node.session.auth.authmethod", "");
+    }
+ } else setValue(curr_rec, "node.session.auth.authmethod", "None");
+
+  map<string, any> output = (map<string, any>)SCR::Execute(.target.bash_output,
+		sformat("iscsiadm -m node -T %1 -p %2 --login", target["target"]:"", target["portal"]:""));
+y2internal("output %1", output);
+ return output["exit"]:-1==0;
+}
+
+
 // get status of open-iscsi
 boolean getServiceStatus(){
  boolean ret = true;
@@ -453,6 +485,66 @@ boolean setServiceStatus(){
 	}
  y2milestone("Status service for open-iscsi: %1", ret);
  return ret;
+}
+
+/**
+ * Dump the iscsi-client settings to a single map
+ * (For use by autoinstallation.)
+ * @return map Dumped settings (later acceptable by Import ())
+ */
+global map Export () {
+ list tgets = [];
+ foreach(string sess, sessions, {
+ string target = splitstring(sess, " ")[1]:"";
+ string portal = splitstring(sess, " ")[0]:"";
+ map<string, any> auth = getNode([portal, target]);
+ map new_target =
+		$["target": target,
+		"portal"  : portal,
+		"startup" : getStartupStatus([portal, target]),
+		];
+ if (auth["authmethod"]:"None"=="None") new_target["authmethod"]="None";
+	else new_target = union(new_target, auth);
+  tgets = add(tgets, new_target);
+ });
+ map result = $[
+               "version" : "1.0",
+	       "initiatorname" : initiatorname,
+               "targets" : tgets
+                ];
+  configured = true;
+  modified = true;
+ return result;
+/*
+return $[
+     "initiatorname":"iqn.1996-04.de.suse:01.fcf4845ec09d",
+     "targets":[
+                 $[
+                    "authmethod":"None",
+                    "portal":"192.168.1.1:3260,1",
+                    "startup":"automatic",
+                    "target":"iqn.2007-11.second.site:6a26185b-7665-4029-b19a-b70c95fc1dbc"
+                 ],
+                 $[
+                    "authmethod":"None",
+                    "portal":"192.168.1.1:3260,1",
+                    "startup":"manual",
+                    "target":"iqn.2007-11.first.site:e8f7db22-dd31-4f11-91aa-39c7f8ec53cd"
+                 ],
+                 $[
+                    "authmethod":"CHAP",
+                    "password":"passthird",
+                    "password_in":"",
+                    "portal":"192.168.1.1:3260,1",
+                    "startup":"manual",
+                    "target":"iqn.2007-11.third.site:b318ab05-d2e4-40bf-a2a4-386d6a927af9",
+                    "username":"userthird",
+                    "username_in":""
+                 ]
+     ],
+     "version":"1.0"
+];
+*/
 }
 
 /**
@@ -517,21 +609,18 @@ global boolean Read() {
     	if(!getServiceStatus()) return false;
     sleep(sl);
 
-y2milestone("before autoLogOn function");
     // read current settings
     if(!autoLogOn()) return false;
     Progress::NextStage();
 
 
     // read config file
-y2internal("before readSessions() function");
     if(readSessions()==false)
 	{
 	Report::Error( Message::CannotReadCurrentSettings() );
 	return false;
 	}
     sleep(sl);
-y2internal("after readSessions() function");
 
     if(Abort()) return false;
     modified = false;
@@ -597,29 +686,19 @@ global boolean Write() {
  * @return boolean True on success
  */
 global boolean Import (map settings) {
-    // TODO FIXME: your code here (fill the above mentioned variables)...
+ initiatorname = settings["initiatorname"]:"";
+ if (size(initiatorname)>0){
+  string file="/etc/iscsi/initiatorname.iscsi";
+  SCR::Write (.target.string, file, sformat("InitiatorName=%1", initiatorname));
+  SCR::Execute (.target.bash, "chmod 0600 $FILE" ,$["FILE":file]);
+ }
+ foreach(map target, settings["targets"]:[], {
+  loginIntoTarget(target);
+  setStartupStatus([target["portal"]:"", target["target"]:""], target["startup"]:"manual");
+ });
     return true;
 }
 
-/**
- * Dump the iscsi-client settings to a single map
- * (For use by autoinstallation.)
- * @return map Dumped settings (later acceptable by Import ())
- */
-global map Export () {
- map result = $[
-               "version" : "1.0",
-               "service" : serviceStatus,
-//               "auth"    : IscsiServerFunctions::getConfig()["auth"]:[],
-		"discovered" : discovered,
-               "sessions" : sessions,
-		"targets" : targets,
-		"config" : getConfig()
-                ];
-  configured = true;
-    return result;
-
-}
 
 /**
  * Create a textual summary and a list of unconfigured cards

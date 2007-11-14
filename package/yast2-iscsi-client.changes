@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Nov 14 13:37:09 CET 2007 - mzugec@suse.cz
+
+- FaTE #302081 - autoYaST support
+- 2.16.1 
+
+-------------------------------------------------------------------
 Tue Sep 25 14:54:57 CEST 2007 - mzugec@suse.cz
 
 - possible to use portal hostname instead of IP

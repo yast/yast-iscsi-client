@@ -70,6 +70,10 @@ else if (func == "Packages") {
 else if (func == "GetModified") {
     ret = IscsiClient::modified;
 }
+else if (func == "SetModified") {
+    IscsiClient::modified=true;
+    IscsiClient::configured=true;
+}
 /* Read current state */
 else if (func == "Read") {
     import "Progress";

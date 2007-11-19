@@ -34,7 +34,7 @@ boolean serviceStatus = false;
 map<string, any> config = $[];
 map<string, any> ibft = nil;
 global string initiatorname = "";
-map ay_settings;
+map ay_settings=nil;
 
 global map<string, any> getiBFT(){
  if (ibft==nil){
@@ -629,13 +629,12 @@ global boolean Read() {
 }
 
 boolean autoyastPrepare(){
- initiatorname = settings["initiatorname"]:"";
+ initiatorname = ay_settings["initiatorname"]:"";
  if (size(initiatorname)>0){
   string file="/etc/iscsi/initiatorname.iscsi";
   SCR::Write (.target.string, file, sformat("InitiatorName=%1", initiatorname));
   SCR::Execute (.target.bash, "chmod 0600 $FILE" ,$["FILE":file]);
  } else IscsiClient::checkInitiatorName();
- ModuleLoading::Load("iscsi_tcp", "", "", "", false, true);
  // start daemon before
  SCR::Execute(.background.run_output_err, "iscsid");
 }

@@ -34,6 +34,7 @@ boolean serviceStatus = false;
 map<string, any> config = $[];
 map<string, any> ibft = nil;
 global string initiatorname = "";
+map ay_settings;
 
 global map<string, any> getiBFT(){
  if (ibft==nil){
@@ -627,6 +628,26 @@ global boolean Read() {
     return true;
 }
 
+boolean autoyastPrepare(){
+ initiatorname = settings["initiatorname"]:"";
+ if (size(initiatorname)>0){
+  string file="/etc/iscsi/initiatorname.iscsi";
+  SCR::Write (.target.string, file, sformat("InitiatorName=%1", initiatorname));
+  SCR::Execute (.target.bash, "chmod 0600 $FILE" ,$["FILE":file]);
+ } else IscsiClient::checkInitiatorName();
+ ModuleLoading::Load("iscsi_tcp", "", "", "", false, true);
+ // start daemon before
+ SCR::Execute(.background.run_output_err, "iscsid");
+}
+
+boolean autoyastWrite(){
+ foreach(map target, ay_settings["targets"]:[], {
+  loginIntoTarget(target);
+  setStartupStatus([target["portal"]:"", target["target"]:""], target["startup"]:"manual");
+ });
+ return true;
+}
+
 /**
  * Write all iscsi-client settings
  * @return true on success
@@ -662,12 +683,12 @@ global boolean Write() {
 
     if(Abort()) return false;
     Progress::NextStage();
-    if(false) return false;
+    if(!autoyastPrepare()) return false;
     sleep(sl);
 
     if(Abort()) return false;
     Progress::NextStage ();
-    if(false) return false;
+    if(!autoyastWrite()) return false;
     sleep(sl);
 
     if(Abort()) return false;
@@ -686,17 +707,8 @@ global boolean Write() {
  * @return boolean True on success
  */
 global boolean Import (map settings) {
- initiatorname = settings["initiatorname"]:"";
- if (size(initiatorname)>0){
-  string file="/etc/iscsi/initiatorname.iscsi";
-  SCR::Write (.target.string, file, sformat("InitiatorName=%1", initiatorname));
-  SCR::Execute (.target.bash, "chmod 0600 $FILE" ,$["FILE":file]);
- }
- foreach(map target, settings["targets"]:[], {
-  loginIntoTarget(target);
-  setStartupStatus([target["portal"]:"", target["target"]:""], target["startup"]:"manual");
- });
-    return true;
+ ay_settings = settings;
+ return true;
 }
 
 

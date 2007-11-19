@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Nov 19 16:00:18 CET 2007 - mzugec@suse.cz
+
+- discovery before login (for autoYaST)
+- 2.14.38 
+
+-------------------------------------------------------------------
 Fri Nov 16 16:31:10 CET 2007 - mzugec@suse.cz
 
 - fixed autoyast export 

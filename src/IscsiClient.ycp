@@ -516,36 +516,6 @@ global map Export () {
   configured = true;
   modified = true;
  return result;
-/*
-return $[
-     "initiatorname":"iqn.1996-04.de.suse:01.fcf4845ec09d",
-     "targets":[
-                 $[
-                    "authmethod":"None",
-                    "portal":"192.168.1.1:3260,1",
-                    "startup":"automatic",
-                    "target":"iqn.2007-11.second.site:6a26185b-7665-4029-b19a-b70c95fc1dbc"
-                 ],
-                 $[
-                    "authmethod":"None",
-                    "portal":"192.168.1.1:3260,1",
-                    "startup":"manual",
-                    "target":"iqn.2007-11.first.site:e8f7db22-dd31-4f11-91aa-39c7f8ec53cd"
-                 ],
-                 $[
-                    "authmethod":"CHAP",
-                    "password":"passthird",
-                    "password_in":"",
-                    "portal":"192.168.1.1:3260,1",
-                    "startup":"manual",
-                    "target":"iqn.2007-11.third.site:b318ab05-d2e4-40bf-a2a4-386d6a927af9",
-                    "username":"userthird",
-                    "username_in":""
-                 ]
-     ],
-     "version":"1.0"
-];
-*/
 }
 
 /**
@@ -629,6 +599,7 @@ global boolean Read() {
 }
 
 boolean autoyastPrepare(){
+y2internal("autoyastPrepare(begin)");
  initiatorname = ay_settings["initiatorname"]:"";
  if (size(initiatorname)>0){
   string file="/etc/iscsi/initiatorname.iscsi";
@@ -637,10 +608,21 @@ boolean autoyastPrepare(){
  } else IscsiClient::checkInitiatorName();
  // start daemon before
  SCR::Execute(.background.run_output_err, "iscsid");
+y2internal("autoyastPrepare(end)");
 }
 
 boolean autoyastWrite(){
+y2internal("autoyastWrite %1", ay_settings);
+// do discovery first
+list<string> portals = [];
+foreach(map target, ay_settings["targets"]:[], {
+ if (!contains(portals, target["portal"]:"")){
+  SCR::Execute(.target.bash, sformat("iscsiadm -m discovery -t st -p %1", target["portal"]:""));
+  portals = add(portals, target["portal"]:"");
+ }
+});
  foreach(map target, ay_settings["targets"]:[], {
+y2internal("login into target %1", target);
   loginIntoTarget(target);
   setStartupStatus([target["portal"]:"", target["target"]:""], target["startup"]:"manual");
  });
@@ -652,7 +634,7 @@ boolean autoyastWrite(){
  * @return true on success
  */
 global boolean Write() {
-
+y2internal("iscsi::Write()");
     /* IscsiClient read dialog caption */
     string caption = _("Saving iSCSI Initiator Configuration");
 
@@ -682,12 +664,15 @@ global boolean Write() {
 
     if(Abort()) return false;
     Progress::NextStage();
-    if(!autoyastPrepare()) return false;
+    autoyastPrepare();
+//    if( return false;
     sleep(sl);
 
     if(Abort()) return false;
     Progress::NextStage ();
-    if(!autoyastWrite()) return false;
+//    if(!
+    autoyastWrite();
+//) return false;
     sleep(sl);
 
     if(Abort()) return false;

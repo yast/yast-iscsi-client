@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Nov 20 16:29:53 CET 2007 - mzugec@suse.cz
+
+- fixed testsuite 
+
+-------------------------------------------------------------------
 Mon Nov 19 16:00:18 CET 2007 - mzugec@suse.cz
 
 - discovery before login (for autoYaST)

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Nov 20 16:08:50 CET 2007 - mzugec@suse.cz
+
+- moved some functions to IscsiClientLib
+- 2.16.2 
+
+-------------------------------------------------------------------
 Fri Nov 16 16:26:30 CET 2007 - mzugec@suse.cz
 
 - fixed autoyast export 

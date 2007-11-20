@@ -27,6 +27,7 @@ y2milestone("----------------------------------------");
 y2milestone("IscsiClient auto started");
 
 import "IscsiClient";
+import "ModuleLoading";
 include "iscsi-client/wizards.ycp";
 
 any ret = nil;
@@ -86,6 +87,7 @@ else if (func == "Write") {
     import "Progress";
     boolean progress_orig = Progress::set (false);
     IscsiClient::write_only = true;
+    ModuleLoading::Load("iscsi_tcp", "", "", "", false, true);
     ret = IscsiClient::Write();
     Progress::set (progress_orig);
 }

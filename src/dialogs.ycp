@@ -27,8 +27,8 @@ include "iscsi-client/widgets.ycp";
 
 map<string, map <string, any> > widgets = $[
             "auto_start_up" : CWMServiceStart::CreateAutoStartWidget ($[
-                "get_service_auto_start" : IscsiClient::GetStartService,
-                "set_service_auto_start" : IscsiClient::SetStartService,
+                "get_service_auto_start" : IscsiClientLib::GetStartService,
+                "set_service_auto_start" : IscsiClientLib::SetStartService,
                 // radio button (starting SLP service - option 1)
                 "start_auto_button" : _("When &Booting"),
                 // radio button (starting SLP service - option 2)
@@ -281,7 +281,7 @@ any GlobalDialog() {
 
     list tab_order = ["general", "client"];
     if (!Stage::initial()) tab_order = add(tab_order, "discovered");
-    if (size(IscsiClient::getiBFT())>0) tab_order = add(tab_order, "ibft");
+    if (size(IscsiClientLib::getiBFT())>0) tab_order = add(tab_order, "ibft");
 
     map widget_descr = $[
 	"tab": CWMTab::CreateWidget($[

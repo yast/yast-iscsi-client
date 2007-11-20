@@ -13,10 +13,10 @@
         ];
         TESTSUITE_INIT ([READ, $[], $[]], nil);
 
-        import "IscsiClient";
+        import "IscsiClientLib";
 
-        TEST( ``{ return IscsiClient::getConfig();}, [ READ, $[], $[] ], nil );
-        TEST( ``{ return IscsiClient::saveConfig("incuser", "incpass", "outuser", "outpass");}, [ READ, $[], $[] ], nil );
-        TEST( ``{ return IscsiClient::oldConfig();}, [ READ, $[], $[] ], nil );
+        TEST( ``{ return IscsiClientLib::getConfig();}, [ READ, $[], $[] ], nil );
+        TEST( ``{ return IscsiClientLib::saveConfig("incuser", "incpass", "outuser", "outpass");}, [ READ, $[], $[] ], nil );
+        TEST( ``{ return IscsiClientLib::oldConfig();}, [ READ, $[], $[] ], nil );
 }
 

@@ -16,6 +16,7 @@ import "Popup";
 import "Wizard";
 import "Wizard_hw";
 import "IscsiClient";
+import "IscsiClientLib";
 
 include "iscsi-client/helps.ycp";
 

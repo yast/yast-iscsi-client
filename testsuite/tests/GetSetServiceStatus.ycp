@@ -15,10 +15,10 @@
         ];
         TESTSUITE_INIT ([READ, $[], $[]], nil);
 
-        import "IscsiClient";
+        import "IscsiClientLib";
 
 
-        TEST( ``{ return IscsiClient::GetStartService();}, [ READ, $[], $[] ], nil );
-        TEST( ``{ return IscsiClient::SetStartService(true);}, [ READ, $[], $[] ], nil );
+        TEST( ``{ return IscsiClientLib::GetStartService();}, [ READ, $[], $[] ], nil );
+        TEST( ``{ return IscsiClientLib::SetStartService(true);}, [ READ, $[], $[] ], nil );
 }
 

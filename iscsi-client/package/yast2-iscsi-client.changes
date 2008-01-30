@@ -1,0 +1,299 @@
+-------------------------------------------------------------------
+Tue Jan 29 21:08:49 CET 2008 - mzugec@suse.de
+
+- adapt for upstream-style iscsiadm output (without recordID)
+(#356969)
+- 2.14.39 
+
+-------------------------------------------------------------------
+Tue Nov 20 16:29:53 CET 2007 - mzugec@suse.cz
+
+- fixed testsuite 
+
+-------------------------------------------------------------------
+Mon Nov 19 16:00:18 CET 2007 - mzugec@suse.cz
+
+- discovery before login (for autoYaST)
+- 2.14.38 
+
+-------------------------------------------------------------------
+Fri Nov 16 16:31:10 CET 2007 - mzugec@suse.cz
+
+- fixed autoyast export 
+
+-------------------------------------------------------------------
+Wed Nov 14 13:38:02 CET 2007 - mzugec@suse.cz
+
+- FaTE #302081 - autoYaST support
+- 2.14.37 
+
+-------------------------------------------------------------------
+Fri Jul 27 17:43:17 CEST 2007 - mzugec@suse.cz
+
+- support for iSNS (fate #302083)
+- 2.14.36
+
+-------------------------------------------------------------------
+Wed Jun 13 18:23:41 CEST 2007 - mzugec@suse.cz
+
+- added validation for InitiatorName (#245364)
+- 2.14.35 
+
+-------------------------------------------------------------------
+Wed Apr 25 18:36:17 CEST 2007 - mzugec@suse.cz
+
+- tested and fixed with iBFT card hardware (#256227)
+- 2.14.34 
+
+-------------------------------------------------------------------
+Mon Apr 16 17:47:06 CEST 2007 - mzugec@suse.cz
+
+- bugfix for checkInitiatorname (#264818)
+- 2.14.33 
+
+-------------------------------------------------------------------
+Mon Mar 26 12:53:10 CEST 2007 - mzugec@suse.cz
+
+- auto log on when needed parameters read from iBFT card (#256227)
+- 2.14.32 
+
+-------------------------------------------------------------------
+Wed Mar 21 14:49:45 CET 2007 - mzugec@suse.cz
+
+- restart iscsid when initiatorname changed inst-sys (#244385)
+- 2.14.31 
+
+-------------------------------------------------------------------
+Mon Mar 12 15:42:27 CET 2007 - mzugec@suse.cz
+
+- restart iscsid when InitiatorName is changed (#244385)
+- 2.14.30 
+
+-------------------------------------------------------------------
+Mon Mar 12 13:50:57 CET 2007 - mzugec@suse.cz
+
+- yast2-iscsi-client requires yast2-packager (#253522) 
+
+-------------------------------------------------------------------
+Wed Feb 28 14:36:09 CET 2007 - mzugec@suse.cz
+
+- Specified initiatorname not used (#244385)
+- 2.14.29 
+
+-------------------------------------------------------------------
+Mon Feb 26 16:09:22 CET 2007 - mzugec@suse.cz
+
+- parsing initiatorname.iscsi file fixed (#244767)
+- 2.14.28 
+
+-------------------------------------------------------------------
+Wed Feb 14 18:26:26 CET 2007 - mzugec@suse.de
+
+- lost chars from user input caused by #245476 (#244388)
+- InitiatorName is not saved when exiting dialog (#244385)
+- InitiatorName widget has entire contents of file (#244767)
+- 2.13.27 
+
+-------------------------------------------------------------------
+Wed Feb  7 16:18:32 CET 2007 - mzugec@suse.de
+
+- quote dirpath (#242989)
+- 2.13.26 
+
+-------------------------------------------------------------------
+Fri Feb  2 10:25:40 CET 2007 - mzugec@suse.de
+
+- wrong initiatorname.iscsi path (#238738)
+- no feedback from SaveName button (#239344)
+- 2.13.25 
+
+-------------------------------------------------------------------
+Fri Jan 19 15:10:01 CET 2007 - mzugec@suse.cz
+
+- #232501 - allow define of initiator
+- 2.13.24 
+
+-------------------------------------------------------------------
+Fri Jan 19 14:21:58 CET 2007 - mzugec@suse.cz
+
+- fate #300684 - support for iBFT 
+
+-------------------------------------------------------------------
+Tue Oct 17 11:24:10 CEST 2006 - mzugec@suse.cz
+
+- fixed #211890 - wrong handling .target.bash 
+
+-------------------------------------------------------------------
+Fri Jun  9 18:29:16 CEST 2006 - mzugec@suse.cz
+
+- fixed #disable Connect button when already connected target is selected 
+
+-------------------------------------------------------------------
+Thu Jun  8 15:38:37 CEST 2006 - mzugec@suse.cz
+
+- fixed #179013 - gets confused if the target names are similar
+
+-------------------------------------------------------------------
+Thu Jun  8 11:28:21 CEST 2006 - mzugec@suse.cz
+
+- fixed #180985 - staying current row in connected dialog
+
+-------------------------------------------------------------------
+Thu May 25 18:17:55 CEST 2006 - mzugec@suse.cz
+
+- fixed #149055 - iscsi client login always asks for credentials
+
+-------------------------------------------------------------------
+Thu May  4 14:03:29 CEST 2006 - mzugec@suse.cz
+
+- proofread 
+
+-------------------------------------------------------------------
+Mon Apr 24 08:37:29 CEST 2006 - mzugec@suse.cz
+
+- testsuite 
+
+-------------------------------------------------------------------
+Mon Apr 24 08:36:53 CEST 2006 - mzugec@suse.cz
+
+- comments, logs 
+
+-------------------------------------------------------------------
+Fri Apr  7 08:12:03 CEST 2006 - mzugec@suse.cz
+
+- fixed #156838 - yast-iscsi-client shutting down the open-iscsi initiator when it shouldn't 
+
+-------------------------------------------------------------------
+Wed Apr  5 18:00:45 CEST 2006 - mzugec@suse.cz
+
+- fixed #163299 - Iscsi -> iSCSI 
+
+-------------------------------------------------------------------
+Thu Mar 23 15:47:29 CET 2006 - mzugec@suse.cz
+
+- fixed #160315 - check if user is root
+
+-------------------------------------------------------------------
+Thu Mar 23 13:24:48 CET 2006 - mzugec@suse.cz
+
+- fixed #158539 - possibility to remove target 
+
+-------------------------------------------------------------------
+Tue Mar 21 09:54:21 CET 2006 - mzugec@suse.cz
+
+- fixed #159666 - move to net services group 
+
+-------------------------------------------------------------------
+Mon Mar 13 18:31:54 CET 2006 - mzugec@suse.cz
+
+- fixed #157634 - install package 
+
+-------------------------------------------------------------------
+Mon Mar 13 11:17:58 CET 2006 - mzugec@suse.cz
+
+- fixed #156838 - startup problem
+
+-------------------------------------------------------------------
+Mon Mar  6 09:48:30 CET 2006 - mzugec@suse.cz
+
+- #155273  - IscsiClient -> Iscsi Initiator
+
+-------------------------------------------------------------------
+Tue Feb 28 16:26:29 CET 2006 - mzugec@suse.cz
+
+- fixed #154123 create /etc/initiatorname.iscsi in installation 
+
+-------------------------------------------------------------------
+Mon Feb 20 10:57:22 CET 2006 - mzugec@suse.cz
+
+- fixed #148949 - Global->Service + proofread 
+
+-------------------------------------------------------------------
+Fri Feb 17 18:02:22 CET 2006 - mzugec@suse.cz
+
+- fixed #151868 - authentication into target 
+
+-------------------------------------------------------------------
+Fri Feb 17 07:18:02 CET 2006 - ihno@suse.de
+
+- Adding warning in help according to feature 300437
+
+-------------------------------------------------------------------
+Wed Feb 15 12:38:14 CET 2006 - mzugec@suse.cz
+
+- correction of #149934 (ingoing vs outgoing) 
+
+-------------------------------------------------------------------
+Mon Feb 13 16:46:36 CET 2006 - mzugec@suse.cz
+
+- fixed #149934 - authentication in discovery 
+
+-------------------------------------------------------------------
+Fri Feb 10 13:30:37 CET 2006 - mzugec@suse.cz
+
+- fixed #148960 - rename button labels 
+
+-------------------------------------------------------------------
+Thu Feb  9 11:39:19 CET 2006 - mzugec@suse.cz
+
+- fixed #149060 - remove firewall component 
+
+-------------------------------------------------------------------
+Thu Feb  9 11:38:11 CET 2006 - mzugec@suse.cz
+
+- fixed #148672 - start init.d script 
+
+-------------------------------------------------------------------
+Tue Feb  7 17:24:08 CET 2006 - mzugec@suse.cz
+
+- fixed #148665 - ask to install open-iscsi 
+
+-------------------------------------------------------------------
+Tue Feb  7 15:39:15 CET 2006 - mzugec@suse.cz
+
+- proofread 
+
+-------------------------------------------------------------------
+Tue Jan 31 09:56:48 CET 2006 - mzugec@suse.cz
+
+- add helps
+
+-------------------------------------------------------------------
+Mon Jan 30 19:23:40 CET 2006 - mzugec@suse.cz
+
+- fixed authentication problems 
+
+-------------------------------------------------------------------
+Tue Jan 24 11:49:09 CET 2006 - mzugec@suse.cz
+
+- handle for init stage
+
+-------------------------------------------------------------------
+Tue Jan 24 10:39:54 CET 2006 - jsrain@suse.cz
+
+- added copying configuration to system during installation
+
+-------------------------------------------------------------------
+Mon Jan 23 18:09:49 CET 2006 - mzugec@suse.cz
+
+- check exceptions 
+
+-------------------------------------------------------------------
+Fri Jan 20 17:50:44 CET 2006 - mzugec@suse.cz
+
+- clean subversion 
+
+-------------------------------------------------------------------
+Fri Jan 20 17:31:57 CET 2006 - mzugec@suse.cz
+
+- install package 
+
+-------------------------------------------------------------------
+Thu Jan 12 11:30:03 CET 2006 - mzugec@suse.cz
+
+- change version number
+
+-------------------------------------------------------------------
+Fri Jan  6 18:10:10 2006 - mzugec@suse.cz
+
+- initial version

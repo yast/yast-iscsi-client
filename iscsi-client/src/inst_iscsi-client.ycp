@@ -1,0 +1,61 @@
+/**
+ * File:	clients/iscsi-client.ycp
+ * Package:	Configuration of iscsi-client
+ * Summary:	Main file
+ * Authors:	Michal Zugec <mzugec@suse.cz>
+ *
+ * $Id$
+ *
+ * Main file for iscsi-client configuration. Uses all other files.
+ */
+
+{
+
+/***
+ * <h3>Configuration of iscsi-client</h3>
+ */
+
+textdomain "iscsi-client";
+
+/* The main () */
+y2milestone ("----------------------------------------");
+y2milestone ("IscsiClient module started");
+
+import "Progress";
+import "Report";
+import "Summary";
+import "ModuleLoading";
+import "Packages";
+import "Installation";
+import "String";
+include "iscsi-client/wizards.ycp";
+
+/* main ui function */
+any ret = nil;
+
+y2milestone("start open-iscsi");
+SCR::Execute(.target.bash, "mkdir -p /etc/iscsi; touch /etc/iscsi/initiatorname.iscsi; ln -s /etc/iscsi/initiatorname.iscsi /etc/initiatorname.iscsi");
+// check initiator name, create if not exists
+//WFM::Execute (.local.bash,"test -d /etc/iscsi/ && /bin/cp -a /etc/iscsi/* " + String::Quote(Installation::destdir) + "/etc/iscsi/");
+IscsiClient::checkInitiatorName();
+
+
+ModuleLoading::Load("iscsi_tcp", "", "", "", false, true);
+// start daemon before
+SCR::Execute(.background.run_output_err, "iscsid");
+
+if (size(IscsiClient::getiBFT())>0) IscsiClient::autoLogOn();
+// run dialog
+ret = MainSequence();
+y2debug("MainSequence ret=%1", ret);
+// add package open-iscsi to installed system
+Packages::addAdditionalPackage("open-iscsi");
+
+/* Finish */
+y2milestone("IscsiClient module finished");
+y2milestone("----------------------------------------");
+
+return ret;
+
+/* EOF */
+}

@@ -1,0 +1,33 @@
+@HEADER-COMMENT@
+
+
+@HEADER@
+BuildRequires:	docbook-xsl-stylesheets doxygen libxslt perl-XML-Writer popt-devel sgml-skel update-desktop-files yast2 yast2-devtools yast2-packagemanager-devel yast2-perl-bindings yast2-testsuite
+Requires:	yast2 yast2-packager
+
+BuildArchitectures:	noarch
+
+Summary:	Configuration of iscsi-client
+
+%description
+-
+
+@PREP@
+
+@BUILD@
+
+@INSTALL@
+
+@CLEAN@
+
+%files
+%defattr(-,root,root)
+%dir @yncludedir@/iscsi-client
+@yncludedir@/iscsi-client/*
+@clientdir@/iscsi-client.ycp
+@clientdir@/iscsi-client_*.ycp
+@clientdir@/inst_iscsi-client.ycp
+@moduledir@/IscsiClient.*
+@desktopdir@/iscsi-client.desktop
+@scrconfdir@/iscsid.scr
+%doc @docdir@

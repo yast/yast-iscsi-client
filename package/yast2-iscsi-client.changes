@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Jan 29 21:08:49 CET 2008 - mzugec@suse.de
+
+- adapt for upstream-style iscsiadm output (without recordID)
+(#356969)
+- 2.14.39 
+
+-------------------------------------------------------------------
 Tue Nov 20 16:29:53 CET 2007 - mzugec@suse.cz
 
 - fixed testsuite 

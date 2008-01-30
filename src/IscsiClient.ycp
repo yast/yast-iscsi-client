@@ -254,7 +254,7 @@ global list<string> getDiscovered(){
                         });
 	foreach(string row, tmp_disc, {
 	 list<string> tmp_row = splitstring(row, " ");
-	 discovered = add(discovered, sformat("%1 %2", tmp_row[1]:"", tmp_row[2]:""));
+	 discovered = add(discovered, sformat("%1 %2", tmp_row[0]:"", tmp_row[1]:""));
 	});
 	}
  y2milestone("Discovered sessions %1", discovered);

@@ -427,7 +427,7 @@ if (!IscsiClient::useISNS())
  IscsiClient::targets = [];
 foreach(string row, trg_list, {
  list<string> tmp_list=splitstring(row, " ");
- if (issubstring(tmp_list[1]:"", sformat("%1:%2",ip,port))) IscsiClient::targets=add(IscsiClient::targets, sformat("%1 %2", tmp_list[1]:"", tmp_list[2]:""));
+ if (issubstring(tmp_list[0]:"", sformat("%1:%2",ip,port))) IscsiClient::targets=add(IscsiClient::targets, sformat("%1 %2", tmp_list[0]:"", tmp_list[1]:""));
 });
  while(!bg_finish){};
  // restore old config

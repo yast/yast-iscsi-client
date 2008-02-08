@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Feb  8 17:54:14 CET 2008 - mzugec@suse.de
+
+- space in InitiatorName (#359967)
+- 2.14.40 
+
+-------------------------------------------------------------------
 Tue Jan 29 21:08:49 CET 2008 - mzugec@suse.de
 
 - adapt for upstream-style iscsiadm output (without recordID)

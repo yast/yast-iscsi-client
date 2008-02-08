@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Feb  8 17:03:25 CET 2008 - mzugec@suse.cz
+
+- space in InitiatorName (#359967)
+- 2.16.3 
+
+-------------------------------------------------------------------
 Tue Nov 20 16:08:50 CET 2007 - mzugec@suse.cz
 
 - moved some functions to IscsiClientLib

@@ -19,6 +19,7 @@ import "CWMFirewallInterfaces";
 import "CWMTab";
 import "CWM";
 import "Stage";
+import "Mode";
 
 string current_tab = "general";
 
@@ -296,7 +297,7 @@ any GlobalDialog() {
     list<map <string, any> > w = CWM::CreateWidgets (["tab"], (map <string, map <string, any> >)widget_descr);
     string help = CWM::MergeHelps(w);
     contents = CWM::PrepareDialog(contents, w);
-    Wizard::SetContentsButtons(caption, contents, help, Label::NextButton (), Label::FinishButton ());
+    Wizard::SetContentsButtons(caption, contents, help, Label::BackButton (), Mode::installation() ? Label::NextButton() : Label::FinishButton ());
     Wizard::DisableBackButton();
     symbol ret = CWM::Run(w, $[`abort:ReallyAbort ]);
     return ret;

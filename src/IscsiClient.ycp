@@ -25,6 +25,7 @@ import "Popup";
 import "Mode";
 import "Confirm";
 import "Label";
+import "NetworkService";
 import "IscsiClientLib";
 
 global boolean configured = false;
@@ -161,7 +162,7 @@ global boolean Read() {
 
     // check if user is root - must be root
     if(!Confirm::MustBeRoot()) return false;
-    if(!Confirm::RunningNetwork()) return false;
+    if(!NetworkService::RunningNetworkPopup()) return false;
     Progress::NextStage();
     if(false) return false;
     sleep(sl);

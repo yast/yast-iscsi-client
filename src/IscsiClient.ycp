@@ -27,6 +27,7 @@ import "Confirm";
 import "Label";
 import "NetworkService";
 import "IscsiClientLib";
+import "Stage";
 
 global boolean configured = false;
 
@@ -80,6 +81,8 @@ global boolean Modified() {
 
 // check if package open-iscsi is installed
 boolean installed_packages(){
+ // don't check interactively for packages (bnc#367300)
+ if(Stage::cont()) return true;
  y2milestone("Check if open-iscsi package installed");
  boolean ret = false;
   if( !Package::InstallMsg( "open-iscsi",

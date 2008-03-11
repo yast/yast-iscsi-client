@@ -321,11 +321,8 @@ y2internal("initiatorname %1", output);
 // check if package open-iscsi is installed
 boolean installed_packages(){
  y2milestone("Check if open-iscsi package installed");
-/*
-if (Mode::autoinst() && Stage::cont()) 
-	if (!PackageSystem::Installed("open-iscsi")) return false;
-*/
- if (Stage::cont()) return true;
+ // skip package checking during creating profile
+ if (Stage::cont() || Mode::config()) return true;
  boolean ret = false;
   if( !Package::InstallMsg( "open-iscsi",
             _("<p>To configure the iSCSI initiator, the <b>%1</b> package must be installed.</p>") +

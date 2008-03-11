@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Mar 10 18:20:19 CET 2008 - mzugec@suse.de
+
+- show initiatorname tab as default during installation (bnc#368644)
+- 2.16.7 
+
+-------------------------------------------------------------------
 Mon Mar 10 12:06:17 CET 2008 - mzugec@suse.de
 
 - fixed autoyast problem (bnc#367300)

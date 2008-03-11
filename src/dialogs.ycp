@@ -289,7 +289,7 @@ any GlobalDialog() {
             "tab_order": tab_order,
             "tabs": tabs_descr,
             "widget_descr": widgets,
-            "initial_tab" : (Stage::initial()) ? "client" : current_tab,
+            "initial_tab" : (Stage::initial()) ? "general" : current_tab,
             "tab_help" : _("<h1>iSCSI Initiator</h1>"),
         ]),
     ];

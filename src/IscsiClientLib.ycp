@@ -4,6 +4,7 @@ textdomain "iscsi-client";
 
 import "Service";
 import "Popup";
+import "Hostname";
 
 global list <string> sessions = [];
 global list <string> discovered = [];
@@ -242,6 +243,20 @@ global boolean writeInitiatorName(string new_value){
  return ret;
 }
 
+string getReverseDomainName(){
+list<string> host_fq = Hostname::SplitFQ(((map<string,any>)SCR::Execute(.target.bash_output, "hostname -f|tr -d '\n'"))["stdout"]:"");
+y2internal("hostfw%1", host_fq);
+string domain = "";
+
+foreach(string item, splitstring(host_fq[1]:"example.com", "."),{
+ y2internal("item %1", item);
+ domain = (size(domain)==0) ? item : sformat("%1.%2", item, domain);
+});
+
+ y2milestone("domain %1", domain);
+ return domain;
+}
+
 // check initiatorname if exist, if no - create it
 global boolean checkInitiatorName(){
  boolean ret=true;
@@ -252,9 +267,10 @@ global boolean checkInitiatorName(){
     y2milestone("%1 is empty or doesnt exists - replace with name stored in iBFT", file);
     initiatorname = name_from_bios;
    } else {
-	y2milestone("InitiatorNmae does not exist - generate it");
+	y2milestone("InitiatorName does not exist - generate it");
+	 string domain = ((map<string,any>)SCR::Execute(.target.bash_output, ""))["stdout"]:"com.example";
 	 map<string, any> output = (map<string, any>)SCR::Execute (.target.bash_output,
-								"/sbin/iscsi-iname -p iqn.`date +%Y-%m`.de.suse:01 | tr -d '\n'", $[]);
+		sformat("/sbin/iscsi-iname -p iqn.%1.%2:01 | tr -d '\n'","`date +%Y-%m`", getReverseDomainName()), $[]);
 	 if (size(output["stderr"]:"")==0){
 	  initiatorname=output["stdout"]:"";
 	} else ret = false;

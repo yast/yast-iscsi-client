@@ -254,8 +254,8 @@ boolean validateInitName(string key, map event){
  string i_name = (string)UI::QueryWidget(`initiator_name, `Value);
  // regexp for "iqn.yyyy-mm."
  string reg1 = "^iqn\.[[:digit:]]\{4\}\-[[:digit:]]\{2\}\.";
- // regexp for "cz.suse" or just "suse"
- string reg2 = "[[:alnum:]\.]*[[:alnum:]]";
+ // regexp for "cz.suse" or just "suse", "cz.su-se"
+ string reg2 = "([[:alnum:]][[:alnum:]-]+\.){0,1}[[:alnum:]][[:alnum:]-]{1,}";
  // regexp for [:identifier]
  string reg3 = "[:[:alnum:]*.{,1}]*";
 

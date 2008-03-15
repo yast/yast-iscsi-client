@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Sat Mar 15 17:03:37 CET 2008 - mzugec@suse.de
+
+- improved initiatorname validation (bnc#369985)
+- 2.16.8 
+
+-------------------------------------------------------------------
 Mon Mar 10 18:20:19 CET 2008 - mzugec@suse.de
 
 - show initiatorname tab as default during installation (bnc#368644)

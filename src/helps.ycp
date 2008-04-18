@@ -74,19 +74,20 @@ Then press <b>Edit</b> or <b>Delete</b> as desired.</p>
 "),
 
  // table of connected targets
- "server_table" : _("List of current sessions. To add a new target, press <b>Add</b>.
-To remove one, select it and press <b>Log Out</b>.
-To change start-up status, press <b>Toggle</b>.
+ "server_table" : _("List of current sessions. To add a new target, select it and press <b>Add</b>.
+To remove it, press <b>Log Out</b>.
+To change the start-up status, press <b>Toggle</b>.
 ") +
 
 	/* Warning */
 _("<h1>Warning</h1>") + _("<p>When accessing an iSCSI device <b>READ</b>/<b>WRITE</b>, make sure that this access is exclusive. Otherwise there is a potential risk of data corruption.</p>
 "),
 
- "initiator_name" : _("<p><b>InitiatorName</b> is value from /etc/initiatorname.iscsi. In case you have iBFT this value will be replaced from there and you are not able to change it (do it in BIOS Setup).</p>"),
+ "initiator_name" : _("<p><b>InitiatorName</b> is value a from <tt>/etc/initiatorname.iscsi</tt>. \nIn case you have iBFT, this value will be added from there and you are able to change it only in the BIOS setup.</p>"),
 
- "isns" : _("If you want to use <b>iSNS</b> (Internet  Storage  Name Service) for discovering targets instead of default SendTargets method,
-fill IP address of iSNS server and port. Default port should be 3205."),
+ "isns" : _("If you want to use <b>iSNS</b> (Internet  Storage  Name Service) for discovering targets instead of the default SendTargets method,
+fill in the IP address of the iSNS server and port. The default port should be 3205.
+"),
 
  // discovery new target
  "discovery"	: _("<h1>iSCSI Initiator</h1>") + _("Enter the <b>IP Address</b> of the discovered server.

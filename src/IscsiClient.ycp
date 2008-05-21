@@ -83,7 +83,7 @@ global boolean Modified() {
 boolean installed_packages(){
  // don't check interactively for packages (bnc#367300)
  // skip it during second stage or when create AY profile
- if(Stage::cont() || Mode::config()) return true;
+ if(Stage::cont() || Stage::initial() || Mode::config()) return true;
  y2milestone("Check if open-iscsi package installed");
  boolean ret = false;
   if( !Package::InstallMsg( "open-iscsi",

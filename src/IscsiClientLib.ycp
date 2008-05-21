@@ -5,6 +5,8 @@ textdomain "iscsi-client";
 import "Service";
 import "Popup";
 import "Hostname";
+import "Stage";
+import "ModuleLoading";
 
 global list <string> sessions = [];
 global list <string> discovered = [];
@@ -430,10 +432,17 @@ y2internal("output %1", output);
 // get status of open-iscsi
 global boolean getServiceStatus(){
  boolean ret = true;
- if (Service::Status("open-iscsi") == 0) serviceStatus=true;
- y2milestone("Service status = %1", serviceStatus);
- // if not enabled, start it manually
- if (!serviceStatus) Service::Start("open-iscsi");
+ if (Stage::initial()){
+  ModuleLoading::Load("iscsi_tcp", "", "", "", false, true);
+  // start daemon before
+  SCR::Execute(.background.run_output_err, "pgrep iscsid || iscsid");
+
+ } else {
+  if (Service::Status("open-iscsi") == 0) serviceStatus=true;
+  y2milestone("Service status = %1", serviceStatus);
+  // if not enabled, start it manually
+  if (!serviceStatus) Service::Start("open-iscsi");
+ }
  return ret;
 }
 
@@ -449,6 +458,7 @@ global boolean setServiceStatus(){
 		 Service::Stop("open-iscsi");
 		}
 	}
+ if (Stage::initial()) Service::Enable("open-iscsi");
  y2milestone("Status service for open-iscsi: %1", ret);
  return ret;
 }

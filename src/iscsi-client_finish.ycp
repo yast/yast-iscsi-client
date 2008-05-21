@@ -16,6 +16,8 @@ textdomain "iscsi-client";
 
 import "Directory";
 import "String";
+import "IscsiClientLib";
+import "Service";
 include "installation/misc.ycp";
 
 any ret = nil;
@@ -47,6 +49,10 @@ else if (func == "Write")
   // write open-iscsi database of automatic connected targets
 //  WFM::Execute (.local.bash,"test -d /var/lib/open-iscsi/ && /bin/cp -a /var/lib/open-iscsi/* " + String::Quote(Installation::destdir) + "/var/lib/open-iscsi/");
   WFM::Execute (.local.bash,"test -d /etc/iscsi/ && /bin/cp -a /etc/iscsi/* " + String::Quote(Installation::destdir) + "/etc/iscsi/");
+ if ( size(IscsiClientLib::sessions)>0 ){
+	 Service::Enable("open-iscsi");
+	y2milestone("open-iscsi service enabled");
+	}
 }
 else
 {

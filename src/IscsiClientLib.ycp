@@ -458,7 +458,6 @@ global boolean setServiceStatus(){
 		 Service::Stop("open-iscsi");
 		}
 	}
- if (Stage::initial()) Service::Enable("open-iscsi");
  y2milestone("Status service for open-iscsi: %1", ret);
  return ret;
 }

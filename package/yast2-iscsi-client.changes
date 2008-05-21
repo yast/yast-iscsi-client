@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed May 21 17:27:16 CEST 2008 - mzugec@suse.cz
+
+- enable open-iscsi service if at least one session exists 
+(bnc#393057)
+- 2.16.12 
+
+-------------------------------------------------------------------
 Wed May 21 16:46:21 CEST 2008 - mzugec@suse.cz
 
 - don't install open-iscsi when run by storage (bnc#392976)

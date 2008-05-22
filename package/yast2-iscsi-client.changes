@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu May 22 16:13:03 CEST 2008 - mzugec@suse.cz
+
+- install open-iscsi when needed (bnc#393057)
+- 2.16.13 
+
+-------------------------------------------------------------------
 Wed May 21 17:27:16 CEST 2008 - mzugec@suse.cz
 
 - enable open-iscsi service if at least one session exists 

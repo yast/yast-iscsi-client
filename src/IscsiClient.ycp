@@ -21,6 +21,7 @@ import "Summary";
 import "Message";
 import "Service";
 import "Package";
+import "Packages";
 import "Popup";
 import "Mode";
 import "Confirm";
@@ -260,6 +261,7 @@ global boolean Write() {
 
     // set open-iscsi service status
     if(!IscsiClientLib::setServiceStatus()) return false;
+    if (Stage::initial() && size(IscsiClientLib::sessions)>0 ) Packages::addAdditionalPackage("open-iscsi");
     return true;
 }
 

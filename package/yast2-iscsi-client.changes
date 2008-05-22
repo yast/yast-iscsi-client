@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu May 22 16:38:11 CEST 2008 - mzugec@suse.cz
+
+- fixed configuration copying during installation 
+
+-------------------------------------------------------------------
 Thu May 22 16:13:03 CEST 2008 - mzugec@suse.cz
 
 - install open-iscsi when needed (bnc#393057)

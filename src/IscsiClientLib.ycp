@@ -50,8 +50,13 @@ global boolean GetStartService() {
 // set accessor for service status
 global void SetStartService(boolean status) {
  y2milestone("Set status of open-iscsi to %1", status);
- if (status == true) Service::Enable("open-iscsi");
-        else Service::Disable("open-iscsi");
+ if (status == true) {
+    Service::Enable("boot.open-iscsi");
+    Service::Enable("open-iscsi");
+ } else {
+    Service::Disable("boot.open-iscsi");
+    Service::Disable("open-iscsi");
+ }
 }
 
 

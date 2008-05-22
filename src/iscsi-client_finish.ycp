@@ -48,8 +48,6 @@ else if (func == "Write")
 {
   // write open-iscsi database of automatic connected targets
   WFM::Execute (.local.bash,"test -d /etc/iscsi/ && mkdir -p '" + String::Quote(Installation::destdir) + "/etc/iscsi' && cp -a /etc/iscsi/* '" + String::Quote(Installation::destdir) + "/etc/iscsi/'");
-  // copy also iscsid configuration, bnc #393672
-  WFM::Execute (.local.bash,"test -e /etc/iscsid.conf && cp -a /etc/iscsid.conf '" + String::Quote(Installation::destdir) + "/etc/iscsid.conf'");
  if ( size(IscsiClientLib::sessions)>0 ){
 	 Service::Enable("boot.open-iscsi");
 	 Service::Enable("open-iscsi");

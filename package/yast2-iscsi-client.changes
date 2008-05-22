@@ -3,7 +3,6 @@ Thu May 22 18:08:27 CEST 2008 - locilka@suse.cz
 
 - Not only open-iscsi, but also boot.open-iscsi service should be
   enabled (bnc #393057).
-- Copying also /etc/iscsid.conf, not only /etc/iscsi/ (bnc #393672)
 - Fixed testsuite.
 - 2.16.14
 

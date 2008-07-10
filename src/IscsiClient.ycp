@@ -26,6 +26,7 @@ import "Mode";
 import "Confirm";
 import "Label";
 import "Stage";
+import "Mode";
 
 global list <string> sessions = [];
 global list <string> discovered = [];
@@ -462,6 +463,7 @@ global boolean loginIntoTarget(map target){
   map<string, any> output = (map<string, any>)SCR::Execute(.target.bash_output,
 		sformat("iscsiadm -m node -T %1 -p %2 --login", target["target"]:"", target["portal"]:""));
 y2internal("output %1", output);
+ if (!Mode::autoinst()) setStartupStatus(curr_rec, "automatic");
  return output["exit"]:-1==0;
 }
 

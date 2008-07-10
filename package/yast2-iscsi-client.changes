@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Jul 10 15:30:37 CEST 2008 - mzugec@suse.de
+
+- when Log on, do startup automatic by default (bnc#400610)
+- 2.14.44 
+
+-------------------------------------------------------------------
 Fri Jun 20 22:43:27 CEST 2008 - mzugec@suse.de
 
 - fixed InitiatorName validator (bnc#406726)

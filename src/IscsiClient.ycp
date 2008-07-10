@@ -219,49 +219,41 @@ global boolean Write() {
     string caption = _("Saving iSCSI Initiator Configuration");
 
     // TODO FIXME And set the right number of stages
-    integer steps = 2;
 
     integer sl = 500;
     sleep(sl);
 
+    list<string> descr = [
+	    /* Progress stage 1/2 */
+	    _("Write the autoYaST settings"),
+	    /* Progress stage 2/2 */
+	    _("Set up service status")
+	];
+    if (!Mode::autoinst()) descr=remove(descr, 0);
     // TODO FIXME Names of real stages
     // We do not set help text here, because it was set outside
-    Progress::New(caption, " ", steps, [
-	    /* Progress stage 1/2 */
-	    _("Write the settings"),
-	    /* Progress stage 2/2 */
-	    _("Run SuSEconfig")
-	], [
-	    /* Progress step 1/2 */
-	    _("Writing the settings..."),
-	    /* Progress step 2/2 */
-	    _("Running SuSEconfig..."),
-	    /* Progress finished */
-	    _("Finished")
-	],
-	""
-    );
+    Progress::New(caption, " ", size(descr), descr, [], "");
 
-    if(Abort()) return false;
-    Progress::NextStage();
-    IscsiClientLib::autoyastPrepare();
-//    if( return false;
-    sleep(sl);
+    if (Mode::autoinst()){
+     if(Abort()) return false;
+     Progress::NextStage();
+     IscsiClientLib::autoyastPrepare();
+     IscsiClientLib::autoyastWrite();
+     sleep(sl);
+    }
 
     if(Abort()) return false;
     Progress::NextStage ();
-//    if(!
-    IscsiClientLib::autoyastWrite();
-//) return false;
+    // set open-iscsi service status
+    if(!IscsiClientLib::setServiceStatus()) return false;
     sleep(sl);
 
     if(Abort()) return false;
     Progress::NextStage();
+    if (Stage::initial() && size(IscsiClientLib::sessions)>0 )
+			Packages::addAdditionalPackage("open-iscsi");
     sleep(sl);
 
-    // set open-iscsi service status
-    if(!IscsiClientLib::setServiceStatus()) return false;
-    if (Stage::initial() && size(IscsiClientLib::sessions)>0 ) Packages::addAdditionalPackage("open-iscsi");
     return true;
 }
 

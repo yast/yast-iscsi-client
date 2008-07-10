@@ -7,6 +7,7 @@ import "Popup";
 import "Hostname";
 import "Stage";
 import "ModuleLoading";
+import "Mode";
 
 global list <string> sessions = [];
 global list <string> discovered = [];
@@ -251,14 +252,14 @@ global boolean writeInitiatorName(string new_value){
 }
 
 string getReverseDomainName(){
-list<string> host_fq = Hostname::SplitFQ(((map<string,any>)SCR::Execute(.target.bash_output, "hostname -f|tr -d '\n'"))["stdout"]:"");
-y2internal("hostfw%1", host_fq);
-string domain = "";
+ list<string> host_fq = Hostname::SplitFQ(((map<string,any>)SCR::Execute(.target.bash_output, "hostname -f|tr -d '\n'"))["stdout"]:"");
+ y2internal("hostfw%1", host_fq);
+ string domain = "";
 
-foreach(string item, splitstring(host_fq[1]:"example.com", "."),{
- y2internal("item %1", item);
- domain = (size(domain)==0) ? item : sformat("%1.%2", item, domain);
-});
+ foreach(string item, splitstring(host_fq[1]:"example.com", "."),{
+  y2internal("item %1", item);
+  domain = (size(domain)==0) ? item : sformat("%1.%2", item, domain);
+ });
 
  y2milestone("domain %1", domain);
  return domain;
@@ -429,8 +430,17 @@ global boolean loginIntoTarget(map target){
 
   map<string, any> output = (map<string, any>)SCR::Execute(.target.bash_output,
 		sformat("iscsiadm -m node -T %1 -p %2 --login", target["target"]:"", target["portal"]:""));
-y2internal("output %1", output);
- return output["exit"]:-1==0;
+ y2internal("output %1", output);
+// if (output["exit"]:-1==0){
+  // set startup status to auto by default (bnc#400610)
+  if (!Mode::autoinst()) setStartupStatus(curr_rec, "automatic");
+  return true;
+/*
+ } else {
+	y2error("Error while Log-on into target : %1", output);
+	return false;
+	}
+*/
 }
 
 

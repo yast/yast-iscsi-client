@@ -252,18 +252,18 @@ boolean validateInitName(string key, map event){
 */
 
  string i_name = (string)UI::QueryWidget(`initiator_name, `Value);
- // regexp for "iqn.yyyy-mm."
- string reg1 = "^iqn\.[[:digit:]]\{4\}\-[[:digit:]]\{2\}\.";
+ // regexp for "yyyy-mm."
+ string reg1 = "[[:digit:]]\{4\}\-[[:digit:]]\{2\}\.";
  // regexp for "cz.suse" or just "suse", "cz.su-se"
- string reg2 = "([[:alnum:]][[:alnum:]-]+\.){0,1}[[:alnum:]][[:alnum:]-]{1,}";
- // regexp for [:identifier]
- string reg3 = "[:[:alnum:]*.{,1}]*";
+ string reg2 = "[[:alnum:]\.\:-]*";
 
- boolean correct = regexpmatch(i_name, sformat("%1%2%3", reg1, reg2, reg3));
+ boolean correct = regexpmatch(i_name, sformat("^iqn\.%1%2$", reg1, reg2)) ||
+			regexpmatch(i_name, sformat("^eui\.%1%2$", reg1, reg2));
 
  if (!correct) Popup::Warning(_("Incorrect InitiatorName.
 The correct syntax is
-iqn.yyyy-mm.reversed domain name[:identifier]
+iqn.yyyy-mm.reversed.domain.name[:identifier]
+or eui.yyyy-mm.reversed.domain.name[:identifier]
 
 Example:
 iqn.2007-04.cz.server:storage.disk.sdb

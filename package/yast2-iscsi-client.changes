@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Jul 10 15:49:59 CEST 2008 - mzugec@suse.de
+
+- when Log on, do startup automatic by default (bnc#400610)
+- improved InitiatorName validator
+- 2.17.1 
+
+-------------------------------------------------------------------
 Thu Jul 10 13:33:46 CEST 2008 - mzugec@suse.de
 
 - fixed text in Write dialog (bnc#393929)

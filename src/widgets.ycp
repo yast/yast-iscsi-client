@@ -259,7 +259,7 @@ boolean validateInitName(string key, map event){
  // regexp for [:identifier]
  string reg3 = "[:[:alnum:]*.{,1}]*";
 
- boolean correct = regexpmatch(i_name, sformat("%1%2%3\$", reg1, reg2, reg3));
+ boolean correct = regexpmatch(i_name, sformat("%1%2%3", reg1, reg2, reg3));
 
  if (!correct) Popup::Warning(_("Incorrect InitiatorName
 Correct syntax is

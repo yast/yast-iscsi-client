@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jun 20 22:43:27 CEST 2008 - mzugec@suse.de
+
+- fixed InitiatorName validator (bnc#406726)
+- 2.14.43 
+
+-------------------------------------------------------------------
 Fri Mar  7 16:33:05 CET 2008 - mzugec@suse.de
 
 - fixed autoyast problem (bnc#367300)

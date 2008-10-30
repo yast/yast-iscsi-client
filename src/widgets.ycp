@@ -113,7 +113,9 @@ list<string> getRecord(){
 	 integer current = tointeger(sel_item);
 	 record = splitstring(IscsiClientLib::sessions[current]:"", " " );
 //	 record = deletechars(record, "[]");
-	}
+	} else
+	   if (size(IscsiClientLib::sessions)>0)
+			record = splitstring(IscsiClientLib::sessions[0]:"", " " );
  return record;
 }
 

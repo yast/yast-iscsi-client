@@ -30,7 +30,8 @@ global map ay_settings=nil;
 global map<string, any> getiBFT(){
  if (ibft==nil){
   ibft=$[];
-  string from_bios = ((map<string, any>)SCR::Execute(.target.bash_output, "fwparam_ibft -b"))["stdout"]:"";
+  y2milestone("check and modprobe iscsi_ibft : %1", SCR::Execute(.target.bash_output, "lsmod |grep -q iscsi_ibft || modprobe iscsi_ibft"));
+  string from_bios = ((map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -m fw"))["stdout"]:"";
   foreach(string row, splitstring(from_bios, "\n"), {
    list<string> key_val=splitstring(row, "=");
    if (size(key_val[0]:"")>0) ibft[key_val[0]:""] = key_val[1]:"";
@@ -269,7 +270,7 @@ string getReverseDomainName(){
 global boolean checkInitiatorName(){
  boolean ret=true;
  string file="/etc/iscsi/initiatorname.iscsi";
- string name_from_bios = getiBFT()["iSCSI_INITIATOR_NAME"]:"";
+ string name_from_bios = getiBFT()["iface.initiatorname"]:"";
  if (size((map<string, any>)SCR::Read (.target.lstat, file)) == 0 || ((map<string, any>)SCR::Read (.target.lstat, file))["size"]:0==0){
    if (size(name_from_bios)>0){
     y2milestone("%1 is empty or doesnt exists - replace with name stored in iBFT", file);
@@ -374,31 +375,31 @@ y2milestone("begin of autoLogOn function");
  map<string, any> b = getiBFT();
 y2milestone("data read from iBFT card %1", b);
  if ( b != $[] ){
-y2milestone("checking size of %1 and %2", b["iSCSI_TARGET_NAME"]:"", b["iSCSI_TARGET_IPADDR"]:"");
-  if (size(b["iSCSI_TARGET_NAME"]:"")>0 && size(b["iSCSI_TARGET_IPADDR"]:"")>0){
-   list <string> curr_rec = [sformat("%1:%2", b["iSCSI_TARGET_IPADDR"]:"", b["iSCSI_TARGET_PORT"]:"3260"), b["iSCSI_TARGET_NAME"]:""];
-y2milestone("variable curr_rec %1", curr_rec);
+  y2milestone("checking size of %1 and %2", b["node.name"]:"", b["node.conn[0].address"]:"");
+  if (size(b["node.name"]:"")>0 && size(b["node.conn[0].address"]:"")>0){
+   list <string> curr_rec = [sformat("%1:%2", b["node.conn[0].address"]:"", b["node.conn[0].port"]:"3260"), b["node.name"]:""];
+   y2milestone("variable curr_rec %1", curr_rec);
    if (connected( curr_rec , false) == false){
-y2milestone("in case not connected do discovery");
-  // do discovery
-  SCR::Execute(.target.bash, sformat("iscsiadm -m discovery -t st -p %1:%2", b["iSCSI_TARGET_IPADDR"]:"", b["iSCSI_TARGET_PORT"]:"3260")); 
+    y2milestone("in case not connected do discovery");
+    // do discovery
+    SCR::Execute(.target.bash, sformat("iscsiadm -m discovery -t st -p %1:%2", b["node.conn[0].address"]:"", b["node.conn[0].port"]:"3260"));
 
-  // do authentication if needed
+  // do authentication if needed TODO: use NEW(iscsiadm -m fw) options
   if (size(b["iSCSI_TARGET_CHAP_NAME"]:"")>0 && size(b["iSCSI_TARGET_CHAP_PASSWORD"]:"")>0){
-y2milestone("do authentication with %1 and %2", b["iSCSI_TARGET_CHAP_NAME"]:"", b["iSCSI_TARGET_CHAP_PASSWORD"]:"");
+        y2milestone("do authentication with %1 and %2", b["iSCSI_TARGET_CHAP_NAME"]:"", b["iSCSI_TARGET_CHAP_PASSWORD"]:"");
 	setValue(curr_rec, "node.session.auth.username", b["iSCSI_TARGET_CHAP_NAME"]:"");
 	setValue(curr_rec, "node.session.auth.password", b["iSCSI_TARGET_CHAP_PASSWORD"]:"");
 	setValue(curr_rec, "node.session.auth.authmethod", "CHAP");
        } else y2internal("No authentication used for autoLogOn");
 
   // log on into target
-  SCR::Execute(.target.bash, sformat("iscsiadm -m node -T %1 -p %2:%3 --login ", b["iSCSI_TARGET_NAME"]:"", b["iSCSI_TARGET_IPADDR"]:"", b["iSCSI_TARGET_PORT"]:"3260"));
+  SCR::Execute(.target.bash, sformat("iscsiadm -m node -T %1 -p %2:%3 --login ", b["node.name"]:"", b["node.conn[0].address"]:"", b["node.conn[0].port"]:"3260"));
 
   // set startup status to automatic
-y2milestone("set startup status to automatic");
+  y2milestone("set startup status to automatic");
   setStartupStatus(curr_rec, "automatic");
    } else y2error("Already connected, no autoLogOn needed");
-  } else y2error("iSCSI_TARGET_NAME or iSCSI_TARGET_IPADDR are not available. Couldn't do autoLogOn");
+  } else y2error("node.name or node.conn[0].address are not available. Couldn't do autoLogOn");
  }
  return true;
 }

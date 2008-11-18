@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Nov 18 15:37:55 CET 2008 - ug@suse.de
+
+- rnc file added
+
+-------------------------------------------------------------------
 Wed Nov 12 16:14:39 CET 2008 - mzugec@suse.cz
 
 - use "iscsiadm -m fw" instead of fwparam_ibft (bnc#443531)

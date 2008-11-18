@@ -23,6 +23,9 @@ module_DATA =			\
 	IscsiClient.ycp		\
 	IscsiClientLib.ycp		
 
-EXTRA_DIST = $(client_DATA) $(ynclude_DATA) $(module_DATA) $(desktop_DATA)
+rncdir = $(schemadir)/autoyast/rnc
+rnc_DATA = iscsi-client.rnc
+
+EXTRA_DIST = $(client_DATA) $(ynclude_DATA) $(module_DATA) $(desktop_DATA) $(rnc_DATA)
 
 include $(top_srcdir)/Makefile.am.common

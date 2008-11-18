@@ -32,3 +32,4 @@ Summary:	Configuration of iscsi-client
 @desktopdir@/iscsi-client.desktop
 @scrconfdir@/iscsid.scr
 %doc @docdir@
+@schemadir@/autoyast/rnc/iscsi-client.rnc

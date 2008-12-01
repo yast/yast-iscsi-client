@@ -314,7 +314,7 @@ global boolean deleteRecord(list<string> record){
  return ret;
 }
 
-// get (manual/automatic) status of target connecting
+// get (manual/onboot) status of target connecting
 global string getStartupStatus(list<string> record){
  string status = "";
  y2milestone("Getting status of record %1", record);
@@ -360,7 +360,7 @@ y2internal("check connected status for %1 with IP check:%2", rec, check_ip);
  return ret;
 }
 
-// change startup status (manual/automatic) for target
+// change startup status (manual/onboot) for target
 global boolean setStartupStatus(list<string> record, string status){
  y2milestone("Set startup status for %1 to %2", record, status);
  boolean ret = true;
@@ -395,9 +395,9 @@ y2milestone("data read from iBFT card %1", b);
   // log on into target
   SCR::Execute(.target.bash, sformat("iscsiadm -m node -T %1 -p %2:%3 --login ", b["node.name"]:"", b["node.conn[0].address"]:"", b["node.conn[0].port"]:"3260"));
 
-  // set startup status to automatic
-  y2milestone("set startup status to automatic");
-  setStartupStatus(curr_rec, "automatic");
+  // set startup status to onboot
+  y2milestone("set startup status to onboot");
+  setStartupStatus(curr_rec, "onboot");
    } else y2error("Already connected, no autoLogOn needed");
   } else y2error("node.name or node.conn[0].address are not available. Couldn't do autoLogOn");
  }
@@ -434,7 +434,7 @@ global boolean loginIntoTarget(map target){
  y2internal("output %1", output);
 // if (output["exit"]:-1==0){
   // set startup status to auto by default (bnc#400610)
-  if (!Mode::autoinst()) setStartupStatus(curr_rec, "automatic");
+  if (!Mode::autoinst()) setStartupStatus(curr_rec, "onboot");
   return true;
 /*
  } else {

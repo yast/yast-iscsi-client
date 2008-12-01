@@ -142,15 +142,16 @@ symbol handleConnectedTable (string key, map event){
 		} else Popup::Error(_("No record found."));
 		break;
   case(`toggle):
-		// change manual/automatic status of connected target
+		// change manual/onboot status of connected target
+		// don't use automatic anymore (replaced by onboot) (bnc#449108)
 		record = getRecord();
 		if (size( record )>0){
 		y2milestone("toggle record %1", record);
 		string startup = IscsiClientLib::getStartupStatus(record);
 		if (size(startup)>0){
 		 if (startup == "manual"){
-				 y2milestone("Change status for %1 to %2", record, "automatic");
-				 IscsiClientLib::setStartupStatus(record, "automatic");
+				 y2milestone("Change status for %1 to %2", record, "onboot");
+				 IscsiClientLib::setStartupStatus(record, "onboot");
 				}
 			else {
 				y2milestone("Change status for %1 to %2", record, "manual");

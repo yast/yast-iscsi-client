@@ -44,7 +44,8 @@ ModuleLoading::Load("iscsi_tcp", "", "", "", false, true);
 // start daemon before
 SCR::Execute(.background.run_output_err, "iscsid");
 
-if (size(IscsiClientLib::getiBFT())>0) IscsiClientLib::autoLogOn();
+//if (size(IscsiClientLib::getiBFT())>0) IscsiClientLib::autoLogOn();
+IscsiClientLib::getiBFT();
 // run dialog
 ret = MainSequence();
 y2debug("MainSequence ret=%1", ret);

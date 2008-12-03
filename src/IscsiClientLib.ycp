@@ -38,6 +38,7 @@ global map<string, any> getiBFT(){
   });
  }
  y2milestone("iBFT %1", ibft);
+  y2milestone("Autologin into iBFT : %1", SCR::Execute(.target.bash_output, "iscsiadm -m fw -l"));
  return ibft;
 }
 
@@ -367,9 +368,13 @@ global boolean setStartupStatus(list<string> record, string status){
  map<string, any> retcode = (map<string, any>) SCR::Execute(.target.bash_output,
 	sformat("iscsiadm -m node -T %1 -p %2 --op=update --name=node.conn[0].startup --value=%3", record[1]:"", record[0]:"", status));
     if (size(retcode["stderr"]:"")>0) return false;
+	else retcode = (map<string, any>) SCR::Execute(.target.bash_output,
+        sformat("iscsiadm -m node -T %1 -p %2 --op=update --name=node.startup --value=%3", record[1]:"", record[0]:"", status));
+
  return ret;
 }
 
+/*
 global boolean autoLogOn(){
 y2milestone("begin of autoLogOn function");
  map<string, any> b = getiBFT();
@@ -403,7 +408,7 @@ y2milestone("data read from iBFT card %1", b);
  }
  return true;
 }
-
+*/
 global boolean loginIntoTarget(map target){
  list<string> curr_rec = [target["portal"]:"", target["target"]:""];
  if (target["authmethod"]:"None"!="None"){

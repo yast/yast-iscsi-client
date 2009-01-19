@@ -272,7 +272,11 @@ global boolean checkInitiatorName(){
  boolean ret=true;
  string file="/etc/iscsi/initiatorname.iscsi";
  string name_from_bios = getiBFT()["iface.initiatorname"]:"";
- if (size((map<string, any>)SCR::Read (.target.lstat, file)) == 0 || ((map<string, any>)SCR::Read (.target.lstat, file))["size"]:0==0){
+// if (size((map<string, any>)SCR::Read (.target.lstat, file)) == 0 || ((map<string, any>)SCR::Read (.target.lstat, file))["size"]:0==0){
+    initiatorname=((map<string, any>)SCR::Execute(.target.bash_output,
+			sformat("grep -v '^#' %1 | grep InitiatorName | cut -d'=' -f2 | tr -d '\n'", file)))["stdout"]:"";
+// }
+  if(size(initiatorname)==0){
    if (size(name_from_bios)>0){
     y2milestone("%1 is empty or doesnt exists - replace with name stored in iBFT", file);
     initiatorname = name_from_bios;
@@ -287,8 +291,7 @@ global boolean checkInitiatorName(){
     }
   ret = writeInitiatorName(initiatorname);
  } else {
-    initiatorname=((map<string, any>)SCR::Execute(.target.bash_output,
-						sformat("grep -v '^#' %1 | cut -d'=' -f2 | tr -d '\n'", file)))["stdout"]:"";
+    y2internal("initiatorname=%1", initiatorname);
    if (size(name_from_bios)>0 && name_from_bios!=initiatorname)
    {
     Popup::Warning( _("InitiatorName from iBFT and from <tt>/etc/iscsi/initiatorname.iscsi</tt> differ.

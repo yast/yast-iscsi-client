@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Jan 26 14:42:53 CET 2009 - mzugec@suse.cz
+
+- button labeling (bnc#440542)
+- 2.18.1 
+
+-------------------------------------------------------------------
 Mon Jan 19 16:59:21 CET 2009 - mzugec@suse.cz
 
 - fixed check InitiatorName function (bnc#460176)

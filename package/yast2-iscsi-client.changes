@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Feb 24 12:08:35 CET 2009 - mzugec@suse.cz
+
+- toggle between "manual", "automatic", "onboot" (bnc#457252)
+- 2.17.8 
+
+-------------------------------------------------------------------
 Tue Jan 20 10:01:08 CET 2009 - mzugec@suse.cz
 
 - fixed check InitiatorName function (bnc#460176)

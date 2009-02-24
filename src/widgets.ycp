@@ -149,14 +149,18 @@ symbol handleConnectedTable (string key, map event){
 		y2milestone("toggle record %1", record);
 		string startup = IscsiClientLib::getStartupStatus(record);
 		if (size(startup)>0){
-		 if (startup == "manual"){
-				 y2milestone("Change status for %1 to %2", record, "onboot");
-				 IscsiClientLib::setStartupStatus(record, "onboot");
-				}
-			else {
-				y2milestone("Change status for %1 to %2", record, "manual");
-				IscsiClientLib::setStartupStatus(record, "manual");
-			     }
+		// toggle all 3 possible values (bnc#457252)
+		 list <string> options = ["manual", "onboot", "automatic"];
+		 integer pos=0;
+		 foreach(string option, options, {
+		   if (startup==option){
+		     startup=options[(size(options)>pos+1) ? pos+1 : 0]:"";
+		     y2milestone("Changing state from %1 to %2", option, startup );
+		     IscsiClientLib::setStartupStatus(record, startup);
+		     break;
+		   }
+		   pos=pos+1;
+		 });
 		  initConnectedTable("");
 		 }
 		} else Popup::Error(_("No record found."));

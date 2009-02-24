@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Feb 24 12:24:55 CET 2009 - mzugec@suse.cz
+
+- toggle between "manual", "automatic", "onboot" (bnc#457252)
+- 2.18.2 
+
+-------------------------------------------------------------------
 Mon Jan 26 14:42:53 CET 2009 - mzugec@suse.cz
 
 - button labeling (bnc#440542)

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Mar  3 10:28:27 CET 2009 - mzugec@suse.cz
+
+- added X-SuSE-YaST-AutoInstSchema into desktop file (bnc#480466)
+- 2.18.3 
+
+-------------------------------------------------------------------
 Tue Feb 24 12:24:55 CET 2009 - mzugec@suse.cz
 
 - toggle between "manual", "automatic", "onboot" (bnc#457252)

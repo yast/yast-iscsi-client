@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Mar  6 09:25:13 CET 2009 - mzugec@suse.cz
+
+- start iscsid during autoyast installation (bnc#482429)
+- 2.18.4 
+
+-------------------------------------------------------------------
 Tue Mar  3 10:28:27 CET 2009 - mzugec@suse.cz
 
 - added X-SuSE-YaST-AutoInstSchema into desktop file (bnc#480466)

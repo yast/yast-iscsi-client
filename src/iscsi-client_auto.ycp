@@ -82,12 +82,13 @@ else if (func == "Read") {
     ret = IscsiClient::Read();
     Progress::set (progress_orig);
 }
-/* Write givven settings */
+/* Write given settings */
 else if (func == "Write") {
     import "Progress";
     boolean progress_orig = Progress::set (false);
     IscsiClient::write_only = true;
     ModuleLoading::Load("iscsi_tcp", "", "", "", false, true);
+    SCR::Execute(.background.run_output_err, "iscsid");
     ret = IscsiClient::Write();
     Progress::set (progress_orig);
 }

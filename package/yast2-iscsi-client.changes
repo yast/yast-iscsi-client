@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Mar 10 10:24:11 CET 2009 - mzugec@suse.cz
+
+- hide iBFT passwords (bnc#426945)
+- 2.18.5 
+
+-------------------------------------------------------------------
 Fri Mar  6 09:25:13 CET 2009 - mzugec@suse.cz
 
 - start iscsid during autoyast installation (bnc#482429)

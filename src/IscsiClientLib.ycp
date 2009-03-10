@@ -24,6 +24,18 @@ global string initiatorname = "";
 // map used for autoYaST
 global map ay_settings=nil;
 
+
+
+global map<string, any> hidePassword(map<string, any> orig){
+ map<string, any> hidden=$[];
+ foreach(string key, any value, orig, {
+  if (issubstring(key, "PASS")) value="*****";
+  hidden[key]=value;
+ });
+ return hidden;
+}
+
+
 /**
  * get iBFT (available only on some special hardware)
  */
@@ -37,7 +49,7 @@ global map<string, any> getiBFT(){
    if (size(key_val[0]:"")>0) ibft[key_val[0]:""] = key_val[1]:"";
   });
  }
- y2milestone("iBFT %1", ibft);
+ y2milestone("iBFT %1", hidePassword(ibft));
   y2milestone("Autologin into iBFT : %1", SCR::Execute(.target.bash_output, "iscsiadm -m fw -l"));
  return ibft;
 }

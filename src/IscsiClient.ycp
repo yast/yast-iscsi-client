@@ -411,32 +411,39 @@ global boolean setStartupStatus(list<string> record, string status){
 }
 
 global boolean autoLogOn(){
-y2milestone("begin of autoLogOn function");
+ y2milestone("begin of autoLogOn function");
  map<string, any> b = getiBFT();
-y2milestone("data read from iBFT card %1", b);
+ y2milestone("data read from iBFT card %1", b);
  if ( b != $[] ){
-y2milestone("checking size of %1 and %2", b["iSCSI_TARGET_NAME"]:"", b["iSCSI_TARGET_IPADDR"]:"");
+  y2milestone("checking size of %1 and %2", b["iSCSI_TARGET_NAME"]:"", b["iSCSI_TARGET_IPADDR"]:"");
   if (size(b["iSCSI_TARGET_NAME"]:"")>0 && size(b["iSCSI_TARGET_IPADDR"]:"")>0){
    list <string> curr_rec = [sformat("%1:%2", b["iSCSI_TARGET_IPADDR"]:"", b["iSCSI_TARGET_PORT"]:"3260"), b["iSCSI_TARGET_NAME"]:""];
-y2milestone("variable curr_rec %1", curr_rec);
+  y2milestone("variable curr_rec %1", curr_rec);
    if (connected( curr_rec , false) == false){
-y2milestone("in case not connected do discovery");
-  // do discovery
-  SCR::Execute(.target.bash, sformat("iscsiadm -m discovery -t st -p %1:%2", b["iSCSI_TARGET_IPADDR"]:"", b["iSCSI_TARGET_PORT"]:"3260")); 
+    y2milestone("in case not connected do discovery");
+    // do discovery
+    saveConfig(b["iSCSI_TARGET_CHAP_NAME_IN"]:"", b["iSCSI_TARGET_CHAP_PASSWORD_IN"]:"", b["iSCSI_TARGET_CHAP_NAME"]:"", b["iSCSI_TARGET_CHAP_PASSWORD"]:"");
+    SCR::Execute(.target.bash, sformat("iscsiadm -m discovery -t st -p %1:%2", b["iSCSI_TARGET_IPADDR"]:"", b["iSCSI_TARGET_PORT"]:"3260")); 
+    oldConfig();
 
   // do authentication if needed
-  if (size(b["iSCSI_TARGET_CHAP_NAME"]:"")>0 && size(b["iSCSI_TARGET_CHAP_PASSWORD"]:"")>0){
-y2milestone("do authentication with %1 and %2", b["iSCSI_TARGET_CHAP_NAME"]:"", b["iSCSI_TARGET_CHAP_PASSWORD"]:"");
+      if (size(b["iSCSI_TARGET_CHAP_NAME"]:"")>0 && size(b["iSCSI_TARGET_CHAP_PASSWORD"]:"")>0){
+	y2milestone("do authentication with %1 and %2", b["iSCSI_TARGET_CHAP_NAME"]:"", b["iSCSI_TARGET_CHAP_PASSWORD"]:"");
 	setValue(curr_rec, "node.session.auth.username", b["iSCSI_TARGET_CHAP_NAME"]:"");
 	setValue(curr_rec, "node.session.auth.password", b["iSCSI_TARGET_CHAP_PASSWORD"]:"");
 	setValue(curr_rec, "node.session.auth.authmethod", "CHAP");
-       } else y2internal("No authentication used for autoLogOn");
+       }
+      if (size(b["iSCSI_TARGET_CHAP_NAME_IN"]:"")>0 && size(b["iSCSI_TARGET_CHAP_PASSWORD_IN"]:"")>0){
+	y2milestone("do authentication with %1 and %2", b["iSCSI_TARGET_CHAP_NAME_IN"]:"", b["iSCSI_TARGET_CHAP_PASSWORD_IN"]:"");
+	setValue(curr_rec, "node.session.auth.username_in", b["iSCSI_TARGET_CHAP_NAME_IN"]:"");
+	setValue(curr_rec, "node.session.auth.password_in", b["iSCSI_TARGET_CHAP_PASSWORD_IN"]:"");
+       }
 
   // log on into target
   SCR::Execute(.target.bash, sformat("iscsiadm -m node -T %1 -p %2:%3 --login ", b["iSCSI_TARGET_NAME"]:"", b["iSCSI_TARGET_IPADDR"]:"", b["iSCSI_TARGET_PORT"]:"3260"));
 
   // set startup status to automatic
-y2milestone("set startup status to automatic");
+  y2milestone("set startup status to automatic");
   setStartupStatus(curr_rec, "automatic");
    } else y2error("Already connected, no autoLogOn needed");
   } else y2error("iSCSI_TARGET_NAME or iSCSI_TARGET_IPADDR are not available. Couldn't do autoLogOn");

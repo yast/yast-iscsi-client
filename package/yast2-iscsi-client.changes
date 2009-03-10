@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Mar 10 13:07:53 CET 2009 - mzugec@suse.cz
+
+- autologin discovery authentication (bnc#392428)
+- 2.14.46 
+
+-------------------------------------------------------------------
 Tue Mar 10 10:26:13 CET 2009 - mzugec@suse.cz
 
 - hide iBFT passwords (bnc#426945)

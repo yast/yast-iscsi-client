@@ -38,6 +38,15 @@ map<string, any> ibft = nil;
 global string initiatorname = "";
 map ay_settings=nil;
 
+global map<string, any> hidePassword(map<string, any> orig){
+ map<string, any> hidden=$[];
+ foreach(string key, any value, orig, {
+  if (issubstring(key, "PASS")) value="*****";
+  hidden[key]=value;
+ });
+ return hidden;
+}
+
 global map<string, any> getiBFT(){
  if (ibft==nil){
   ibft=$[];
@@ -47,7 +56,7 @@ global map<string, any> getiBFT(){
    if (size(key_val[0]:"")>0) ibft[key_val[0]:""] = key_val[1]:"";
   });
  }
-y2milestone("iBFT %1", ibft);
+y2milestone("iBFT %1", hidePassword(ibft));
  return ibft;
 }
 

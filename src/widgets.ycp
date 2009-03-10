@@ -294,7 +294,7 @@ symbol storeInitName (string key, map event){
 // ***************** iBFT table **************************
 void initiBFT(string key){
  list<term> items = [];
- foreach(string key, any value, IscsiClient::getiBFT(), {
+ foreach(string key, any value, IscsiClient::hidePassword(IscsiClient::getiBFT()), {
   items = add(items, `item(`id(size(items)), key, value));
  });
  UI::ChangeWidget(`bios, `Items, items);

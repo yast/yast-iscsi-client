@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Mar 10 10:26:13 CET 2009 - mzugec@suse.cz
+
+- hide iBFT passwords (bnc#426945)
+- 2.14.45 
+
+-------------------------------------------------------------------
 Thu Jul 10 15:30:37 CEST 2008 - mzugec@suse.de
 
 - when Log on, do startup automatic by default (bnc#400610)

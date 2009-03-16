@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Mar 16 15:20:15 CET 2009 - mzugec@suse.cz
+
+- reload service when initiatorname is changed to re-read new value
+ (bnc#482429) 
+- 2.18.6
+
+-------------------------------------------------------------------
 Tue Mar 10 10:24:11 CET 2009 - mzugec@suse.cz
 
 - hide iBFT passwords (bnc#426945)

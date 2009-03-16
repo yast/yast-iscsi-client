@@ -262,6 +262,8 @@ global boolean writeInitiatorName(string new_value){
   initiatorname = new_value;
   y2milestone("Initiatorname %1 written", initiatorname);
  }
+ // reload service when initiatorname is changed to re-read new value (bnc#482429)
+ Service::Reload("open-iscsi");
  return ret;
 }
 

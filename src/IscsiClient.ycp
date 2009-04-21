@@ -31,6 +31,7 @@ import "Mode";
 global list <string> sessions = [];
 global list <string> discovered = [];
 global list <string> targets = [];
+global list<string> currentRecord = [];
 global boolean configured = false;
 boolean serviceStatus = false;
 map<string, any> config = $[];
@@ -109,8 +110,8 @@ global void oldConfig(){
 }
 
 
-global map<string, any> getNode(list<string> rec){
-  map<string, any> cmd = (map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -S -m node -T $TARGET -p $IP", $["TARGET":rec[1]:"", "IP":rec[0]:""]);
+global map<string, any> getNode(){
+  map<string, any> cmd = (map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -S -m node -T $TARGET -p $IP", $["TARGET":currentRecord[1]:"", "IP":currentRecord[0]:""]);
  if (cmd["exit"]:0!=0) return $[];
  map<string, any> auth = $[];
  foreach(string row, splitstring(cmd["stdout"]:"", "\n"), {
@@ -344,11 +345,11 @@ boolean installed_packages(){
 }
 
 // delete deiscovered target from database
-global boolean deleteRecord(list<string> record){
+global boolean deleteRecord(){
  boolean ret = true;
- y2milestone("Delete record %1", record);
+ y2milestone("Delete record %1", currentRecord);
 
-    map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, sformat("iscsiadm -m node -T %1 -p %2 --logout", record[1]:"", record[0]:""));
+    map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, sformat("iscsiadm -m node -T %1 -p %2 --logout", currentRecord[1]:"", currentRecord[0]:""));
         if (size(retcode["stderr"]:"")>0) return false;
 
  readSessions();
@@ -356,10 +357,10 @@ global boolean deleteRecord(list<string> record){
 }
 
 // get (manual/automatic) status of target connecting
-global string getStartupStatus(list<string> record){
+global string getStartupStatus(){
  string status = "";
- y2milestone("Getting status of record %1", record);
-     map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, sformat("iscsiadm -m node -T %1 -p %2", record[1]:"", record[0]:""));
+ y2milestone("Getting status of record %1", currentRecord);
+     map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, sformat("iscsiadm -m node -T %1 -p %2", currentRecord[1]:"", currentRecord[0]:""));
     if (size(retcode["stderr"]:"")>0) return "";
     foreach(string row, splitstring(retcode["stdout"]:"", "\n"), {
      if (issubstring(row, "node.conn[0].startup")){
@@ -367,14 +368,14 @@ global string getStartupStatus(list<string> record){
        break;
       }
     });
- y2milestone("Startup status for %1 is %2", record, status);
+ y2milestone("Startup status for %1 is %2", currentRecord, status);
  return status;
 }
 
 // update authentication value
-global boolean setValue(list<string> record, string name, string value){
- y2milestone("set %1  for record %2", name, record);
- string command = sformat("iscsiadm -m node -T %1 -p %2 --op=update --name=%3 --value=%4", record[1]:"", record[0]:"", name, value);
+global boolean setValue(string name, string value){
+ y2milestone("set %1  for record %2", name, currentRecord);
+ string command = sformat("iscsiadm -m node -T %1 -p %2 --op=update --name=%3 --value=%4", currentRecord[1]:"", currentRecord[0]:"", name, value);
  y2milestone("execute command - %1", command );
  boolean ret = true;
         map<string, any> retcode = (map<string, any>) SCR::Execute(.target.bash_output, command);
@@ -387,12 +388,12 @@ y2milestone("return value %1", ret);
 }
 
 // check if given target is connected
-global boolean connected(list<string> rec, boolean check_ip){
-y2internal("check connected status for %1 with IP check:%2", rec, check_ip);
+global boolean connected(boolean check_ip){
+y2internal("check connected status for %1 with IP check:%2", currentRecord, check_ip);
  boolean ret = false;
  foreach(string row, sessions, {
  list<string> list_row = splitstring(row, " ");
-  if (list_row[1]:"" == rec[1]:"" && (check_ip ? splitstring(list_row[0]:"", ",")[0]:"" == splitstring(rec[0]:"", ",")[0]:"" : true)){
+  if (list_row[1]:"" == currentRecord[1]:"" && (check_ip ? splitstring(list_row[0]:"", ",")[0]:"" == splitstring(currentRecord[0]:"", ",")[0]:"" : true)){
    ret = true;
    break;
   }
@@ -401,11 +402,11 @@ y2internal("check connected status for %1 with IP check:%2", rec, check_ip);
 }
 
 // change startup status (manual/automatic) for target
-global boolean setStartupStatus(list<string> record, string status){
- y2milestone("Set startup status for %1 to %2", record, status);
+global boolean setStartupStatus(string status){
+ y2milestone("Set startup status for %1 to %2", currentRecord, status);
  boolean ret = true;
        map<string, any> retcode = (map<string, any>) SCR::Execute(.target.bash_output,
-			sformat("iscsiadm -m node -T %1 -p %2 --op=update --name=node.conn[0].startup --value=%3", record[1]:"", record[0]:"", status));
+			sformat("iscsiadm -m node -T %1 -p %2 --op=update --name=node.conn[0].startup --value=%3", currentRecord[1]:"", currentRecord[0]:"", status));
     if (size(retcode["stderr"]:"")>0) return false;
  return ret;
 }
@@ -417,9 +418,8 @@ global boolean autoLogOn(){
  if ( b != $[] ){
   y2milestone("checking size of %1 and %2", b["iSCSI_TARGET_NAME"]:"", b["iSCSI_TARGET_IPADDR"]:"");
   if (size(b["iSCSI_TARGET_NAME"]:"")>0 && size(b["iSCSI_TARGET_IPADDR"]:"")>0){
-   list <string> curr_rec = [sformat("%1:%2", b["iSCSI_TARGET_IPADDR"]:"", b["iSCSI_TARGET_PORT"]:"3260"), b["iSCSI_TARGET_NAME"]:""];
-  y2milestone("variable curr_rec %1", curr_rec);
-   if (connected( curr_rec , false) == false){
+   currentRecord = [sformat("%1:%2", b["iSCSI_TARGET_IPADDR"]:"", b["iSCSI_TARGET_PORT"]:"3260"), b["iSCSI_TARGET_NAME"]:""];
+   if (connected( false) == false){
     y2milestone("in case not connected do discovery");
     // do discovery
     saveConfig(b["iSCSI_TARGET_CHAP_NAME_IN"]:"", b["iSCSI_TARGET_CHAP_PASSWORD_IN"]:"", b["iSCSI_TARGET_CHAP_NAME"]:"", b["iSCSI_TARGET_CHAP_PASSWORD"]:"");
@@ -429,14 +429,14 @@ global boolean autoLogOn(){
   // do authentication if needed
       if (size(b["iSCSI_TARGET_CHAP_NAME"]:"")>0 && size(b["iSCSI_TARGET_CHAP_PASSWORD"]:"")>0){
 	y2milestone("do authentication with %1 and %2", b["iSCSI_TARGET_CHAP_NAME"]:"", b["iSCSI_TARGET_CHAP_PASSWORD"]:"");
-	setValue(curr_rec, "node.session.auth.username", b["iSCSI_TARGET_CHAP_NAME"]:"");
-	setValue(curr_rec, "node.session.auth.password", b["iSCSI_TARGET_CHAP_PASSWORD"]:"");
-	setValue(curr_rec, "node.session.auth.authmethod", "CHAP");
+	setValue("node.session.auth.username", b["iSCSI_TARGET_CHAP_NAME"]:"");
+	setValue("node.session.auth.password", b["iSCSI_TARGET_CHAP_PASSWORD"]:"");
+	setValue("node.session.auth.authmethod", "CHAP");
        }
       if (size(b["iSCSI_TARGET_CHAP_NAME_IN"]:"")>0 && size(b["iSCSI_TARGET_CHAP_PASSWORD_IN"]:"")>0){
 	y2milestone("do authentication with %1 and %2", b["iSCSI_TARGET_CHAP_NAME_IN"]:"", b["iSCSI_TARGET_CHAP_PASSWORD_IN"]:"");
-	setValue(curr_rec, "node.session.auth.username_in", b["iSCSI_TARGET_CHAP_NAME_IN"]:"");
-	setValue(curr_rec, "node.session.auth.password_in", b["iSCSI_TARGET_CHAP_PASSWORD_IN"]:"");
+	setValue("node.session.auth.username_in", b["iSCSI_TARGET_CHAP_NAME_IN"]:"");
+	setValue("node.session.auth.password_in", b["iSCSI_TARGET_CHAP_PASSWORD_IN"]:"");
        }
 
   // log on into target
@@ -444,7 +444,7 @@ global boolean autoLogOn(){
 
   // set startup status to automatic
   y2milestone("set startup status to automatic");
-  setStartupStatus(curr_rec, "automatic");
+  setStartupStatus("automatic");
    } else y2error("Already connected, no autoLogOn needed");
   } else y2error("iSCSI_TARGET_NAME or iSCSI_TARGET_IPADDR are not available. Couldn't do autoLogOn");
  }
@@ -452,34 +452,35 @@ global boolean autoLogOn(){
 }
 
 global boolean loginIntoTarget(map target){
- list<string> curr_rec = [target["portal"]:"", target["target"]:""];
+ currentRecord = [target["portal"]:"", target["target"]:""];
  if (target["authmethod"]:"None"!="None"){
   string user_in = target["username_in"]:"";
   string pass_in = target["password_in"]:"";
   if (size(user_in)>0 && size(pass_in)>0){
-   setValue(curr_rec, "node.session.auth.username_in", user_in);
-   setValue(curr_rec, "node.session.auth.password_in", pass_in);
+   setValue("node.session.auth.username_in", user_in);
+   setValue("node.session.auth.password_in", pass_in);
   } else{
-           setValue(curr_rec, "node.session.auth.username_in", "");
-           setValue(curr_rec, "node.session.auth.password_in", "");
+           setValue("node.session.auth.username_in", "");
+           setValue("node.session.auth.password_in", "");
    }
   string user_out = target["username"]:"";
   string pass_out = target["password"]:"";
   if (size(user_out)>0 && size(pass_out)>0){
-   setValue(curr_rec, "node.session.auth.username", user_out);
-   setValue(curr_rec, "node.session.auth.password", pass_out);
-   setValue(curr_rec, "node.session.auth.authmethod", "CHAP");
+   setValue("node.session.auth.username", user_out);
+   setValue("node.session.auth.password", pass_out);
+   setValue("node.session.auth.authmethod", "CHAP");
   } else {
-           setValue(curr_rec, "node.session.auth.username", "");
-           setValue(curr_rec, "node.session.auth.password", "");
-           setValue(curr_rec, "node.session.auth.authmethod", "");
+           setValue("node.session.auth.username", "");
+           setValue("node.session.auth.password", "");
+           setValue("node.session.auth.authmethod", "");
     }
- } else setValue(curr_rec, "node.session.auth.authmethod", "None");
+ } else setValue("node.session.auth.authmethod", "None");
 
   map<string, any> output = (map<string, any>)SCR::Execute(.target.bash_output,
 		sformat("iscsiadm -m node -T %1 -p %2 --login", target["target"]:"", target["portal"]:""));
 y2internal("output %1", output);
- if (!Mode::autoinst()) setStartupStatus(curr_rec, "automatic");
+ currentRecord = [target["portal"]:"", target["target"]:""];
+ if (!Mode::autoinst()) setStartupStatus("automatic");
  return output["exit"]:-1==0;
 }
 
@@ -520,11 +521,12 @@ global map Export () {
  foreach(string sess, sessions, {
  string target = splitstring(sess, " ")[1]:"";
  string portal = splitstring(sess, " ")[0]:"";
- map<string, any> auth = getNode([portal, target]);
+ currentRecord = [portal, target];
+ map<string, any> auth = getNode();
  map new_target =
 		$["target": target,
 		"portal"  : portal,
-		"startup" : getStartupStatus([portal, target]),
+		"startup" : getStartupStatus(),
 		];
  if (auth["authmethod"]:"None"=="None") new_target["authmethod"]="None";
 	else new_target = union(new_target, auth);
@@ -644,9 +646,10 @@ foreach(map target, ay_settings["targets"]:[], {
  }
 });
  foreach(map target, ay_settings["targets"]:[], {
-y2internal("login into target %1", target);
+ y2internal("login into target %1", target);
+  currentRecord = [target["portal"]:"", target["target"]:""];
   loginIntoTarget(target);
-  setStartupStatus([target["portal"]:"", target["target"]:""], target["startup"]:"manual");
+  setStartupStatus(target["startup"]:"manual");
  });
  return true;
 }

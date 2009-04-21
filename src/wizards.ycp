@@ -31,6 +31,7 @@ any MainSequence() {
 	"targets"	:   ``( TargetsDialog() ),
 	"conn_auth"	:   ``( ConnAuthDialog("client") ),
 	"conn_disc"	:   ``( ConnAuthDialog("discovered") ),
+	"edit_conn"	:   ``( ConnAuthDialog("client") ),
 	"disc"		:   ``( DiscAuthDialog("discovered") ),
     ];
 
@@ -41,6 +42,7 @@ any MainSequence() {
 	    `abort	: `abort,
 	    `next	: `next,
 	    `add  : "disc_auth",
+	    `edit : "edit_conn",
 	    `conn : "conn_disc",
 	    `disc : "disc"
 	],
@@ -63,6 +65,10 @@ any MainSequence() {
 	"conn_auth" : $[
 	    `abort	: `abort,
 	    `next	: "targets"
+	],
+	"edit_conn" : $[
+	    `abort	: `abort,
+	    `next	: "global"
 	],
 	"disc"		: $[
 	    `abort	: `abort,

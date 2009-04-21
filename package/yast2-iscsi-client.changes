@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Mar  9 20:46:19 CET 2009 - mzugec@suse.de
+
+- changed dialogs workflow to allow to edit authentication for
+ connection (fate#305306)
+- 2.14.47 
+
+-------------------------------------------------------------------
 Tue Mar 10 13:07:53 CET 2009 - mzugec@suse.cz
 
 - autologin discovery authentication (bnc#392428)

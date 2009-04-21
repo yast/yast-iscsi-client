@@ -347,6 +347,8 @@ void initConnAuth(string key){
    UI::ChangeWidget(`id(`pass_out),`Value, auth["password"]:"" );
 //   if ((size(auth["username"]:"")>0)&&(size(auth["password"]:"")>0)) setAuthOut(true);
   }
+ string startup=IscsiClientLib::getStartupStatus();
+ if(size(startup)>0) UI::ChangeWidget(`id("startup"), `Value, startup);
 }
 // handle for enable/disable widgets in authentication dialog
 symbol handleDiscAuth(string key, map event){

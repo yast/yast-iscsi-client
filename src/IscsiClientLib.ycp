@@ -1,0 +1,535 @@
+{
+module "IscsiClientLib";
+textdomain "iscsi-client";
+
+import "Service";
+import "Popup";
+import "Hostname";
+import "Stage";
+import "ModuleLoading";
+import "Mode";
+
+global list <string> sessions = [];
+global list <string> discovered = [];
+global list <string> targets = [];
+global list<string> currentRecord = [];
+
+// status of rcopen-iscsi service
+boolean serviceStatus = false;
+// main configuration file (/etc/iscsi/iscsid.conf)
+map<string, any> config = $[];
+// iBFT (iSCSI Boot Firmware Table)
+map<string, any> ibft = nil;
+// InitiatorName file (/etc/iscsi/initiatorname.iscsi)
+global string initiatorname = "";
+// map used for autoYaST
+global map ay_settings=nil;
+
+
+
+global map<string, any> hidePassword(map<string, any> orig){
+ map<string, any> hidden=$[];
+ foreach(string key, any value, orig, {
+  if (issubstring(key, "PASS")) value="*****";
+  hidden[key]=value;
+ });
+ return hidden;
+}
+
+
+/**
+ * get iBFT (available only on some special hardware)
+ */
+global map<string, any> getiBFT(){
+ if (ibft==nil){
+  ibft=$[];
+  y2milestone("check and modprobe iscsi_ibft : %1", SCR::Execute(.target.bash_output, "lsmod |grep -q iscsi_ibft || modprobe iscsi_ibft"));
+  string from_bios = ((map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -m fw"))["stdout"]:"";
+  foreach(string row, splitstring(from_bios, "\n"), {
+   list<string> key_val=splitstring(row, "=");
+   if (size(key_val[0]:"")>0) ibft[key_val[0]:""] = key_val[1]:"";
+  });
+ }
+ y2milestone("iBFT %1", hidePassword(ibft));
+  y2milestone("Autologin into iBFT : %1", SCR::Execute(.target.bash_output, "iscsiadm -m fw -l"));
+ return ibft;
+}
+
+
+// get accessor for service status
+global boolean GetStartService() {
+ boolean status = Service::Enabled("open-iscsi");
+ y2milestone("Status of open-iscsi %1", status);
+ return status;
+}
+
+// set accessor for service status
+global void SetStartService(boolean status) {
+ y2milestone("Set status of open-iscsi to %1", status);
+ if (status == true) {
+    Service::Enable("boot.open-iscsi");
+    Service::Enable("open-iscsi");
+ } else {
+    Service::Disable("boot.open-iscsi");
+    Service::Disable("open-iscsi");
+ }
+}
+
+
+// read configuration file
+global list <map<string, any> > getConfig(){
+ // use cache if available
+ if (size(config)==0){
+  config = (map<string, any>) SCR::Read(.etc.iscsid.all);
+  y2debug("read config %1", config);
+ }
+ return config["value"]:[];
+}
+
+global void setConfig(list new_config){
+ config["value"]=new_config;
+}
+
+// do we use iSNS for targets?
+global boolean useISNS(){
+ boolean use = false;
+ foreach(map<string, any> row, getConfig(), {
+  if (row["name"]:""=="isns.address" || row["name"]:""=="isns.port") {
+	 use = true;
+	}
+ });
+ return use;
+}
+
+
+// write temporary changed old config
+global void oldConfig(){
+ y2milestone("Store temporary config %1", config);
+ SCR::Write(.etc.iscsid.all, config);
+ SCR::Write(.etc.iscsid, nil);
+}
+
+
+global map<string, any> getNode(){
+  map<string, any> cmd = (map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -S -m node -T $TARGET -p $IP", $["TARGET":currentRecord[1]:"", "IP":currentRecord[0]:""]);
+ if (cmd["exit"]:0!=0) return $[];
+ map<string, any> auth = $[];
+ foreach(string row, splitstring(cmd["stdout"]:"", "\n"), {
+ string key = splitstring(row," = ")[0]:"";
+ string val = splitstring(row," = ")[3]:"";
+ if(val == "<empty>") val="";
+  switch(key){
+   case("node.session.auth.authmethod"):
+		auth["authmethod"]=val;
+		break;
+   case("node.session.auth.username"):
+		auth["username"]=val;
+		break;
+   case("node.session.auth.password"):
+		auth["password"]=val;
+		break;
+   case("node.session.auth.username_in"):
+		auth["username_in"]=val;
+		break;
+   case("node.session.auth.password_in"):
+		auth["password_in"]=val;
+		break;
+  }
+ });
+ return auth;
+}
+
+// create map from given map in format needed by ini-agent
+map<string, any> createMap(map<string, any> old_map, list<string> comments)
+{
+ string comment = "";
+ foreach(string row, comments, {
+  comment = sformat("%1%2", comment, row);
+  });
+ return $[ "name":old_map["KEY"]:"",
+           "value":old_map["VALUE"]:"",
+           "kind":"value",
+           "type":1,
+           "comment":comment
+         ];
+}
+
+// add or modify given map
+list <map<string, any> > setOrAdd(list <map<string, any> > old_list, string key, string value){
+ list <map<string, any> > new_list = [];
+ boolean found = false;
+ foreach(map<string, any> row, old_list, {
+  if (row["name"]:"" == key){
+   found = true;
+   row["value"] = value;
+  }
+  new_list = add(new_list, row);
+ });
+ if (!found) new_list = add(new_list, createMap($["KEY":key, "VALUE":value], []) );
+ return new_list;
+}
+
+// delete record with given key
+list <map<string, any> > delete(list <map<string, any> > old_list, string key){
+ y2milestone("Delete record for %1", key);
+ list <map<string, any> > new_list = [];
+ foreach(map<string, any> row, old_list, {
+  if (row["name"]:"" != key) new_list = add(new_list, row);
+ });
+ return new_list;
+}
+
+// temporary change config for discovery authentication
+global void saveConfig(string user_in, string pass_in, string user_out, string pass_out){
+ y2milestone("Save config");
+ map<string, any> tmp_conf = config;
+ list <map<string, any> > tmp_val = tmp_conf["value"]:[];
+
+ if ((size(user_in)>0)&&(size(pass_in)>0)) {
+	tmp_val = setOrAdd(tmp_val, "node.session.auth.username", user_in);
+	tmp_val = setOrAdd(tmp_val, "node.session.auth.password", pass_in);
+	}
+  else {
+	tmp_val = delete(tmp_val, "node.session.auth.username");
+	tmp_val = delete(tmp_val, "node.session.auth.password");
+	}
+
+ if ((size(user_out)>0)&&(size(pass_out)>0)) {
+	tmp_val = setOrAdd(tmp_val, "discovery.sendtargets.auth.authmethod", "CHAP");
+	tmp_val = setOrAdd(tmp_val, "discovery.sendtargets.auth.username", user_out);
+	tmp_val = setOrAdd(tmp_val, "discovery.sendtargets.auth.password", pass_out);
+	}
+  else {
+	tmp_val = delete(tmp_val, "discovery.sendtargets.auth.authmethod");
+	tmp_val = delete(tmp_val, "discovery.sendtargets.auth.username");
+	tmp_val = delete(tmp_val, "discovery.sendtargets.auth.password");
+	}
+ tmp_conf["value"] = tmp_val;
+ SCR::Write(.etc.iscsid.all, tmp_conf);
+ SCR::Write(.etc.iscsid, nil);
+}
+
+// get all discovered targets
+global list<string> getDiscovered(){
+	 discovered=[];
+    map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -m node");
+	if (size(retcode["stderr"]:"")==0) {
+	      list<string> tmp_disc = filter(string row, splitstring(retcode["stdout"]:"", "\n"), {
+                        return ( size(row)>0 && (search(row, "session")==nil) );
+                        });
+	foreach(string row, tmp_disc, {
+	 list<string> tmp_row = splitstring(row, " ");
+	 discovered = add(discovered, sformat("%1 %2", tmp_row[0]:"", tmp_row[1]:""));
+	});
+	}
+ y2milestone("Discovered sessions %1", discovered);
+ return discovered;
+}
+
+
+// get all connected targets
+global boolean readSessions(){
+ y2milestone("reading current settings");
+    map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -m session");
+//	if ( retcode["exit"]:0 != 0 ) return false;
+      list<string> tmp_sessions = [];
+      tmp_sessions = filter(string row, splitstring(retcode["stdout"]:"", "\n"), {
+                        return ( size(row)>0 && (search(row, "session")==nil) );
+                        });
+	sessions=[];
+	foreach(string row, tmp_sessions, {
+	list<string> tmp_row = splitstring(row, " ");
+	sessions = add(sessions, sformat("%1 %2", tmp_row[2]:"", tmp_row[3]:""));
+	});
+
+  y2milestone("Return list from iscsiadm -m session: %1", sessions);
+ return true;
+}
+
+/**
+ * write InitiatorName, create backup from previous if needed
+ */
+global boolean writeInitiatorName(string new_value){
+ boolean ret=true;
+ string file="/etc/iscsi/initiatorname.iscsi";
+ if ( ((map<string, any>)SCR::Read (.target.lstat, file))["size"]:0>0 )
+ {
+   y2milestone("%1 file exists, create backup", file);
+   SCR::Execute(.target.bash, sformat("mv %1 /etc/iscsi/initiatorname.yastbackup", file));
+ }
+ ret = (boolean)SCR::Write (.target.string, file, sformat("InitiatorName=%1\n", new_value));
+ SCR::Execute (.target.bash, "chmod 0600 $FILE" ,$["FILE":file]);
+ if (ret){
+  initiatorname = new_value;
+  y2milestone("Initiatorname %1 written", initiatorname);
+ }
+ // reload service when initiatorname is changed to re-read new value (bnc#482429)
+ Service::Reload("open-iscsi");
+ return ret;
+}
+
+string getReverseDomainName(){
+ list<string> host_fq = Hostname::SplitFQ(((map<string,any>)SCR::Execute(.target.bash_output, "hostname -f|tr -d '\n'"))["stdout"]:"");
+ y2internal("hostfw%1", host_fq);
+ string domain = "";
+
+ foreach(string item, splitstring(host_fq[1]:"example.com", "."),{
+  y2internal("item %1", item);
+  domain = (size(domain)==0) ? item : sformat("%1.%2", item, domain);
+ });
+
+ y2milestone("domain %1", domain);
+ return domain;
+}
+
+// check initiatorname if exist, if no - create it
+global boolean checkInitiatorName(){
+ boolean ret=true;
+ string file="/etc/iscsi/initiatorname.iscsi";
+ string name_from_bios = getiBFT()["iface.initiatorname"]:"";
+// if (size((map<string, any>)SCR::Read (.target.lstat, file)) == 0 || ((map<string, any>)SCR::Read (.target.lstat, file))["size"]:0==0){
+    initiatorname=((map<string, any>)SCR::Execute(.target.bash_output,
+			sformat("grep -v '^#' %1 | grep InitiatorName | cut -d'=' -f2 | tr -d '\n'", file)))["stdout"]:"";
+// }
+  if(size(initiatorname)==0){
+   if (size(name_from_bios)>0){
+    y2milestone("%1 is empty or doesnt exists - replace with name stored in iBFT", file);
+    initiatorname = name_from_bios;
+   } else {
+	y2milestone("InitiatorName does not exist - generate it");
+	 string domain = ((map<string,any>)SCR::Execute(.target.bash_output, ""))["stdout"]:"com.example";
+	 map<string, any> output = (map<string, any>)SCR::Execute (.target.bash_output,
+		sformat("/sbin/iscsi-iname -p iqn.%1.%2:01 | tr -d '\n'","`date +%Y-%m`", getReverseDomainName()), $[]);
+	 if (size(output["stderr"]:"")==0){
+	  initiatorname=output["stdout"]:"";
+	} else ret = false;
+    }
+  ret = writeInitiatorName(initiatorname);
+ } else {
+    y2internal("initiatorname=%1", initiatorname);
+   if (size(name_from_bios)>0 && name_from_bios!=initiatorname)
+   {
+    Popup::Warning( _("InitiatorName from iBFT and from <tt>/etc/iscsi/initiatorname.iscsi</tt> differ.
+The old initiatorname will be replaced by the value of iBFT and create a backup.
+If you want to use a different initiatorname, change it in the BIOS.") );
+    y2milestone("replacing old name %1 by name %2 from iBFT", initiatorname, name_from_bios);
+    initiatorname = name_from_bios;
+    ret = writeInitiatorName(initiatorname);
+   }
+  }
+ return ret;
+}
+
+
+// delete deiscovered target from database
+global boolean deleteRecord(){
+ boolean ret = true;
+ y2milestone("Delete record %1", currentRecord);
+
+    map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, sformat("iscsiadm -m node -T %1 -p %2 --logout", currentRecord[1]:"", currentRecord[0]:""));
+        if (size(retcode["stderr"]:"")>0) return false;
+
+ readSessions();
+ return ret;
+}
+
+// get (manual/onboot) status of target connecting
+global string getStartupStatus(){
+ string status = "";
+ y2milestone("Getting status of record %1", currentRecord);
+     map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, sformat("iscsiadm -m node -T %1 -p %2", currentRecord[1]:"", currentRecord[0]:""));
+    if (size(retcode["stderr"]:"")>0) return "";
+    foreach(string row, splitstring(retcode["stdout"]:"", "\n"), {
+     if (issubstring(row, "node.conn[0].startup")){
+	status = (splitstring(row, " "))[2]:"";
+       break;
+      }
+    });
+ y2milestone("Startup status for %1 is %2", currentRecord, status);
+ return status;
+}
+
+// update authentication value
+global boolean setValue(string name, string value){
+ y2milestone("set %1  for record %2", name, currentRecord);
+ string command = sformat("iscsiadm -m node -T %1 -p %2 --op=update --name=%3 --value=%4", currentRecord[1]:"", currentRecord[0]:"", name, value);
+ y2milestone("execute command - %1", command );
+ boolean ret = true;
+        map<string, any> retcode = (map<string, any>) SCR::Execute(.target.bash_output, command);
+    if (size(retcode["stderr"]:"")>0) {
+				y2error("%1", retcode["stderr"]:"");
+				ret =  false;
+				}
+y2milestone("return value %1", ret);
+ return ret;
+}
+
+
+// check if given target is connected
+global boolean connected(boolean check_ip){
+y2internal("check connected status for %1 with IP check:%2", currentRecord, check_ip);
+ boolean ret = false;
+ foreach(string row, sessions, {
+ list<string> list_row = splitstring(row, " ");
+  if (list_row[1]:"" == currentRecord[1]:"" && (check_ip ? splitstring(list_row[0]:"", ",")[0]:"" == splitstring(currentRecord[0]:"", ",")[0]:"" : true)){
+   ret = true;
+   break;
+  }
+ });
+ return ret;
+}
+
+// change startup status (manual/onboot) for target
+global boolean setStartupStatus(string status){
+ y2milestone("Set startup status for %1 to %2", currentRecord, status);
+ boolean ret = true;
+ map<string, any> retcode = (map<string, any>) SCR::Execute(.target.bash_output,
+	sformat("iscsiadm -m node -T %1 -p %2 --op=update --name=node.conn[0].startup --value=%3", currentRecord[1]:"", currentRecord[0]:"", status));
+    if (size(retcode["stderr"]:"")>0) return false;
+	else retcode = (map<string, any>) SCR::Execute(.target.bash_output,
+        sformat("iscsiadm -m node -T %1 -p %2 --op=update --name=node.startup --value=%3", currentRecord[1]:"", currentRecord[0]:"", status));
+
+y2internal("retcode %1", retcode);
+ return ret;
+}
+
+/*
+global boolean autoLogOn(){
+y2milestone("begin of autoLogOn function");
+ map<string, any> b = getiBFT();
+y2milestone("data read from iBFT card %1", b);
+ if ( b != $[] ){
+  y2milestone("checking size of %1 and %2", b["node.name"]:"", b["node.conn[0].address"]:"");
+  if (size(b["node.name"]:"")>0 && size(b["node.conn[0].address"]:"")>0){
+   list <string> curr_rec = [sformat("%1:%2", b["node.conn[0].address"]:"", b["node.conn[0].port"]:"3260"), b["node.name"]:""];
+   y2milestone("variable curr_rec %1", curr_rec);
+   if (connected( curr_rec , false) == false){
+    y2milestone("in case not connected do discovery");
+    // do discovery
+    SCR::Execute(.target.bash, sformat("iscsiadm -m discovery -t st -p %1:%2", b["node.conn[0].address"]:"", b["node.conn[0].port"]:"3260"));
+
+  // do authentication if needed TODO: use NEW(iscsiadm -m fw) options
+  if (size(b["iSCSI_TARGET_CHAP_NAME"]:"")>0 && size(b["iSCSI_TARGET_CHAP_PASSWORD"]:"")>0){
+        y2milestone("do authentication with %1 and %2", b["iSCSI_TARGET_CHAP_NAME"]:"", b["iSCSI_TARGET_CHAP_PASSWORD"]:"");
+	setValue(curr_rec, "node.session.auth.username", b["iSCSI_TARGET_CHAP_NAME"]:"");
+	setValue(curr_rec, "node.session.auth.password", b["iSCSI_TARGET_CHAP_PASSWORD"]:"");
+	setValue(curr_rec, "node.session.auth.authmethod", "CHAP");
+       } else y2internal("No authentication used for autoLogOn");
+
+  // log on into target
+  SCR::Execute(.target.bash, sformat("iscsiadm -m node -T %1 -p %2:%3 --login ", b["node.name"]:"", b["node.conn[0].address"]:"", b["node.conn[0].port"]:"3260"));
+
+  // set startup status to onboot
+  y2milestone("set startup status to onboot");
+  setStartupStatus(curr_rec, "onboot");
+   } else y2error("Already connected, no autoLogOn needed");
+  } else y2error("node.name or node.conn[0].address are not available. Couldn't do autoLogOn");
+ }
+ return true;
+}
+*/
+
+global boolean loginIntoTarget(map target){
+ currentRecord = [target["portal"]:"", target["target"]:""];
+ if (target["authmethod"]:"None"!="None"){
+  string user_in = target["username_in"]:"";
+  string pass_in = target["password_in"]:"";
+  if (size(user_in)>0 && size(pass_in)>0){
+   setValue("node.session.auth.username_in", user_in);
+   setValue("node.session.auth.password_in", pass_in);
+  } else{
+           setValue("node.session.auth.username_in", "");
+           setValue("node.session.auth.password_in", "");
+   }
+  string user_out = target["username"]:"";
+  string pass_out = target["password"]:"";
+  if (size(user_out)>0 && size(pass_out)>0){
+   setValue("node.session.auth.username", user_out);
+   setValue("node.session.auth.password", pass_out);
+   setValue("node.session.auth.authmethod", "CHAP");
+  } else {
+           setValue("node.session.auth.username", "");
+           setValue("node.session.auth.password", "");
+           setValue("node.session.auth.authmethod", "");
+    }
+ } else setValue("node.session.auth.authmethod", "None");
+
+  map<string, any> output = (map<string, any>)SCR::Execute(.target.bash_output,
+		sformat("iscsiadm -m node -T %1 -p %2 --login", target["target"]:"", target["portal"]:""));
+ y2internal("output %1", output);
+// if (output["exit"]:-1==0){
+  // set startup status to auto by default (bnc#400610)
+  if (!Mode::autoinst()) setStartupStatus("onboot");
+  return true;
+/*
+ } else {
+	y2error("Error while Log-on into target : %1", output);
+	return false;
+	}
+*/
+}
+
+
+// get status of open-iscsi
+global boolean getServiceStatus(){
+ boolean ret = true;
+ if (Stage::initial()){
+  ModuleLoading::Load("iscsi_tcp", "", "", "", false, true);
+  // start daemon before
+  SCR::Execute(.background.run_output_err, "pgrep iscsid || iscsid");
+
+ } else {
+  if (Service::Status("open-iscsi") == 0) serviceStatus=true;
+  y2milestone("Service status = %1", serviceStatus);
+  // if not enabled, start it manually
+  if (!serviceStatus) Service::Start("open-iscsi");
+ }
+ return ret;
+}
+
+// set startup status of open-iscsi
+global boolean setServiceStatus(){
+ boolean ret = true;
+// if disabled and no connected targets - stop it
+// otherwise keep it running
+ if (!GetStartService()){
+	 readSessions();
+	 if (size(sessions)==0) {
+		 y2milestone("No active sessions - stopping service");
+		 Service::Stop("open-iscsi");
+		}
+	}
+ y2milestone("Status service for open-iscsi: %1", ret);
+ return ret;
+}
+
+
+global boolean autoyastPrepare(){
+ initiatorname = ay_settings["initiatorname"]:"";
+ if (size(initiatorname)>0){
+  string file="/etc/iscsi/initiatorname.iscsi";
+  SCR::Write (.target.string, file, sformat("InitiatorName=%1\n", initiatorname));
+  SCR::Execute (.target.bash, "chmod 0600 $FILE" ,$["FILE":file]);
+ } else checkInitiatorName();
+ // start daemon before
+ SCR::Execute(.background.run_output_err, "iscsid");
+}
+
+global boolean autoyastWrite(){
+// do discovery first
+list<string> portals = [];
+foreach(map target, ay_settings["targets"]:[], {
+ if (!contains(portals, target["portal"]:"")){
+  SCR::Execute(.target.bash, sformat("iscsiadm -m discovery -t st -p %1", target["portal"]:""));
+  portals = add(portals, target["portal"]:"");
+ }
+});
+ foreach(map target, ay_settings["targets"]:[], {
+y2internal("login into target %1", target);
+  loginIntoTarget(target);
+  currentRecord = [target["portal"]:"", target["target"]:""];
+  setStartupStatus(target["startup"]:"manual");
+ });
+ return true;
+}
+}

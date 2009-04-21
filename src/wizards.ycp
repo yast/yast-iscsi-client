@@ -1,0 +1,144 @@
+/**
+ * File:	include/iscsi-client/wizards.ycp
+ * Package:	Configuration of iscsi-client
+ * Summary:	Wizards definitions
+ * Authors:	Michal Zugec <mzugec@suse.cz>
+ *
+ * $Id$
+ */
+
+{
+
+textdomain "iscsi-client";
+
+import "Sequencer";
+import "Wizard";
+
+include "iscsi-client/complex.ycp";
+include "iscsi-client/dialogs.ycp";
+
+
+/**
+ * Main workflow of the iscsi-client configuration
+ * @return sequence result
+ */
+any MainSequence() {
+
+    /* FIXME: adapt to your needs */
+    map aliases = $[
+	"global"	:   ``( GlobalDialog() ),
+	"disc_auth"	:   ``( DiscAuthDialog("client") ),
+	"targets"	:   ``( TargetsDialog() ),
+	"conn_auth"	:   ``( ConnAuthDialog("client") ),
+	"conn_disc"	:   ``( ConnAuthDialog("discovered") ),
+	"edit_conn"	:   ``( ConnAuthDialog("client") ),
+	"disc"		:   ``( DiscAuthDialog("discovered") ),
+    ];
+
+    /* FIXME: adapt to your needs */
+    map sequence = $[
+	"ws_start" : "global",
+	"global" : $[
+	    `abort	: `abort,
+	    `next	: `next,
+	    `add  : "disc_auth",
+	    `edit : "edit_conn",
+	    `conn : "conn_disc",
+	    `disc : "disc"
+	],
+	"disc_auth" : $[
+	    `abort      : `abort,
+            `back       : `back,
+	    `next	: "targets"
+	],
+	"conn_disc" : $[
+	   `abort	: `abort,
+	   `back	: `back,
+	   `next	: "global"
+	],
+	"targets" : $[
+	    `abort	: `abort,
+	    `back	: `back,
+	    `next	: "global",
+	    `conn_auth	: "conn_auth"
+	],
+	"conn_auth" : $[
+	    `abort	: `abort,
+	    `next	: "targets"
+	],
+	"edit_conn" : $[
+	    `abort	: `abort,
+	    `next	: "global"
+	],
+	"disc"		: $[
+	    `abort	: `abort,
+	    `back	: `back,
+	    `next	: "global"
+	]
+    ];
+
+    any ret = Sequencer::Run(aliases, sequence);
+
+    return ret;
+}
+
+/**
+ * Whole configuration of iscsi-client
+ * @return sequence result
+ */
+any IscsiClientSequence() {
+
+    map aliases = $[
+	"read"	: [ ``( ReadDialog() ), true ],
+	"main"	:   ``( MainSequence() ),
+	"write"	: [ ``( WriteDialog() ), true ]
+    ];
+
+    map sequence = $[
+	"ws_start" : "read",
+	"read" : $[
+	    `abort	: `abort,
+	    `next	: "main"
+	],
+	"main" : $[
+	    `abort	: `abort,
+	    `next	: "write"
+	],
+	"write" : $[
+	    `abort	: `abort,
+	    `next	: `next
+	]
+    ];
+
+    Wizard::CreateDialog();
+
+    any ret = Sequencer::Run(aliases, sequence);
+
+    UI::CloseDialog();
+    return ret;
+}
+
+/**
+ * Whole configuration of iscsi-client but without reading and writing.
+ * For use with autoinstallation.
+ * @return sequence result
+ */
+any IscsiClientAutoSequence() {
+
+    /* Initialization dialog caption */
+    string caption = _("iSCSI Initiator Configuration");
+    /* Initialization dialog contents */
+    term contents = `Label(_("Initializing..."));
+
+    Wizard::CreateDialog();
+    Wizard::SetContentsButtons(caption, contents, "",
+	    Label::BackButton(), Label::NextButton());
+
+    any ret = MainSequence();
+
+    UI::CloseDialog();
+    return ret;
+}
+
+/* EOF */
+}

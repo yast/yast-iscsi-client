@@ -108,11 +108,12 @@ global map Export () {
  foreach(string sess, IscsiClientLib::sessions, {
  string target = splitstring(sess, " ")[1]:"";
  string portal = splitstring(sess, " ")[0]:"";
- map<string, any> auth = IscsiClientLib::getNode([portal, target]);
+ IscsiClientLib::currentRecord = [portal, target];
+ map<string, any> auth = IscsiClientLib::getNode();
  map new_target =
 		$["target": target,
 		"portal"  : portal,
-		"startup" : IscsiClientLib::getStartupStatus([portal, target]),
+		"startup" : IscsiClientLib::getStartupStatus(),
 		];
  if (auth["authmethod"]:"None"=="None") new_target["authmethod"]="None";
 	else new_target = union(new_target, auth);

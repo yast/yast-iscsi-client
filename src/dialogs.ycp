@@ -80,8 +80,9 @@ map<string, map <string, any> > widgets = $[
 			),
 		  `Left(`HBox(
 			`PushButton(`id(`add), _("Add")),
-			`PushButton(`id(`del), _("Log Out")),
-			`PushButton(`id(`toggle), _("Toggle Start-Up"))
+			`PushButton(`id(`edit), _("Edit")),
+			`PushButton(`id(`del), _("Log Out"))
+//			`PushButton(`id(`toggle), _("Toggle Start-Up"))
 			))
 		  ),
 		"init"	: initConnectedTable,
@@ -133,22 +134,24 @@ map<string, map <string, any> > widgets = $[
                "widget" : `custom,
                 "custom_widget" :
                  `VBox(
-			`Left( `CheckBox(`id(`auth_none),`opt(`notify), _("No Authentication"), true) ),
-			`VSpacing(2),
-			`Left( `CheckBox(`id(`auth_in),`opt(`notify), _("Incoming Authentication"), false) ),
-			`HBox(
-				`TextEntry(`id(`user_in), _("Username")), `Password(`id(`pass_in), _("Password"))
-			  ),
-			`VSpacing(2),
-			`Left( `CheckBox(`id(`auth_out),`opt(`notify), _("Outgoing Authentication"), false) ),
-			`HBox(
-				`TextEntry(`id(`user_out), _("Username")), `Password(`id(`pass_out), _("Password"))
-			  )
+			`CheckBoxFrame(`id(`auth_none), `opt(`invertAutoEnable), _("No Authentication"), true ,
+			    `VBox(
+				`Left(`Label(_("Incoming Authentication"))),
+				`HBox(
+					`TextEntry(`id(`user_in), _("Username")), `Password(`id(`pass_in), _("Password"))
+				  ),
+				`VSpacing(2),
+				`Left( `Label(_("Outgoing Authentication"))),
+				`HBox(
+					`TextEntry(`id(`user_out), _("Username")), `Password(`id(`pass_out), _("Password"))
+				     )
+				)
+			)
                   ),
 		"init"	: initDiscAuth,
-		"handle" : handleDiscAuth,
-		"validate_type" : `function,
-		"validate_function" : validateDiscAuth,
+//		"handle" : handleDiscAuth,
+//		"validate_type" : `function,
+//		"validate_function" : validateDiscAuth,
 		"help"	:	HELPS["conn_auth"]:""
 	],
 
@@ -157,25 +160,37 @@ map<string, map <string, any> > widgets = $[
                "widget" : `custom,
                 "custom_widget" :
                  `VBox(
-			`Left( `CheckBox(`id(`auth_none),`opt(`notify), _("No Authentication"), true) ),
-			`VSpacing(2),
-			`Left( `CheckBox(`id(`auth_in),`opt(`notify), _("Incoming Authentication"), false) ),
-			`HBox(
-				`TextEntry(`id(`user_in), _("Username")), `Password(`id(`pass_in), _("Password"))
-			  ),
-			`VSpacing(2),
-			`Left( `CheckBox(`id(`auth_out),`opt(`notify), _("Outgoing Authentication"), false) ),
-			`HBox(
-				`TextEntry(`id(`user_out), _("Username")), `Password(`id(`pass_out), _("Password"))
-			  )
+			`CheckBoxFrame(`id(`auth_none),`opt(`invertAutoEnable), _("No Authentication"), true,
+			    `VBox(
+				`Left( `Label(_("Incoming Authentication")) ),
+				`HBox(
+					`TextEntry(`id(`user_in), _("Username")), `Password(`id(`pass_in), _("Password"))
+				  ),
+				`VSpacing(2),
+				`Left( `Label(_("Outgoing Authentication")) ),
+				`HBox(
+					`TextEntry(`id(`user_out), _("Username")), `Password(`id(`pass_out), _("Password"))
+				  )
+				)
+			)
                   ),
 		"init"  : initConnAuth,
-		"handle" : handleDiscAuth,
+//		"handle" : handleDiscAuth,
 		"validate_type" : `function,
 		"validate_function" : validateConnAuth,
 		"help"	: HELPS["conn_auth"]:""
 	],
 
+	"startup" : $[
+		"widget" : `combobox,
+		"opt"	: [`hstretch, `notify],
+		"label"	: _("Startup"),
+		"items" : [
+			["manual", "manual"],
+			["onboot", "onboot"],
+			["automatic", "automatic"]
+			]
+	],
 	// widget for portal address
 	"server_location" : $[
 		"widget" : `custom,
@@ -363,7 +378,7 @@ any TargetsDialog(){
 any ConnAuthDialog(string return_to){
      current_tab = return_to;
     string caption = _("iSCSI Initiator Discovery");
-    list<map <string, any> > w = CWM::CreateWidgets (["conn_auth"], (map <string, map <string, any> >)widgets);
+    list<map <string, any> > w = CWM::CreateWidgets (["startup", "conn_auth"], (map <string, map <string, any> >)widgets);
         term contents =
                           `VBox(
                           `VStretch(),
@@ -372,6 +387,7 @@ any ConnAuthDialog(string return_to){
                            `HSpacing (1),
                             `VBox(
                                 w[0, "widget"]:`VSpacing (1),
+                                w[1, "widget"]:`VSpacing (1),
 				`VSpacing (2)
                                 ),
                            `HSpacing (1),

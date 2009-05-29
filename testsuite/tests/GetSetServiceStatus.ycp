@@ -1,0 +1,24 @@
+{
+        include "testsuite.ycp";
+
+        map READ = $[
+             "target" : $[
+                "tmpdir" : "/tmp"
+             ],
+	     "init" :$[
+	      "scripts" :$[
+	       "exists" : true,
+	       "runlevel" : $[ "open-iscsi":$["start":["3","5"], "stop":["3", "5"]], "boot.open-iscsi":$["start":["B"], "stop":[]] ],
+	       "comment" : $["open-iscsi":$["defstart":["3", "5"], "defstop":[], "description":"", "provides":["iscsi"], "reqstart":["$network"], "reqstop":[], "shortdescription":"Starts and stops the iSCSI client initiator", "shouldstart":[], "shouldstop":[]], "boot.open-iscsi":$["defstart":["B"], "defstop":[], "description":"", "provides":["iscsiboot"], "reqstart":["boot.proc"], "reqstop":[], "shortdescription":"Starts the iSCSI initiator daemon", "shouldstart":[], "shouldstop":[]]],
+	      ]
+	     ]
+        ];
+        TESTSUITE_INIT ([READ, $[], $[]], nil);
+
+        import "IscsiClientLib";
+
+
+        TEST( ``{ return IscsiClientLib::GetStartService();}, [ READ, $[], $[] ], nil );
+        TEST( ``{ return IscsiClientLib::SetStartService(true);}, [ READ, $[], $[] ], nil );
+}
+

@@ -12,7 +12,7 @@ Requires:       yast2 >= 2.18.2
 
 BuildArchitectures:	noarch
 
-Summary:	Configuration of iscsi-client
+Summary:	YaST2 - iSCSI Client Configuration
 
 %description
 -

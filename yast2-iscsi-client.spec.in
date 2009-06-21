@@ -15,7 +15,8 @@ BuildArchitectures:	noarch
 Summary:	YaST2 - iSCSI Client Configuration
 
 %description
--
+This package contains the YaST2 component for configuration of an iSCSI
+client.
 
 @PREP@
 

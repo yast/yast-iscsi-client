@@ -8,6 +8,7 @@ import "Hostname";
 import "Stage";
 import "ModuleLoading";
 import "Mode";
+import "String";
 
 global list <string> sessions = [];
 global list <string> discovered = [];
@@ -47,7 +48,9 @@ global map<string, any> getiBFT(){
   string from_bios = ((map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -m fw"))["stdout"]:"";
   foreach(string row, splitstring(from_bios, "\n"), {
    list<string> key_val=splitstring(row, "=");
-   if (size(key_val[0]:"")>0) ibft[key_val[0]:""] = key_val[1]:"";
+//   if (size(key_val[0]:"")>0) ibft[key_val[0]:""] = key_val[1]:"";
+   string kv = String::CutBlanks(key_val[0]:"");
+   if (size(kv) > 0) ibft[kv] = String::CutBlanks(key_val[1]:"");
   });
  }
  y2milestone("iBFT %1", hidePassword(ibft));

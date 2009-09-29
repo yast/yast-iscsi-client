@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Sep 29 16:06:28 CEST 2009 - mzugec@suse.cz
+
+- L3: safely parse iBFT values (bnc#541400)
+- 2.17.9 
+
+-------------------------------------------------------------------
 Tue Feb 24 12:08:35 CET 2009 - mzugec@suse.cz
 
 - toggle between "manual", "automatic", "onboot" (bnc#457252)

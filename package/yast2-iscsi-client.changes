@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Sep 29 16:21:36 CEST 2009 - mzugec@suse.cz
+
+- L3: safely parse iBFT values (bnc#541400)
+- 2.17.15 
+
+-------------------------------------------------------------------
 Fri May 29 13:54:42 CEST 2009 - mzugec@suse.cz
 
 - startup options documented in helptext (bnc#507004)

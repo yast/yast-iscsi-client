@@ -19,9 +19,8 @@ X-SuSE-YaST-AutoInstClonable=true
 X-SuSE-YaST-AutoInstSchema=iscsi-client.rnc
 
 Icon=yast-iscsi-client
-Exec=/sbin/yast2 iscsi-client 
+Exec=xdg-su -c "/sbin/yast2 iscsi-client"
 
 Name=iSCSI Initiator
 GenericName=Configure an iSCSI initiator
-X-KDE-SubstituteUID=true
 StartupNotify=true

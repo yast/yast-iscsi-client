@@ -42,7 +42,7 @@ IscsiClientLib::checkInitiatorName();
 
 ModuleLoading::Load("iscsi_tcp", "", "", "", false, true);
 // start daemon before
-SCR::Execute(.background.run_output_err, "iscsid");
+IscsiClientLib::startIScsid();
 
 //if (size(IscsiClientLib::getiBFT())>0) IscsiClientLib::autoLogOn();
 IscsiClientLib::getiBFT();

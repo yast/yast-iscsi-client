@@ -9,6 +9,7 @@ import "Stage";
 import "ModuleLoading";
 import "Mode";
 import "String";
+import "Arch";
 
 global list <string> sessions = [];
 global list <string> discovered = [];
@@ -43,6 +44,10 @@ global map<string, any> hidePassword(map<string, any> orig){
  */
 global map<string, any> getiBFT(){
  if (ibft==nil){
+  if (!Arch::i386() && !Arch::x86_64()){
+	y2milestone("Because architecture %1 is is different from x86, not using iBFT", Arch::arch_short());
+	 return $[];
+ }
   ibft=$[];
   y2milestone("check and modprobe iscsi_ibft : %1", SCR::Execute(.target.bash_output, "lsmod |grep -q iscsi_ibft || modprobe iscsi_ibft"));
   string from_bios = ((map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -m fw"))["stdout"]:"";

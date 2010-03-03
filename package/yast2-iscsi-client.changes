@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Mar  3 10:40:48 CET 2010 - mzugec@suse.cz
+
+- disable iBFT for non-x86 architecture (bnc#582615)
+- 2.17.17 
+
+-------------------------------------------------------------------
 Tue Feb  9 13:11:21 CET 2010 - mzugec@suse.cz
 
 - wait when start iscsid (bnc#570678)

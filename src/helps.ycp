@@ -83,7 +83,7 @@ To change the start-up status, press <b>Toggle</b>.
 _("<h1>Warning</h1>") + _("<p>When accessing an iSCSI device <b>READ</b>/<b>WRITE</b>, make sure that this access is exclusive. Otherwise there is a potential risk of data corruption.</p>
 "),
 
- "initiator_name" : _("<p><b>InitiatorName</b> is value a from <tt>/etc/initiatorname.iscsi</tt>. \nIn case you have iBFT, this value will be added from there and you are only able to change it in the BIOS setup.</p>"),
+ "initiator_name" : _("<p><b>InitiatorName</b> is a value from <tt>/etc/iscsi/initiatorname.iscsi</tt>. \nIn case you have iBFT, this value will be added from there and you are only able to change it in the BIOS setup.</p>"),
 
  "isns" : _("If you want to use <b>iSNS</b> (Internet  Storage  Name Service) for discovering targets instead of the default SendTargets method,
 fill in the IP address of the iSNS server and port. The default port should be 3205.

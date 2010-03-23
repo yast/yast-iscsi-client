@@ -414,41 +414,14 @@ y2internal("retcode %1", retcode);
  return ret;
 }
 
-/*
 global boolean autoLogOn(){
 y2milestone("begin of autoLogOn function");
- map<string, any> b = getiBFT();
-y2milestone("data read from iBFT card %1", b);
- if ( b != $[] ){
-  y2milestone("checking size of %1 and %2", b["node.name"]:"", b["node.conn[0].address"]:"");
-  if (size(b["node.name"]:"")>0 && size(b["node.conn[0].address"]:"")>0){
-   list <string> curr_rec = [sformat("%1:%2", b["node.conn[0].address"]:"", b["node.conn[0].port"]:"3260"), b["node.name"]:""];
-   y2milestone("variable curr_rec %1", curr_rec);
-   if (connected( curr_rec , false) == false){
-    y2milestone("in case not connected do discovery");
-    // do discovery
-    SCR::Execute(.target.bash, sformat("iscsiadm -m discovery -t st -p %1:%2", b["node.conn[0].address"]:"", b["node.conn[0].port"]:"3260"));
-
-  // do authentication if needed TODO: use NEW(iscsiadm -m fw) options
-  if (size(b["iSCSI_TARGET_CHAP_NAME"]:"")>0 && size(b["iSCSI_TARGET_CHAP_PASSWORD"]:"")>0){
-        y2milestone("do authentication with %1 and %2", b["iSCSI_TARGET_CHAP_NAME"]:"", b["iSCSI_TARGET_CHAP_PASSWORD"]:"");
-	setValue(curr_rec, "node.session.auth.username", b["iSCSI_TARGET_CHAP_NAME"]:"");
-	setValue(curr_rec, "node.session.auth.password", b["iSCSI_TARGET_CHAP_PASSWORD"]:"");
-	setValue(curr_rec, "node.session.auth.authmethod", "CHAP");
-       } else y2internal("No authentication used for autoLogOn");
-
-  // log on into target
-  SCR::Execute(.target.bash, sformat("iscsiadm -m node -T %1 -p %2:%3 --login ", b["node.name"]:"", b["node.conn[0].address"]:"", b["node.conn[0].port"]:"3260"));
-
-  // set startup status to onboot
-  y2milestone("set startup status to onboot");
-  setStartupStatus(curr_rec, "onboot");
-   } else y2error("Already connected, no autoLogOn needed");
-  } else y2error("node.name or node.conn[0].address are not available. Couldn't do autoLogOn");
+ if (size(getiBFT())>0){
+  y2milestone("Autologin into iBFT : %1", SCR::Execute(.target.bash_output, "iscsiadm -m fw -l"));
  }
  return true;
 }
-*/
+
 
 global boolean loginIntoTarget(map target){
  currentRecord = [target["portal"]:"", target["target"]:""];

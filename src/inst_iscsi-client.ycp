@@ -40,12 +40,12 @@ SCR::Execute(.target.bash, "mkdir -p /etc/iscsi; touch /etc/iscsi/initiatorname.
 IscsiClientLib::checkInitiatorName();
 
 
+IscsiClientLib::getiBFT();
 ModuleLoading::Load("iscsi_tcp", "", "", "", false, true);
-// start daemon before
+// start iscsid daemon
 IscsiClientLib::startIScsid();
 
-//if (size(IscsiClientLib::getiBFT())>0) IscsiClientLib::autoLogOn();
-IscsiClientLib::getiBFT();
+IscsiClientLib::autoLogOn();
 // run dialog
 ret = MainSequence();
 y2debug("MainSequence ret=%1", ret);

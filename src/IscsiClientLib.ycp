@@ -59,7 +59,6 @@ global map<string, any> getiBFT(){
   });
  }
  y2milestone("iBFT %1", hidePassword(ibft));
-  y2milestone("Autologin into iBFT : %1", SCR::Execute(.target.bash_output, "iscsiadm -m fw -l"));
  return ibft;
 }
 
@@ -236,7 +235,7 @@ global list<string> getDiscovered(){
 
 
 global void startIScsid(){
- SCR::Execute(.background.run_output_err, "pgrep iscsid || iscsid");
+ SCR::Execute(.target.bash, "pgrep iscsid || iscsid");
  foreach(integer i,[0,1,2,3,4,5,6,7,8,9],{
   sleep(1*1000);
   map<string, any> cmd=(map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -m session");

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Apr 13 12:04:09 CEST 2010 - mzugec@suse.cz
+
+- run iscsid in foreground (bnc#589064)
+- 2.19.4 
+
+-------------------------------------------------------------------
 Tue Mar 23 09:57:19 CET 2010 - mzugec@suse.cz
 
 - read iBFT before start daemon (bnc#573864)

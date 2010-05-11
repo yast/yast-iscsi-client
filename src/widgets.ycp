@@ -507,7 +507,7 @@ symbol handleDiscoveredTable (string key, map event){
    if (selected != nil) { params = splitstring( IscsiClientLib::discovered[tointeger(selected)]:"", " " ); }
 	else  { params = []; }
    IscsiClientLib::currentRecord = [ splitstring(params[0]:"", ",")[0]:"", params[1]:"" ] ;
-    params = curr_rec;
+//    params = curr_rec;
  if ( event["EventReason"]:"" == "Activated" ){
   // connect new target
   if ( event["ID"]:nil == `connect) {
@@ -526,7 +526,8 @@ symbol handleDiscoveredTable (string key, map event){
   // delete connected item
   if ( event["ID"]:nil == `delete) {
    if ((params == [])||(!IscsiClientLib::connected( true ))){
-	 SCR::Execute (.target.bash_output,sformat("iscsiadm -m node -T %1 -p %2 --op=delete", params[1]:"", params[0]:""),  $[] );
+         string cmd = sformat("iscsiadm -m node -T %1 -p %2 --op=delete", params[1]:"", params[0]:"");
+	 y2milestone("%1 : %2", cmd, SCR::Execute (.target.bash_output,cmd,  $[] ));
 	 IscsiClientLib::readSessions();
 	 initDiscoveredTable("");
    if (selected != nil) { params = splitstring( IscsiClientLib::discovered[tointeger(selected)]:"", " " ); }

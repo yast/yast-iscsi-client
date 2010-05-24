@@ -526,5 +526,18 @@ y2internal("login into target %1", target);
  return true;
 }
 
+global string Overview(){
+ string overview = _("Configuration summary...");
+ if (size(ay_settings)>0){
+   overview="";
+   if (size(ay_settings["initiatorname"]:"")>0) overview = overview + "<p><b>Initiatorname: </b>" + ay_settings["initiatorname"]:"" + "</p>";
+   if (size(ay_settings["targets"]:[])>0){
+    foreach(map target, (list<map>)ay_settings["targets"]:[], {
+     overview = overview + "<p>" + target["portal"]:""  + ", " + target["target"]:"" + ", " + target["startup"]:"" + "</p>";
+    });
+   }
+ }
+ return overview;
+}
 
 }

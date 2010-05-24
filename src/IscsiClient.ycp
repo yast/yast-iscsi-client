@@ -119,14 +119,14 @@ global map Export () {
 	else new_target = union(new_target, auth);
   tgets = add(tgets, new_target);
  });
- map result = $[
+ IscsiClientLib::ay_settings = $[
                "version" : "1.0",
 	       "initiatorname" : IscsiClientLib::initiatorname,
                "targets" : tgets
                 ];
   configured = true;
   modified = true;
- return result;
+ return IscsiClientLib::ay_settings;
 }
 
 /**
@@ -277,7 +277,7 @@ global boolean Import (map settings) {
 global list Summary() {
     // TODO FIXME: your code here...
     /* Configuration summary text for autoyast */
-    return [ _("Configuration summary..."), [] ];
+    return [ IscsiClientLib::Overview(), [] ];
 }
 
 /**

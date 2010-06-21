@@ -51,7 +51,7 @@ global map<string, any> hidePassword(map<string, any> orig){
 global map<string, any> getiBFT(){
  if (ibft==nil){
   ibft=$[];
-  string from_bios = ((map<string, any>)SCR::Execute(.target.bash_output, "fwparam_ibft -b"))["stdout"]:"";
+  string from_bios = ((map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -m fw"))["stdout"]:"";
   foreach(string row, splitstring(from_bios, "\n"), {
    list<string> key_val=splitstring(row, "=");
    if (size(key_val[0]:"")>0) ibft[key_val[0]:""] = key_val[1]:"";
@@ -297,7 +297,7 @@ global boolean checkInitiatorName(){
  boolean ret=true;
 // string initiatorname="";
  string file="/etc/iscsi/initiatorname.iscsi";
- string name_from_bios = getiBFT()["iSCSI_INITIATOR_NAME"]:"";
+ string name_from_bios = getiBFT()["iface.initiatorname"]:"";
  y2milestone("Check %1", file);
 
  if (size((map<string, any>)SCR::Read (.target.lstat, file)) == 0 || ((map<string, any>)SCR::Read (.target.lstat, file))["size"]:0==0){
@@ -416,6 +416,7 @@ global boolean autoLogOn(){
  map<string, any> b = getiBFT();
  y2milestone("data read from iBFT card %1", b);
  if ( b != $[] ){
+/*
   y2milestone("checking size of %1 and %2", b["iSCSI_TARGET_NAME"]:"", b["iSCSI_TARGET_IPADDR"]:"");
   if (size(b["iSCSI_TARGET_NAME"]:"")>0 && size(b["iSCSI_TARGET_IPADDR"]:"")>0){
    currentRecord = [sformat("%1:%2", b["iSCSI_TARGET_IPADDR"]:"", b["iSCSI_TARGET_PORT"]:"3260"), b["iSCSI_TARGET_NAME"]:""];
@@ -447,6 +448,8 @@ global boolean autoLogOn(){
   setStartupStatus("automatic");
    } else y2error("Already connected, no autoLogOn needed");
   } else y2error("iSCSI_TARGET_NAME or iSCSI_TARGET_IPADDR are not available. Couldn't do autoLogOn");
+*/
+  y2milestone("autologin: %1", SCR::Execute(.target.bash_output, "iscsiadm -m fw -l"));
  }
  return true;
 }

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jul 30 11:19:48 CEST 2010 - mzugec@suse.cz
+
+- login into multipath (bnc#599818)
+- 2.19.7 
+
+-------------------------------------------------------------------
 Mon May 24 15:03:36 CEST 2010 - mzugec@suse.cz
 
 - summary overview for autoyast (bnc#581682)

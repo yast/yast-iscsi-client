@@ -600,7 +600,7 @@ boolean validateConnAuth(string key, map event){
 		"username_in" : user_in,
 		"password_in" : pass_in
 		];
-  if (IscsiClientLib::connected(false) || IscsiClientLib::loginIntoTarget(target)) {
+  if (IscsiClientLib::connected(true) || IscsiClientLib::loginIntoTarget(target)) {
 //		IscsiClientLib::currentRecord = [target["portal"]:"", target["target"]:""];
 		IscsiClientLib::setStartupStatus((string)UI::QueryWidget(`id("startup"), `Value));
 		 IscsiClientLib::readSessions();

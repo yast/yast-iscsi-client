@@ -88,6 +88,7 @@ else if (func == "Write") {
     boolean progress_orig = Progress::set (false);
     IscsiClient::write_only = true;
     ModuleLoading::Load("iscsi_tcp", "", "", "", false, true);
+    IscsiClientLib::autoyastPrepare();
     SCR::Execute(.background.run_output_err, "iscsid");
     ret = IscsiClient::Write();
     Progress::set (progress_orig);

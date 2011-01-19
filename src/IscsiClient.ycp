@@ -230,12 +230,12 @@ global boolean Write() {
 	    /* Progress stage 2/2 */
 	    _("Set up service status")
 	];
-    if (!Mode::autoinst()) descr=remove(descr, 0);
+    if (!(Mode::autoinst() || Mode::autoupgrade())) descr=remove(descr, 0);
     // TODO FIXME Names of real stages
     // We do not set help text here, because it was set outside
     Progress::New(caption, " ", size(descr), descr, [], "");
 
-    if (Mode::autoinst()){
+    if (Mode::autoinst() || Mode::autoupgrade()){
      if(Abort()) return false;
      Progress::NextStage();
      IscsiClientLib::autoyastPrepare();

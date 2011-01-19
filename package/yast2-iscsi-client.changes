@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jan 19 14:03:26 CET 2011 - jsrain@suse.cz
+
+- adaptations for unattended migration (fate#310481)
+- 2.20.0
+
+-------------------------------------------------------------------
 Fri Jul 30 11:19:48 CEST 2010 - mzugec@suse.cz
 
 - login into multipath (bnc#599818)

@@ -296,8 +296,7 @@ global list Overview() {
  * @return map with 2 lists.
  */
 global map AutoPackages() {
-    // TODO FIXME: your code here...
-    return $[ "install":[], "remove":[] ];
+    return $[ "install":["open-iscsi"], "remove":[] ];
 }
 
 

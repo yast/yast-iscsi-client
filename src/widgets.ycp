@@ -509,7 +509,8 @@ symbol handleDiscoveredTable (string key, map event){
   // delete connected item
   if ( event["ID"]:nil == `delete) {
    if ((params == [])||(!IscsiClient::connected( true ))){
-	 SCR::Execute (.target.bash_output,sformat("iscsiadm -m node -T %1 -p %2 --op=delete", IscsiClient::currentRecord[1]:"", IscsiClient::currentRecord[0]:""),  $[] );
+	 string cmd = sformat("iscsiadm -m node -T %1 -p %2 --op=delete", params[1]:"", params[0]:"");
+	 y2milestone("%1 : %2", cmd, SCR::Execute (.target.bash_output,cmd,  $[] ));
 	 IscsiClient::readSessions();
 	 initDiscoveredTable("");
    if (selected != nil) { params = splitstring( IscsiClient::discovered[tointeger(selected)]:"", " " ); }
@@ -586,7 +587,7 @@ boolean validateConnAuth(string key, map event){
 		"username_in" : user_in,
 		"password_in" : pass_in
 		];
-  if (IscsiClient::connected(false) || IscsiClient::loginIntoTarget(target)) {
+  if (IscsiClient::connected(true) || IscsiClient::loginIntoTarget(target)) {
 //		IscsiClientLib::currentRecord = [target["portal"]:"", target["target"]:""];
 		IscsiClient::setStartupStatus((string)UI::QueryWidget(`id("startup"), `Value));
 		 IscsiClient::readSessions();

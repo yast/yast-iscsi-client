@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Apr  7 12:30:50 CEST 2011 - fehr@suse.de
+
+- login into multipath (bnc#599818, bnc#678118)
+- delete discovered targets (bnc#602108,bnc#667375)
+- 2.14.59 
+
+-------------------------------------------------------------------
 Mon Jun 21 15:35:31 CEST 2010 - mzugec@suse.cz
 
 - L3: iBFT installation with CHAP (bnc#485656)

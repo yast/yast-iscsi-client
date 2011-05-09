@@ -2,6 +2,7 @@
 Tue Mar  1 16:24:05 CET 2011 - jsrain@suse.cz
 
 - assure required packages are installed via AutoYaST (bnc#670863)
+- 2.17.23
 
 -------------------------------------------------------------------
 Wed Jan 19 14:03:01 CET 2011 - jsrain@suse.cz

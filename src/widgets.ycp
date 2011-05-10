@@ -505,7 +505,6 @@ symbol handleDiscoveredTable (string key, map event){
    if (selected != nil) { params = splitstring( IscsiClientLib::discovered[tointeger(selected)]:"", " " ); }
 	else  { params = []; }
    IscsiClientLib::currentRecord = [ splitstring(params[0]:"", ",")[0]:"", params[1]:"" ] ;
-//    params = curr_rec;
  if ( event["EventReason"]:"" == "Activated" ){
   // connect new target
   if ( event["ID"]:nil == `connect) {

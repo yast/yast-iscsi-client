@@ -15,6 +15,8 @@ global list <string> sessions = [];
 global list <string> discovered = [];
 global list <string> targets = [];
 global list<string> currentRecord = [];
+map<string,string> iface_file = $[];
+list<string> iface_eth = []; 
 
 // status of rcopen-iscsi service
 boolean serviceStatus = false;
@@ -26,8 +28,34 @@ map<string, any> ibft = nil;
 global string initiatorname = "";
 // map used for autoYaST
 global map ay_settings=nil;
+// interface type for hardware offloading
+string offload_card = "default";
 
+void CallConfigScript();
 
+global string GetOffloadCard()
+    {
+    return( offload_card );
+    }
+
+global void SetOffloadCard( string new_card )
+    {
+    y2milestone( "SetOffloadCard:%1 cur:%2", new_card, offload_card );
+    if( new_card != offload_card )
+	{
+	offload_card = new_card;
+	if( new_card != "default" )
+	    CallConfigScript();
+	}
+    }
+
+global string GetAdmCmd( string params )
+    {
+    string ret = "iscsiadm";
+    ret = ret + " " + params;
+    y2milestone( "GetAdmCmd:%1", ret );
+    return( ret );
+    }
 
 global map<string, any> hidePassword(map<string, any> orig){
  map<string, any> hidden=$[];
@@ -50,7 +78,7 @@ global map<string, any> getiBFT(){
  }
   ibft=$[];
   y2milestone("check and modprobe iscsi_ibft : %1", SCR::Execute(.target.bash_output, "lsmod |grep -q iscsi_ibft || modprobe iscsi_ibft"));
-  string from_bios = ((map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -m fw"))["stdout"]:"";
+  string from_bios = ((map<string, any>)SCR::Execute(.target.bash_output, GetAdmCmd("-m fw")))["stdout"]:"";
   foreach(string row, splitstring(from_bios, "\n"), {
    list<string> key_val=splitstring(row, "=");
 //   if (size(key_val[0]:"")>0) ibft[key_val[0]:""] = key_val[1]:"";
@@ -118,7 +146,8 @@ global void oldConfig(){
 
 
 global map<string, any> getNode(){
-  map<string, any> cmd = (map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -S -m node -T $TARGET -p $IP", $["TARGET":currentRecord[1]:"", "IP":currentRecord[0]:""]);
+  string cmdline = GetAdmCmd(sformat( "-S -m node -I %3 -T %1 -p %2", currentRecord[1]:"", currentRecord[0]:"", currentRecord[2]:"default" ));
+  map<string, any> cmd = (map<string, any>)SCR::Execute(.target.bash_output, cmdline);
  if (cmd["exit"]:0!=0) return $[];
  map<string, any> auth = $[];
  foreach(string row, splitstring(cmd["stdout"]:"", "\n"), {
@@ -216,29 +245,54 @@ global void saveConfig(string user_in, string pass_in, string user_out, string p
  SCR::Write(.etc.iscsid, nil);
 }
 
-// get all discovered targets
-global list<string> getDiscovered(){
-	 discovered=[];
-    map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -m node");
-	if (size(retcode["stderr"]:"")==0) {
-	      list<string> tmp_disc = filter(string row, splitstring(retcode["stdout"]:"", "\n"), {
-                        return ( size(row)>0 && (search(row, "session")==nil) );
-                        });
-	foreach(string row, tmp_disc, {
-	 list<string> tmp_row = splitstring(row, " ");
-	 discovered = add(discovered, sformat("%1 %2", tmp_row[0]:"", tmp_row[1]:""));
+global list<string> ScanDiscovered( list<string> data )
+    {
+    list<string> ret = [];
+    string target = "";
+    string portal = "";
+    string iface = "";
+    foreach( string row, data,
+	{
+	row = deletechars(row,"\t");
+	if( search(row,"Target:")!=nil )
+	    target = splitstring(row, " ")[1]:"";
+	else if( search(row,"Portal:")!=nil )
+	    {
+	    if( search(row,"Current Portal:")!=nil )
+		portal = splitstring(row, " ")[2]:"";
+	    else if( search(row,"Persistent Portal:")==nil )
+		portal = splitstring(row, " ")[1]:"";
+	    }
+	else if( search(row,"Iface Name:")!=nil )
+	    {
+	    iface = splitstring(row, " ")[2]:"";
+	    iface = iface_file[iface]:iface;
+	    if( findfirstof( portal, "[]" )==nil )
+		ret = add(ret, portal + " " + target + " " + iface);
+	    }
 	});
+    y2milestone( "ScanDiscovered ret:%1", ret );
+    return( ret );
+    }
+
+// get all discovered targets
+global list<string> getDiscovered()
+    {
+	 discovered=[];
+    map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, GetAdmCmd("-m node -P 1"));
+    if (size(retcode["stderr"]:"")==0) 
+	{
+	discovered = ScanDiscovered( splitstring(retcode["stdout"]:"","\n") );
 	}
- y2milestone("Discovered sessions %1", discovered);
  return discovered;
-}
+    }
 
 
 global void startIScsid(){
  SCR::Execute(.target.bash, "pgrep iscsid || iscsid");
  foreach(integer i,[0,1,2,3,4,5,6,7,8,9],{
   sleep(1*1000);
-  map<string, any> cmd=(map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -m session");
+  map<string, any> cmd=(map<string, any>)SCR::Execute(.target.bash_output, GetAdmCmd("-m session"));
   y2internal("iteration %1, retcode %2",i, cmd["exit"]:-1);
   if (cmd["exit"]:-1==0){
 	y2internal("Good response from daemon, exit.");
@@ -250,18 +304,8 @@ global void startIScsid(){
 // get all connected targets
 global boolean readSessions(){
  y2milestone("reading current settings");
-    map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, "iscsiadm -m session");
-//	if ( retcode["exit"]:0 != 0 ) return false;
-      list<string> tmp_sessions = [];
-      tmp_sessions = filter(string row, splitstring(retcode["stdout"]:"", "\n"), {
-                        return ( size(row)>0 && (search(row, "session")==nil) );
-                        });
-	sessions=[];
-	foreach(string row, tmp_sessions, {
-	list<string> tmp_row = splitstring(row, " ");
-	sessions = add(sessions, sformat("%1 %2", tmp_row[2]:"", tmp_row[3]:""));
-	});
-
+  map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, GetAdmCmd("-m session -P 1"));
+  sessions = ScanDiscovered( splitstring(retcode["stdout"]:"", "\n") );
   y2milestone("Return list from iscsiadm -m session: %1", sessions);
  return true;
 }
@@ -346,7 +390,9 @@ global boolean deleteRecord(){
  boolean ret = true;
  y2milestone("Delete record %1", currentRecord);
 
-    map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, sformat("iscsiadm -m node -T %1 -p %2 --logout", currentRecord[1]:"", currentRecord[0]:""));
+    map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, GetAdmCmd(sformat("-m node -I %3 -T %1 -p %2 --logout", 
+                                                                                                     currentRecord[1]:"", currentRecord[0]:"",
+												     currentRecord[2]:"default")));
         if (size(retcode["stderr"]:"")>0) return false;
 
  readSessions();
@@ -357,7 +403,9 @@ global boolean deleteRecord(){
 global string getStartupStatus(){
  string status = "";
  y2milestone("Getting status of record %1", currentRecord);
-     map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, sformat("iscsiadm -m node -T %1 -p %2", currentRecord[1]:"", currentRecord[0]:""));
+     map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, GetAdmCmd(sformat("-m node -I %3 -T %1 -p %2", 
+                                                                                                      currentRecord[1]:"", currentRecord[0]:"",
+												      currentRecord[2]:"default")));
     if (size(retcode["stderr"]:"")>0) return "";
     foreach(string row, splitstring(retcode["stdout"]:"", "\n"), {
      if (issubstring(row, "node.conn[0].startup")){
@@ -372,8 +420,9 @@ global string getStartupStatus(){
 // update authentication value
 global boolean setValue(string name, string value){
  y2milestone("set %1  for record %2", name, currentRecord);
- string command = sformat("iscsiadm -m node -T %1 -p %2 --op=update --name=%3 --value=%4", currentRecord[1]:"", currentRecord[0]:"", name, value);
- y2milestone("execute command - %1", command );
+ string command = GetAdmCmd(sformat("-m node -I %3 -T %1 -p %2 --op=update --name=%4 --value=%5", 
+                                    currentRecord[1]:"", currentRecord[0]:"", currentRecord[2]:"default",
+				    name, value));
  boolean ret = true;
         map<string, any> retcode = (map<string, any>) SCR::Execute(.target.bash_output, command);
     if (size(retcode["stderr"]:"")>0) {
@@ -391,7 +440,8 @@ y2internal("check connected status for %1 with IP check:%2", currentRecord, chec
  boolean ret = false;
  foreach(string row, sessions, {
  list<string> list_row = splitstring(row, " ");
-  if (list_row[1]:"" == currentRecord[1]:"" && (check_ip ? splitstring(list_row[0]:"", ",")[0]:"" == splitstring(currentRecord[0]:"", ",")[0]:"" : true)){
+  if (list_row[1]:"" == currentRecord[1]:"" && list_row[2]:"" == currentRecord[2]:"" &&
+      (check_ip ? splitstring(list_row[0]:"", ",")[0]:"" == splitstring(currentRecord[0]:"", ",")[0]:"" : true)){
    ret = true;
    break;
   }
@@ -404,10 +454,12 @@ global boolean setStartupStatus(string status){
  y2milestone("Set startup status for %1 to %2", currentRecord, status);
  boolean ret = true;
  map<string, any> retcode = (map<string, any>) SCR::Execute(.target.bash_output,
-	sformat("iscsiadm -m node -T %1 -p %2 --op=update --name=node.conn[0].startup --value=%3", currentRecord[1]:"", currentRecord[0]:"", status));
+	GetAdmCmd(sformat("-m node -I%3 -T %1 -p %2 --op=update --name=node.conn[0].startup --value=%4", 
+	                  currentRecord[1]:"", currentRecord[0]:"", currentRecord[2]:"default", status)));
     if (size(retcode["stderr"]:"")>0) return false;
 	else retcode = (map<string, any>) SCR::Execute(.target.bash_output,
-        sformat("iscsiadm -m node -T %1 -p %2 --op=update --name=node.startup --value=%3", currentRecord[1]:"", currentRecord[0]:"", status));
+        GetAdmCmd(sformat("-m node -I %3 -T %1 -p %2 --op=update --name=node.startup --value=%4", 
+	                  currentRecord[1]:"", currentRecord[0]:"", currentRecord[2]:"default", status)));
 
 y2internal("retcode %1", retcode);
  return ret;
@@ -416,14 +468,14 @@ y2internal("retcode %1", retcode);
 global boolean autoLogOn(){
 y2milestone("begin of autoLogOn function");
  if (size(getiBFT())>0){
-  y2milestone("Autologin into iBFT : %1", SCR::Execute(.target.bash_output, "iscsiadm -m fw -l"));
+  y2milestone("Autologin into iBFT : %1", SCR::Execute(.target.bash_output, GetAdmCmd("-m fw -l")));
  }
  return true;
 }
 
 
 global boolean loginIntoTarget(map target){
- currentRecord = [target["portal"]:"", target["target"]:""];
+ currentRecord = [target["portal"]:"", target["target"]:"",target["iface"]:""];
  if (target["authmethod"]:"None"!="None"){
   string user_in = target["username_in"]:"";
   string pass_in = target["password_in"]:"";
@@ -448,7 +500,8 @@ global boolean loginIntoTarget(map target){
  } else setValue("node.session.auth.authmethod", "None");
 
   map<string, any> output = (map<string, any>)SCR::Execute(.target.bash_output,
-		sformat("iscsiadm -m node -T %1 -p %2 --login", target["target"]:"", target["portal"]:""));
+		GetAdmCmd(sformat("-m node -I %3 -T %1 -p %2 --login", 
+		                  target["target"]:"", target["portal"]:"", target["iface"]:"")));
  y2internal("output %1", output);
 // if (output["exit"]:-1==0){
   // set startup status to auto by default (bnc#400610)
@@ -511,16 +564,24 @@ global boolean autoyastPrepare(){
 global boolean autoyastWrite(){
 // do discovery first
 list<string> portals = [];
+list<string> ifaces = [];
+string ifacepar = "";
+foreach(map target, ay_settings["targets"]:[], {
+ if (!contains(ifaces, target["iface"]:"")){
+ ifacepar = ifacepar + "-I " + target["iface"]:"";
+  ifaces = add(ifaces, target["iface"]:"");
+ }
+});
 foreach(map target, ay_settings["targets"]:[], {
  if (!contains(portals, target["portal"]:"")){
-  SCR::Execute(.target.bash, sformat("iscsiadm -m discovery -t st -p %1", target["portal"]:""));
+  SCR::Execute(.target.bash, GetAdmCmd(sformat("-m discovery %1 -t st -p %2", ifacepar, target["portal"]:"")));
   portals = add(portals, target["portal"]:"");
  }
 });
  foreach(map target, ay_settings["targets"]:[], {
 y2internal("login into target %1", target);
   loginIntoTarget(target);
-  currentRecord = [target["portal"]:"", target["target"]:""];
+  currentRecord = [target["portal"]:"", target["target"]:"", target["iface"]:""];
   setStartupStatus(target["startup"]:"manual");
  });
  return true;
@@ -533,11 +594,212 @@ global string Overview(){
    if (size(ay_settings["initiatorname"]:"")>0) overview = overview + "<p><b>Initiatorname: </b>" + ay_settings["initiatorname"]:"" + "</p>";
    if (size(ay_settings["targets"]:[])>0){
     foreach(map target, (list<map>)ay_settings["targets"]:[], {
-     overview = overview + "<p>" + target["portal"]:""  + ", " + target["target"]:"" + ", " + target["startup"]:"" + "</p>";
+     overview = overview + "<p>" + target["portal"]:""  + ", " + target["target"]:"" + ", " + target["iface"]:"" + ", " + target["startup"]:"" + "</p>";
     });
    }
  }
  return overview;
 }
+
+string InitOffloadCard()
+    {
+    string ret = "default";
+    map<string, any> retcode = (map<string, any>)SCR::Execute(.target.bash_output, GetAdmCmd("-m node -P 1"));
+    list<string> ifaces = [];
+    if (size(retcode["stderr"]:"")==0) 
+	{
+	foreach( string s,  ScanDiscovered( splitstring(retcode["stdout"]:"","\n") ),
+	    {
+	    list<string> sl = splitstring( s, "  " );
+	    if( size(sl[2]:"")>0 && !contains( ifaces, sl[2]:"" ))
+		{
+		ifaces = add( ifaces, sl[2]:"" );
+		}
+	    });
+	}
+    y2milestone( "InitOffloadCard ifaces:%1", ifaces );
+    if( size(ifaces)>1 )
+	ret = "all";
+    else if( contains( iface_eth, ifaces[0]:"" ))
+	ret = ifaces[0]:"default";
+    y2milestone( "InitOffloadCard ret:%1", ret );
+    return( ret );
+    }
+
+list<list<any> > offload = [
+	[ "default", "default"+" "+_("(Software)"), [] ],
+	[ "all", "all", [] ],
+	[ "bnx2", "bnx2/bnx2i/bnx2x", [ "bnx2", "bnx2i", "bnx2x" ] ],
+	[ "cxgb3", "cxgb3/cxgb3i", [ "cxgb3", "cxgb3i" ] ],
+	[ "enic", "enic/cnic/fnic", [ "enic", "cnic", "fnic" ] ],
+	[ "qla4xxx", "qla4xxx", [ "qla4xxx" ] ],
+	[ "be2net", "be2net/be2iscsi", [ "be2net", "be2iscsi" ] ]
+    ];
+
+map<integer,list> offload_valid = nil;
+
+void InitIfaceFile()
+    {
+    iface_file = $[];
+    list<string> files = (list<string>)SCR::Read(.target.dir, "/etc/iscsi/ifaces");
+    y2milestone( "files:%1", files );
+    foreach( string file, files,
+	{
+	list<string> ls = splitstring( (string)SCR::Read(.target.string, "/etc/iscsi/ifaces/"+file), "\n" );
+	y2milestone( "file:%1", file );
+	y2milestone( "ls:%1", ls );
+	ls = filter( string l, ls, ``(search(l,"iface.iscsi_ifacename")!=nil));
+	y2milestone( "ls:%1", ls );
+	if( size(ls)>0 )
+	    iface_file[splitstring(deletechars(ls[0]:""," "),"=")[1]:""] = file;
+	});
+    y2milestone( "iface_file:%1", iface_file );
+    }
+
+global list<term> GetOffloadItems()
+    {
+    integer i=0;
+    boolean init = false;
+    if( offload_valid==nil )
+	{
+	init = true;
+	InitIfaceFile();
+	offload_valid = $[];
+	list<map> cards = (list<map>)SCR::Read(.probe.netcard);
+	list<map> hw_mods = maplist( map c, cards, 
+	    {
+	    y2milestone( "GetOffloadItems card:%1", c );
+	    list<list> tmp = maplist( map m, c["drivers"]:[], 
+	                              ``(flatten((list<list>)m["modules"]:[])));
+	    return( $["modules":maplist( list ml, tmp, ``(ml[0]:"")),
+	              "iface":c["dev_name"]:"",
+		      "macaddr":c["resource","hwaddr",0,"addr"]:""]);
+	    });
+	y2milestone( "GetOffloadItems hw_mods:%1", hw_mods );
+	integer idx = 0;
+	foreach( list<any> l, offload, 
+	    ``{
+	    boolean valid = false;
+	    list<string> mod = (list<string>)sort(l[2]:[]);
+	    if( size(mod)>0 )
+		{
+		i=0;
+		foreach( map hw, hw_mods, 
+		    ``{
+		    if( size(multiset::intersection(mod,(list<string>)sort(hw["modules"]:[])))>0 )
+			offload_valid[idx] = add( offload_valid[idx]:[], 
+						  [ hw["iface"]:"", hw["macaddr"]:""] );
+		    });
+		}
+	    idx = idx+1;
+	    });
+	foreach( integer i, list eth, offload_valid,
+	    {
+	    offload_valid[i] = maplist( list l, (list<list>)eth,
+		{
+		map out = (map) SCR::Execute (.target.bash_output, "ifconfig " + l[0]:"" );
+		y2milestone( "GetOffloadItems out:%1", out );
+		string line = filter( string ln, splitstring( out["stdout"]:"", "\n" ),
+		                      ``(search(ln,"inet addr:")!=nil))[0]:"";
+		y2milestone( "GetOffloadItems line:%1", line );
+		line = substring( line, search( line, "inet addr:")+10 );
+		y2milestone( "GetOffloadItems line:%1", line );
+		l = add( l, substring( line, 0, findfirstof( line, " \t" )) );
+		return( l );
+		});
+	    });
+	y2milestone( "GetOffloadItems offload_valid:%1", offload_valid );
+	}
+    map<string,string> entries = $[];
+    foreach( integer i, list eth, offload_valid,
+	{
+	foreach( list l, (list<list>)eth,
+	    {
+	    if( size(l[0]:"")>0 )
+		{
+		string s = l[0]:"";
+		if( size(l[1]:"" )>0 )
+		    s = s + " - " + l[1]:"";
+		s = s + " - " + offload[i,1]:"";
+		entries[l[0]:""] = s;
+		}
+	    });
+	});
+    y2milestone( "GetOffloadItems entries:%1", entries );
+    iface_eth = sort(maplist( string e, string val, entries, ``(e)));
+    y2milestone( "GetOffloadItems eth:%1", iface_eth );
+    if( init )
+	{
+	offload_card = InitOffloadCard();
+	y2milestone( "GetOffloadItems offload_card:%1", offload_card );
+	}
+    list<term> ret = [ `item( `id(offload[0,0]:""), offload[0,1]:"", offload_card==offload[0,0]:"" )]; 
+    if( size(offload_valid)>0 )
+	ret = add( ret, `item( `id(offload[1,0]:""), offload[1,1]:"", offload_card==offload[1,0]:"" ) );
+    ret = (list<term>)merge( ret, maplist( string e, iface_eth,
+				           ``(`item( `id(e), entries[e]:"", 
+					      offload_card==e ))));
+    y2milestone( "GetOffloadItems ret:%1", ret );
+    return( ret );
+    }
+
+list<string> GetDiscIfaces()
+    {
+    list<string> ret = [];
+    if( GetOffloadCard()=="all" )
+	{
+	list<string> tl = maplist( term t, GetOffloadItems(), ``(argsof(t)[0,0]:""));
+	y2milestone( "GetDiscIfaces:%1", tl );
+	ret = filter( string s, tl, ``(s!="all"));
+	}
+    else
+	ret = [ GetOffloadCard() ];
+    y2milestone( "GetDiscIfaces:%1", ret );
+    return( ret );
+    }
+
+void CallConfigScript()
+    {
+    list<string> sl = filter( string s, GetDiscIfaces(), ``(s!="default"));
+    y2milestone( "CallConfigScript list:%1", sl );
+    foreach( string s, sl, 
+	{
+	string cmd = "/sbin/iscsi-offload-config " + " ";
+	list hw = [];
+	hw = maplist( integer i, list e, 
+	              filter( integer i, list eth, offload_valid, ``(contains(flatten((list<list>)eth),s))),
+		      ``(e))[0]:[];
+	y2milestone( "CallConfigScript hw:%1", hw );
+	hw = find( list l, (list<list>)hw, ``(l[0]:""==s));
+	y2milestone( "CallConfigScript hw:%1", hw );
+	if( hw != nil )
+	    {
+	    cmd = cmd + hw[1]:"" + " " + hw[2]:"" + " " + s;
+	    y2milestone( "CallConfigScript cmd:%1", cmd );
+	    map output = (map)SCR::Execute(.target.bash_output, cmd );
+	    y2milestone( "CallConfigScript %1", output );
+	    }
+	});
+    }
+
+global string GetDiscoveryCmd( string ip, string port)
+    {
+    y2milestone( "GetDiscoveryCmd ip:%1 port:%2", ip, port);
+    string command = "-m discovery -P 1";
+    if( useISNS() )
+	command = command + " -t isns";
+    else
+	{
+	list<string> ifs = GetDiscIfaces();
+	y2milestone( "ifs=%1", ifs );
+	ifs = maplist( string s, ifs, ``("-I "+s));
+	y2milestone( "ifs=%1", ifs );
+	command = command + sformat( " -t st %3 -p %1:%2", ip, port, mergestring(ifs," "));
+	}
+    command = GetAdmCmd(command);
+    y2milestone( "GetDiscoveryCmd %1", command );
+    return( command );
+    }
+
 
 }

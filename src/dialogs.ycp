@@ -61,12 +61,19 @@ map<string, map <string, any> > widgets = $[
 		"widget" : `custom,
 		"custom_widget"	:
 		  `HBox(
-			`MinWidth( 16, `TextEntry(`id(`initiator_name), _("Initiator Name")) )
+			`MinWidth( 16, 
+			  `HBox(
+			      `TextEntry(`id(`initiator_name), _("Initiator Name")),
+			      `MinWidth( 8,
+			      `ComboBox(`id(`offload_card), `opt(`notify), 
+			                _("Offloa&d Card"), 
+					IscsiClientLib::GetOffloadItems()  ))))
 		  ),
 		"init"	: initInitName,
 		"validate_type" : `function,
 		"validate_function" : validateInitName,
 		"store"	 : storeInitName,
+		"handle" : handleOffload,
 		"help"	: HELPS["initiator_name"]:""
 		],
 	// table of connected targets
@@ -75,7 +82,7 @@ map<string, map <string, any> > widgets = $[
 		"custom_widget"	:
 		 `VBox(
 		  `Table(`id(`connected), `opt(`notify, `immediate ),
-			`header(_("Portal Address"), _("Target Name"), _("Start-Up")),
+			`header(_("Interface"),_("Portal Address"), _("Target Name"), _("Start-Up")),
 			[]
 			),
 		  `Left(`HBox(
@@ -96,7 +103,7 @@ map<string, map <string, any> > widgets = $[
 		"custom_widget"	:
 		 `VBox(
 		  `Table(`id(`discovered), `opt(`notify, `immediate ),
-			`header(_("Portal Address"), _("Target Name"), _("Connected")),
+			`header(_("Interface"),_("Portal Address"), _("Target Name"), _("Connected")),
 			[]
 			),
 		  `Left(`HBox(

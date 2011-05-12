@@ -18,3 +18,4 @@ mkinstalldirs
 stamp-h
 iscsi-client.pot
 autom4te.cache
+*.ami

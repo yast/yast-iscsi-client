@@ -30,7 +30,7 @@ Mon May 24 15:03:36 CEST 2010 - mzugec@suse.cz
 -------------------------------------------------------------------
 Tue May 11 13:48:12 CEST 2010 - mzugec@suse.cz
 
-- delete discovered targets (bnc#602108)
+- delete discovered targets (bnc#667375)
 - 2.19.5 
 
 -------------------------------------------------------------------

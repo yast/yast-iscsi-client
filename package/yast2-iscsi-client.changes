@@ -24,7 +24,7 @@ Fri Jul 30 11:39:40 CEST 2010 - mzugec@suse.de
 -------------------------------------------------------------------
 Tue May 11 14:54:04 CEST 2010 - mzugec@suse.de
 
-- delete discovered targets (bnc#602108,bnc#667375)
+- delete discovered targets (bnc#667375)
 - 2.17.21 
 
 -------------------------------------------------------------------

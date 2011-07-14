@@ -66,8 +66,7 @@ map<string, map <string, any> > widgets = $[
 			      `TextEntry(`id(`initiator_name), _("Initiator Name")),
 			      `MinWidth( 8,
 			      `ComboBox(`id(`offload_card), `opt(`notify), 
-			                _("Offloa&d Card"), 
-					IscsiClientLib::GetOffloadItems()  ))))
+			                _("Offloa&d Card"), [] ))))
 		  ),
 		"init"	: initInitName,
 		"validate_type" : `function,

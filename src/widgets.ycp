@@ -245,6 +245,7 @@ symbol storeISNS (string key, map event){
 void initInitName(string key){
     y2milestone("initiatorname %1", IscsiClientLib::initiatorname);
     UI::ChangeWidget(`initiator_name, `Value, IscsiClientLib::initiatorname);
+    UI::ChangeWidget(`offload_card, `Items, IscsiClientLib::GetOffloadItems());
     UI::ChangeWidget(`offload_card, `Value, IscsiClientLib::GetOffloadCard());
     y2milestone("OffloadCard %1", IscsiClientLib::GetOffloadCard());
   if (size(IscsiClientLib::getiBFT()["iSCSI_INITIATOR_NAME"]:"")>0){

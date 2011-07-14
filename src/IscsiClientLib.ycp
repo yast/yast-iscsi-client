@@ -562,30 +562,38 @@ global boolean autoyastPrepare(){
 }
 
 global boolean autoyastWrite(){
-// do discovery first
-list<string> portals = [];
-list<string> ifaces = [];
-string ifacepar = "";
-foreach(map target, ay_settings["targets"]:[], {
- if (!contains(ifaces, target["iface"]:"")){
- ifacepar = ifacepar + "-I " + target["iface"]:"";
-  ifaces = add(ifaces, target["iface"]:"");
- }
-});
-foreach(map target, ay_settings["targets"]:[], {
- if (!contains(portals, target["portal"]:"")){
-  SCR::Execute(.target.bash, GetAdmCmd(sformat("-m discovery %1 -t st -p %2", ifacepar, target["portal"]:"")));
-  portals = add(portals, target["portal"]:"");
- }
-});
- foreach(map target, ay_settings["targets"]:[], {
-y2internal("login into target %1", target);
-  loginIntoTarget(target);
-  currentRecord = [target["portal"]:"", target["target"]:"", target["iface"]:""];
-  setStartupStatus(target["startup"]:"manual");
- });
- return true;
-}
+    // do discovery first
+    list<string> portals = [];
+    list<string> ifaces = [];
+    string ifacepar = "";
+    foreach(map target, ay_settings["targets"]:[], {
+	string iface = target["iface"]:"default";
+	if (!contains(ifaces, iface)){
+	    if( size(ifacepar)>0 )
+		ifacepar = ifacepar + " ";
+	    ifacepar = ifacepar + "-I " + iface;
+	    ifaces = add(ifaces, iface);
+	}
+    });
+    if( size( filter( string s, ifaces, ``(s!="default")))>0 )
+	{
+	CallConfigScript();
+	}
+    foreach(map target, ay_settings["targets"]:[], {
+    if (!contains(portals, target["portal"]:"")){
+	SCR::Execute(.target.bash, 
+	    GetAdmCmd(sformat("-m discovery %1 -t st -p %2", ifacepar, target["portal"]:"")));
+	portals = add(portals, target["portal"]:"");
+	}
+    });
+    foreach(map target, ay_settings["targets"]:[], {
+	y2internal("login into target %1", target);
+	loginIntoTarget(target);
+	currentRecord = [target["portal"]:"", target["target"]:"", target["iface"]:""];
+        setStartupStatus(target["startup"]:"manual");
+	});
+    return true;
+    }
 
 global string Overview(){
  string overview = _("Configuration summary...");

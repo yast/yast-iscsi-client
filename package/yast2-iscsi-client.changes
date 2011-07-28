@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Jul 28 12:17:34 CEST 2011 - fehr@suse.de
+
+- adapt to work with iscsi_offload script in open-iscsi
+- 2.17.26
+
+-------------------------------------------------------------------
 Tue Jul 12 18:13:53 CEST 2011 - fehr@suse.de
 
 - delay offload initialisation into init function 

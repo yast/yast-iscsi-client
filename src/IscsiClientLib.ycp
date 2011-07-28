@@ -31,6 +31,8 @@ global map ay_settings=nil;
 // interface type for hardware offloading
 string offload_card = "default";
 
+string offboard_script = "iscsi_offload";
+
 void CallConfigScript();
 
 global string GetOffloadCard()
@@ -696,23 +698,63 @@ global list<term> GetOffloadItems()
 		    ``{
 		    if( size(multiset::intersection(mod,(list<string>)sort(hw["modules"]:[])))>0 )
 			offload_valid[idx] = add( offload_valid[idx]:[], 
-						  [ hw["iface"]:"", hw["macaddr"]:""] );
+						  [ hw["iface"]:"", hw["macaddr"]:"", hw["iface"]:""+"-"+hw["modules",0]:""] );
 		    });
 		}
 	    idx = idx+1;
 	    });
+	map<string,map> offload_res = $[];
+	string cmd = "";
+	foreach( integer i, list eth, offload_valid,
+	    {
+	    offload_valid[i] = filter( list l, (list<list>)eth,
+		{
+		cmd = offboard_script + " " + l[0]:"";
+		y2milestone( "GetOffloadItems cmd:%1", cmd );
+		map out = (map) SCR::Execute (.target.bash_output, cmd );
+		y2milestone( "GetOffloadItems iscsi_offload out:%1", out );
+		offload_res[l[0]:""] = $[];
+		offload_res[l[0]:"","exit"] = out["exit"]:1;
+		list<string> sl = [];
+		if( out["exit"]:1==0 )
+		    {
+		    sl = splitstring( out["stdout"]:"", " \n" );
+		    offload_res[l[0]:"","hwaddr"] = sl[0]:"";
+		    offload_res[l[0]:"","ntype"] = sl[1]:"";
+		    }
+		return out["exit"]:1==0 && size(sl[0]:"")>0;
+		});
+	    });
+	y2milestone( "GetOffloadItems offload_res:%1", offload_res );
+	y2milestone( "GetOffloadItems offload_valid:%1", offload_valid );
 	foreach( integer i, list eth, offload_valid,
 	    {
 	    offload_valid[i] = maplist( list l, (list<list>)eth,
 		{
-		map out = (map) SCR::Execute (.target.bash_output, "ifconfig " + l[0]:"" );
+		l[1] = offload_res[l[0]:"","hwaddr"]:"";
+		return( l );
+		});
+	    });
+	y2milestone( "GetOffloadItems offload_valid:%1", offload_valid );
+	foreach( integer i, list eth, offload_valid,
+	    {
+	    offload_valid[i] = maplist( list l, (list<list>)eth,
+		{
+		cmd = "ifconfig " + l[0]:"";
+		y2milestone( "GetOffloadItems cmd:%1", cmd );
+		map out = (map) SCR::Execute (.target.bash_output, cmd );
 		y2milestone( "GetOffloadItems out:%1", out );
 		string line = filter( string ln, splitstring( out["stdout"]:"", "\n" ),
 		                      ``(search(ln,"inet addr:")!=nil))[0]:"";
 		y2milestone( "GetOffloadItems line:%1", line );
-		line = substring( line, search( line, "inet addr:")+10 );
-		y2milestone( "GetOffloadItems line:%1", line );
-		l = add( l, substring( line, 0, findfirstof( line, " \t" )) );
+		string ipaddr = "unknown";
+		if( size(line)>0 )
+		    {
+		    line = substring( line, search( line, "inet addr:")+10 );
+		    y2milestone( "GetOffloadItems line:%1", line );
+		    ipaddr = substring( line, 0, findfirstof( line, " \t" ) );
+		    }
+		l = add( l, ipaddr );
 		return( l );
 		});
 	    });
@@ -729,7 +771,7 @@ global list<term> GetOffloadItems()
 		if( size(l[1]:"" )>0 )
 		    s = s + " - " + l[1]:"";
 		s = s + " - " + offload[i,1]:"";
-		entries[l[0]:""] = s;
+		entries[l[2]:""] = s;
 		}
 	    });
 	});
@@ -772,17 +814,16 @@ void CallConfigScript()
     y2milestone( "CallConfigScript list:%1", sl );
     foreach( string s, sl, 
 	{
-	string cmd = "/sbin/iscsi-offload-config " + " ";
 	list hw = [];
 	hw = maplist( integer i, list e, 
 	              filter( integer i, list eth, offload_valid, ``(contains(flatten((list<list>)eth),s))),
 		      ``(e))[0]:[];
 	y2milestone( "CallConfigScript hw:%1", hw );
-	hw = find( list l, (list<list>)hw, ``(l[0]:""==s));
+	hw = find( list l, (list<list>)hw, ``(l[2]:""==s));
 	y2milestone( "CallConfigScript hw:%1", hw );
 	if( hw != nil )
 	    {
-	    cmd = cmd + hw[1]:"" + " " + hw[2]:"" + " " + s;
+	    string cmd = offboard_script + " " + hw[0]:"";
 	    y2milestone( "CallConfigScript cmd:%1", cmd );
 	    map output = (map)SCR::Execute(.target.bash_output, cmd );
 	    y2milestone( "CallConfigScript %1", output );

@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Aug  5 12:32:45 CEST 2011 - tgoettlicher@suse.de
+
+- fixed .desktop file (bnc #681249)
+
+-------------------------------------------------------------------
 Thu Jul 28 12:17:34 CEST 2011 - fehr@suse.de
 
 - adapt to work with iscsi_offload script in open-iscsi

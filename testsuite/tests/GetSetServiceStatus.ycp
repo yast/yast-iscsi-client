@@ -3,7 +3,8 @@
 
         map READ = $[
              "target" : $[
-                "tmpdir" : "/tmp"
+                "tmpdir" : "/tmp",
+		"stat" : $["isreg" : true]
              ],
 	     "init" :$[
 	      "scripts" :$[

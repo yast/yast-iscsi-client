@@ -111,6 +111,8 @@ any IscsiClientSequence() {
     ];
 
     Wizard::OpenCancelOKDialog();
+    if (Mode::normal ())
+	Wizard::SetDesktopTitleAndIcon("iscsi-client");
 
     any ret = Sequencer::Run(aliases, sequence);
 

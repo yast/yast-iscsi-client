@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Oct 10 15:13:28 CEST 2011 - fehr@suse.de
+
+- 2.21.6
+- add qla3xxx to modules supporting qla iscsi offload (bnc#723014)
+
+-------------------------------------------------------------------
 Wed Sep 28 09:31:32 CEST 2011 - visnov@suse.cz
 
 - set dialog title

@@ -642,7 +642,7 @@ list<list<any> > offload = [
 	[ "bnx2", "bnx2/bnx2i/bnx2x", [ "bnx2", "bnx2i", "bnx2x" ] ],
 	[ "cxgb3", "cxgb3/cxgb3i", [ "cxgb3", "cxgb3i" ] ],
 	[ "enic", "enic/cnic/fnic", [ "enic", "cnic", "fnic" ] ],
-	[ "qla4xxx", "qla4xxx", [ "qla4xxx" ] ],
+	[ "qla4xxx", "qla3xxx/qla4xxx", [ "qla4xxx", "qla3xxx" ] ],
 	[ "be2net", "be2net/be2iscsi", [ "be2net", "be2iscsi" ] ]
     ];
 

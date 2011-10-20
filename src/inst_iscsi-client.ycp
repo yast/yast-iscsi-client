@@ -41,7 +41,10 @@ IscsiClientLib::checkInitiatorName();
 
 
 IscsiClientLib::getiBFT();
+y2milestone( "Loading module %1", "iscsi_tcp" );
 ModuleLoading::Load("iscsi_tcp", "", "", "", false, true);
+IscsiClientLib::LoadOffloadModules();
+
 // start iscsid daemon
 IscsiClientLib::startIScsid();
 

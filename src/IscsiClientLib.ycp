@@ -709,7 +709,7 @@ global list<term> GetOffloadItems()
 	    {
 	    offload_valid[i] = filter( list l, (list<list>)eth,
 		{
-		cmd = offboard_script + " " + l[0]:"";
+		cmd = offboard_script + " " + l[0]:"" + " | grep ..:..:..:..";
 		y2milestone( "GetOffloadItems cmd:%1", cmd );
 		map out = (map) SCR::Execute (.target.bash_output, cmd );
 		y2milestone( "GetOffloadItems iscsi_offload out:%1", out );

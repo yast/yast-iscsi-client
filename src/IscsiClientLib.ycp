@@ -18,7 +18,7 @@ global list<string> currentRecord = [];
 map<string,string> iface_file = $[];
 list<string> iface_eth = []; 
 
-// status of rcopen-iscsi service
+// status of rciscsid service
 boolean serviceStatus = false;
 // main configuration file (/etc/iscsi/iscsid.conf)
 map<string, any> config = $[];
@@ -95,20 +95,20 @@ global map<string, any> getiBFT(){
 
 // get accessor for service status
 global boolean GetStartService() {
- boolean status = Service::Enabled("open-iscsi");
- y2milestone("Status of open-iscsi %1", status);
+ boolean status = Service::Enabled("iscsid");
+ y2milestone("Status of iscsid %1", status);
  return status;
 }
 
 // set accessor for service status
 global void SetStartService(boolean status) {
- y2milestone("Set status of open-iscsi to %1", status);
+ y2milestone("Set status of iscsid to %1", status);
  if (status == true) {
-    Service::Enable("boot.open-iscsi");
-    Service::Enable("open-iscsi");
+    Service::Enable("boot.iscsid");
+    Service::Enable("iscsid");
  } else {
-    Service::Disable("boot.open-iscsi");
-    Service::Disable("open-iscsi");
+    Service::Disable("boot.iscsid");
+    Service::Disable("iscsid");
  }
 }
 
@@ -330,7 +330,7 @@ global boolean writeInitiatorName(string new_value){
   y2milestone("Initiatorname %1 written", initiatorname);
  }
  // reload service when initiatorname is changed to re-read new value (bnc#482429)
- Service::Reload("open-iscsi");
+ Service::Reload("iscsid");
  return ret;
 }
 
@@ -518,7 +518,7 @@ global boolean loginIntoTarget(map target){
 }
 
 
-// get status of open-iscsi
+// get status of iscsid
 global boolean getServiceStatus(){
  boolean ret = true;
  if (Stage::initial()){
@@ -527,15 +527,15 @@ global boolean getServiceStatus(){
   startIScsid();
 
  } else {
-  if (Service::Status("open-iscsi") == 0) serviceStatus=true;
+  if (Service::Status("iscsid") == 0) serviceStatus=true;
   y2milestone("Service status = %1", serviceStatus);
   // if not enabled, start it manually
-  if (!serviceStatus) Service::Start("open-iscsi");
+  if (!serviceStatus) Service::Start("iscsid");
  }
  return ret;
 }
 
-// set startup status of open-iscsi
+// set startup status of iscsid
 global boolean setServiceStatus(){
  boolean ret = true;
 // if disabled and no connected targets - stop it
@@ -544,10 +544,10 @@ global boolean setServiceStatus(){
 	 readSessions();
 	 if (size(sessions)==0) {
 		 y2milestone("No active sessions - stopping service");
-		 Service::Stop("open-iscsi");
+		 Service::Stop("iscsid");
 		}
 	}
- y2milestone("Status service for open-iscsi: %1", ret);
+ y2milestone("Status service for iscsid: %1", ret);
  return ret;
 }
 

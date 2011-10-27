@@ -296,7 +296,7 @@ symbol storeInitName (string key, map event){
 	 SCR::Execute(.target.bash, "killproc /sbin/iscsid");
 	 IscsiClientLib::startIScsid();
 	}
-		else SCR::Execute(.target.bash, "rcopen-iscsi restart");
+		else SCR::Execute(.target.bash, "rciscsid restart");
 	y2milestone("write initiatorname %1", IscsiClientLib::initiatorname);
  }
  if ((string)UI::QueryWidget(`offload_card, `Value) != IscsiClientLib::GetOffloadCard()){

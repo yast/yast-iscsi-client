@@ -49,9 +49,9 @@ else if (func == "Write")
   // write open-iscsi database of automatic connected targets
   WFM::Execute (.local.bash,"test -d /etc/iscsi/ && mkdir -p '" + String::Quote(Installation::destdir) + "/etc/iscsi' && cp -a /etc/iscsi/* '" + String::Quote(Installation::destdir) + "/etc/iscsi/'");
  if ( size(IscsiClientLib::sessions)>0 ){
-	 Service::Enable("boot.open-iscsi");
-	 Service::Enable("open-iscsi");
-	y2milestone("open-iscsi service enabled");
+	 Service::Enable("boot.iscsid");
+	 Service::Enable("iscsid");
+	y2milestone("iscsid service enabled");
 	}
 }
 else

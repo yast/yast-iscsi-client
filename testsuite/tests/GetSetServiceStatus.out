@@ -1,15 +1,15 @@
 Read	.target.tmpdir "/tmp"
-Read	.target.stat "/etc/init.d/open-iscsi" $["isreg":true]
-Execute	.target.bash "/sbin/chkconfig -l open-iscsi | /usr/bin/grep -q '[0-6]:on'" 0
+Read	.target.stat "/etc/init.d/iscsid" $["isreg":true]
+Execute	.target.bash "/sbin/chkconfig -l iscsid | /usr/bin/grep -q '[0-6]:on'" 0
 Return	true
-Read	.target.stat "/etc/init.d/boot.open-iscsi" $["isreg":true]
-Read	.target.stat "/etc/init.d/boot.open-iscsi" $["isreg":true]
-Read	.target.stat "/etc/init.d/boot.open-iscsi" $["isreg":true]
-Read	.init.scripts.runlevel "boot.open-iscsi" $["boot.open-iscsi":$["start":["B"], "stop":[]], "open-iscsi":$["start":["3", "5"], "stop":["3", "5"]]]
-Read	.init.scripts.comment "boot.open-iscsi" $["boot.open-iscsi":$["defstart":["B"], "defstop":[], "description":"", "provides":["iscsiboot"], "reqstart":["boot.proc"], "reqstop":[], "shortdescription":"Starts the iSCSI initiator daemon", "shouldstart":[], "shouldstop":[]], "open-iscsi":$["defstart":["3", "5"], "defstop":[], "description":"", "provides":["iscsi"], "reqstart":["$network"], "reqstop":[], "shortdescription":"Starts and stops the iSCSI client initiator", "shouldstart":[], "shouldstop":[]]]
-Read	.target.stat "/etc/init.d/open-iscsi" $["isreg":true]
-Read	.target.stat "/etc/init.d/open-iscsi" $["isreg":true]
-Read	.target.stat "/etc/init.d/open-iscsi" $["isreg":true]
-Read	.init.scripts.runlevel "open-iscsi" $["boot.open-iscsi":$["start":["B"], "stop":[]], "open-iscsi":$["start":["3", "5"], "stop":["3", "5"]]]
-Read	.init.scripts.comment "open-iscsi" $["boot.open-iscsi":$["defstart":["B"], "defstop":[], "description":"", "provides":["iscsiboot"], "reqstart":["boot.proc"], "reqstop":[], "shortdescription":"Starts the iSCSI initiator daemon", "shouldstart":[], "shouldstop":[]], "open-iscsi":$["defstart":["3", "5"], "defstop":[], "description":"", "provides":["iscsi"], "reqstart":["$network"], "reqstop":[], "shortdescription":"Starts and stops the iSCSI client initiator", "shouldstart":[], "shouldstop":[]]]
+Read	.target.stat "/etc/init.d/boot.iscsid" $["isreg":true]
+Read	.target.stat "/etc/init.d/boot.iscsid" $["isreg":true]
+Read	.target.stat "/etc/init.d/boot.iscsid" $["isreg":true]
+Read	.init.scripts.runlevel "boot.iscsid" $["boot.iscsid":$["start":["B"], "stop":[]], "iscsid":$["start":["3", "5"], "stop":["3", "5"]]]
+Read	.init.scripts.comment "boot.iscsid" $["boot.iscsid":$["defstart":["B"], "defstop":[], "description":"", "provides":["iscsiboot"], "reqstart":["boot.proc"], "reqstop":[], "shortdescription":"Starts the iSCSI initiator daemon", "shouldstart":[], "shouldstop":[]], "iscsid":$["defstart":["3", "5"], "defstop":[], "description":"", "provides":["iscsi"], "reqstart":["$network"], "reqstop":[], "shortdescription":"Starts and stops the iSCSI client initiator", "shouldstart":[], "shouldstop":[]]]
+Read	.target.stat "/etc/init.d/iscsid" $["isreg":true]
+Read	.target.stat "/etc/init.d/iscsid" $["isreg":true]
+Read	.target.stat "/etc/init.d/iscsid" $["isreg":true]
+Read	.init.scripts.runlevel "iscsid" $["boot.iscsid":$["start":["B"], "stop":[]], "iscsid":$["start":["3", "5"], "stop":["3", "5"]]]
+Read	.init.scripts.comment "iscsid" $["boot.iscsid":$["defstart":["B"], "defstop":[], "description":"", "provides":["iscsiboot"], "reqstart":["boot.proc"], "reqstop":[], "shortdescription":"Starts the iSCSI initiator daemon", "shouldstart":[], "shouldstop":[]], "iscsid":$["defstart":["3", "5"], "defstop":[], "description":"", "provides":["iscsi"], "reqstart":["$network"], "reqstop":[], "shortdescription":"Starts and stops the iSCSI client initiator", "shouldstart":[], "shouldstop":[]]]
 Return	nil

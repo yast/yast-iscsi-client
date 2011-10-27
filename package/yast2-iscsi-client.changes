@@ -1,6 +1,7 @@
 -------------------------------------------------------------------
 Thu Oct 27 11:41:58 CEST 2011 - fehr@suse.de
 
+- 2.21.8
 - adapt to changed name of start scripts open-iscsi -> iscsid 
   (bnc#661401)
 

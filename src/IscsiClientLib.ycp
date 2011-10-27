@@ -104,10 +104,10 @@ global boolean GetStartService() {
 global void SetStartService(boolean status) {
  y2milestone("Set status of iscsid to %1", status);
  if (status == true) {
-    Service::Enable("boot.iscsid");
+    Service::Enable("boot.iscsid-early");
     Service::Enable("iscsid");
  } else {
-    Service::Disable("boot.iscsid");
+    Service::Disable("boot.iscsid-early");
     Service::Disable("iscsid");
  }
 }

@@ -472,10 +472,16 @@ if (!IscsiClientLib::useISNS())
 //y2internal("auth: %1/%2, %3/%4", user_in, pass_in, user_out, pass_out);
  bg_finish=false;
  // ` with authentication
- string command = IscsiClientLib::GetDiscoveryCmd(ip,port);
+ string command = IscsiClientLib::GetDiscoveryCmd(ip,port,false);
  list<string>trg_list = runInBg( command );
- IscsiClientLib::targets = IscsiClientLib::ScanDiscovered( trg_list );
  while(!bg_finish){};
+ if( size(trg_list)==0 )
+    {
+    command = IscsiClientLib::GetDiscoveryCmd(ip,port,true);
+    trg_list = runInBg( command );
+    while(!bg_finish){};
+    }
+ IscsiClientLib::targets = IscsiClientLib::ScanDiscovered( trg_list );
  // restore old config
  IscsiClientLib::oldConfig();
 

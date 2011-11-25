@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Nov 25 17:09:26 CET 2011 - aschnell@suse.de
+
+- 2.17.31
+- also show output of targets read from firmware in tab with
+  discovered targets (bnc#725833)
+
+-------------------------------------------------------------------
 Thu Nov  3 13:06:10 CET 2011  - fehr@suse.de
 
 - 2.17.30

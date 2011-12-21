@@ -4,6 +4,11 @@ Tue Dec  6 18:22:15 UTC 2011 - per@opensuse.org
 - fix parsing of iscsiadm output in IscsiClientLib.ycp (bnc#725182)
 
 -------------------------------------------------------------------
+Mon Nov 28 16:35:51 CET 2011 - aschnell@suse.de
+
+- fixed module names
+
+-------------------------------------------------------------------
 Thu Nov  3 13:06:10 CET 2011  - fehr@suse.de
 
 - 2.21.9

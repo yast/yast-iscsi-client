@@ -641,8 +641,8 @@ list<list<any> > offload = [
 	[ "all", "all", [], [] ],
 	[ "bnx2", "bnx2/bnx2i/bnx2x", [ "bnx2", "bnx2i", "bnx2x" ], [ "bnx2i" ] ],
 	[ "cxgb3", "cxgb3/cxgb3i", [ "cxgb3", "cxgb3i" ], [ "cxgb3i" ] ],
-	[ "enic", "enic/cnic/fnic", [ "enic", "cnic", "fnic" ], [] ],
-	[ "qla4xxx", "qla3xxx/qla4xxx", [ "qla4xxx", "qla3xxx" ], [] ],
+	[ "enic", "enic/cnic/fnic", [ "enic", "fnic" ], [ "fnic" ] ],
+	[ "qla4xxx", "qla3xxx/qla4xxx", [ "qla4xxx", "qla3xxx" ], [ "qla4xxx" ] ],
 	[ "be2net", "be2net/be2iscsi", [ "be2net", "be2iscsi" ], [ "be2iscsi"] ]
     ];
 
@@ -698,7 +698,7 @@ global list<term> GetOffloadItems()
 		    ``{
 		    if( size(multiset::intersection(mod,(list<string>)sort(hw["modules"]:[])))>0 )
 			offload_valid[idx] = add( offload_valid[idx]:[], 
-						  [ hw["iface"]:"", hw["macaddr"]:"", hw["iface"]:""+"-"+hw["modules",0]:""] );
+						  [ hw["iface"]:"", hw["macaddr"]:"", hw["iface"]:""+"-"+l[3,0]:""] );
 		    });
 		}
 	    idx = idx+1;

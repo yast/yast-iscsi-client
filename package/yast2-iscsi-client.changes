@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Wed Dec 21 14:23:39 CET 2011 - fehr@suse.de
+
+- undo change from Fri Nov 25 17:09:26 
+  the entry scanned from firmware cannot be used the same way
+  as entries detected by discovery command
+  real fix for the problems with be2iscsi was fixing module
+  names on Mon Nov 28 16:35:51
+
+-------------------------------------------------------------------
 Mon Nov 28 16:35:51 CET 2011 - aschnell@suse.de
 
 - fixed module names

@@ -69,49 +69,6 @@ global map<string, any> hidePassword(map<string, any> orig){
 }
 
 
-list< map<string, any> > parse_m_fw(list<string> lines)
-{
-    // y2milestone("lines:%1", lines);
-    list< map<string, any> > entries = [];
-
-    map<string, any> entry = $[];
-
-    foreach(string line, lines, {
-
-	if (String::StartsWith(line, "# BEGIN RECORD"))
-	{
-	    entry = $[];
-	}
-	else if (String::StartsWith(line, "# END RECORD"))
-	{
-	    entries = add(entries, entry);
-	}
-	else
-	{
-	    list<string> key_value = splitstring(line, "=");
-	    string key = String::CutBlanks(key_value[0]:"");
-	    string value = String::CutBlanks(key_value[1]:"");
-	    entry[key] = value;
-	}    
-    });
-
-    return entries;
-}
-
-
-list< map<string, any> > parse_m_iface(list<string> lines)
-{
-    list< map<string, any> > entries = [];
-
-    foreach(string line, lines, {
-	list<string> tmp = splitstring(line, ",");
-	entries = add(entries, $[ "name" : tmp[0]:"", "hwaddress" : tmp[1]:"" ]);
-    });
-
-    return entries;
-}
-
-
 /**
  * get iBFT (available only on some special hardware)
  */
@@ -329,34 +286,6 @@ global list<string> getDiscovered()
 	{
 	discovered = ScanDiscovered( splitstring(retcode["stdout"]:"","\n") );
 	}
-
-    retcode = (map<string, any>) SCR::Execute(.target.bash_output, GetAdmCmd("-m fw"));
-    if (isempty(retcode["stderr"]:""))
-    {
-	list< map<string, any> > iscsi_adm_m_fw = parse_m_fw(splitstring(retcode["stdout"]:"", "\n"));
-
-	retcode = (map<string, any>) SCR::Execute(.target.bash_output, GetAdmCmd("-m iface"));
-	if (isempty(retcode["stderr"]:""))
-	{
-	    list< map<string, any> > iscsi_adm_m_iface = parse_m_iface(splitstring(retcode["stdout"]:"", "\n"));
-
-	    foreach (map<string, any> tmp1, iscsi_adm_m_fw, {
-
-		string interface = "unknown";
-
-		foreach (map<string, any> iface, iscsi_adm_m_iface, {
-		    if (iface["hwaddress"]:"" == tmp1["iface.hwaddress"]:"" &&
-			String::StartsWith(iface["name"]:"", "eth"))
-			interface = iface["name"]:"";
-		});
-
-		string tmp2 = tmp1["node.conn[0].address"]:"" + ":" + tmp1["node.conn[0].port"]:"" + " " + 
-		    tmp1["node.name"]:"" + " " + interface;
-		discovered = add(discovered, tmp2);
-	    });
-	}
-    }
-
     return discovered;
     }
 

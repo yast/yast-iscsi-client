@@ -1,5 +1,10 @@
 -------------------------------------------------------------------
-Tue Dec  6 18:22:15 UTC 2011 - per@opensuse.org
+Thu Jan 12 11:28:17 CET 2012 - fehr@suse.de
+
+- remove portal group from target portal (bnc#738037)
+
+-------------------------------------------------------------------
+Tue Dec  6 18:22:15 UTC 2011 - per@opensuse.org 
 
 - fix parsing of iscsiadm output in IscsiClientLib.ycp (bnc#725182)
 

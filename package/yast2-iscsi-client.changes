@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Jan 12 11:28:17 CET 2012 - fehr@suse.de
+
+- 2.17.32
+- remove portal group from target portal (bnc#738037)
+
+-------------------------------------------------------------------
 Wed Dec 21 14:23:39 CET 2011 - fehr@suse.de
 
 - undo change from Fri Nov 25 17:09:26 

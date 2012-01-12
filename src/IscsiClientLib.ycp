@@ -264,6 +264,9 @@ global list<string> ScanDiscovered( list<string> data )
 		portal = splitstring(row, " ")[2]:"";
 	    else if( search(row,"Persistent Portal:")==nil )
 		portal = splitstring(row, " ")[1]:"";
+	    integer pos = search(portal,",");
+	    if( pos != nil )
+		portal = substring( portal, 0, pos );
 	    }
 	else if( search(row,"Iface Name:")!=nil )
 	    {

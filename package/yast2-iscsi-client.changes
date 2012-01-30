@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jan 30 19:14:16 CET 2012 - fehr@suse.de
+
+- prevent calling getiBFT() before open-iscsi install (bnc#725833)
+
+-------------------------------------------------------------------
 Thu Jan 12 11:28:17 CET 2012 - fehr@suse.de
 
 - remove portal group from target portal (bnc#738037)

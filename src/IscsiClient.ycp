@@ -176,14 +176,14 @@ global boolean Read() {
     if(false) return false;
     sleep(sl);
 
+    // check if required package is installed
+    if(!installed_packages()) return false;
     if(IscsiClientLib::getiBFT()==nil) return false;
     /* Progress finished */
     Progress::NextStage();
     sleep(sl);
 
     Progress::NextStage();
-    // check if required package is installed
-    	if(!installed_packages()) return false;
     // check initiatorname - create it if no exists
     y2milestone("Check initiator name");
     if(!IscsiClientLib::checkInitiatorName()) return false;

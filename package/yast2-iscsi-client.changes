@@ -1,6 +1,7 @@
 -------------------------------------------------------------------
 Mon Jan 30 19:14:16 CET 2012 - fehr@suse.de
 
+- create /etc/iscsi to prevent crash if nonexistant (bnc#742570)
 - prevent calling getiBFT() before open-iscsi install (bnc#725833)
 
 -------------------------------------------------------------------

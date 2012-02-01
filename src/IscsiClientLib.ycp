@@ -321,6 +321,12 @@ global boolean readSessions(){
 global boolean writeInitiatorName(string new_value){
  boolean ret=true;
  string file="/etc/iscsi/initiatorname.iscsi";
+ string dir="/etc/iscsi";
+ if( (map)SCR::Read (.target.stat, dir )==$[] )
+     {
+     SCR::Execute(.target.mkdir, dir );
+     y2milestone( "writeInitiatorName dir:%1", SCR::Read(.target.stat, dir ));
+     }
  if ( ((map<string, any>)SCR::Read (.target.lstat, file))["size"]:0>0 )
  {
    y2milestone("%1 file exists, create backup", file);

@@ -381,7 +381,7 @@ global boolean checkInitiatorName(){
     }
   ret = writeInitiatorName(initiatorname);
  } else {
-    y2internal("initiatorname=%1", initiatorname);
+    y2milestone("checkInitiatorName initiatorname=%1", initiatorname);
    if (size(name_from_bios)>0 && name_from_bios!=initiatorname)
    {
     Popup::Warning( _("InitiatorName from iBFT and from <tt>/etc/iscsi/initiatorname.iscsi</tt> differ.

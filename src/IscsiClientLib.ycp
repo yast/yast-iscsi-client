@@ -381,7 +381,7 @@ global boolean checkInitiatorName(){
     }
   ret = writeInitiatorName(initiatorname);
  } else {
-    y2internal("initiatorname=%1", initiatorname);
+    y2milestone("checkInitiatorName initiatorname=%1", initiatorname);
    if (size(name_from_bios)>0 && name_from_bios!=initiatorname)
    {
     Popup::Warning( _("InitiatorName from iBFT and from <tt>/etc/iscsi/initiatorname.iscsi</tt> differ.
@@ -661,18 +661,26 @@ void InitIfaceFile()
     {
     iface_file = $[];
     list<string> files = (list<string>)SCR::Read(.target.dir, "/etc/iscsi/ifaces");
-    y2milestone( "files:%1", files );
+    y2milestone( "InitIfaceFile files:%1", files );
+    if( files==nil || size(files)==0 )
+	{
+	string cmd = GetAdmCmd("-m iface");
+	y2milestone( "InitIfaceFile cmd:%1", cmd );
+	y2milestone( "InitIfaceFile ret:%1", SCR::Execute(.target.bash_output, cmd));
+	files = (list<string>)SCR::Read(.target.dir, "/etc/iscsi/ifaces");
+	y2milestone( "InitIfaceFile files:%1", files );
+	}
     foreach( string file, files,
 	{
 	list<string> ls = splitstring( (string)SCR::Read(.target.string, "/etc/iscsi/ifaces/"+file), "\n" );
-	y2milestone( "file:%1", file );
-	y2milestone( "ls:%1", ls );
+	y2milestone( "InitIfaceFile file:%1", file );
+	y2milestone( "InitIfaceFile ls:%1", ls );
 	ls = filter( string l, ls, ``(search(l,"iface.iscsi_ifacename")!=nil));
-	y2milestone( "ls:%1", ls );
+	y2milestone( "InitIfaceFile ls:%1", ls );
 	if( size(ls)>0 )
 	    iface_file[splitstring(deletechars(ls[0]:""," "),"=")[1]:""] = file;
 	});
-    y2milestone( "iface_file:%1", iface_file );
+    y2milestone( "InitIfaceFile iface_file:%1", iface_file );
     }
 
 global list<term> GetOffloadItems()

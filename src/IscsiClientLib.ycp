@@ -651,7 +651,7 @@ list<list<any> > offload = [
 	[ "bnx2", "bnx2/bnx2i/bnx2x", [ "bnx2", "bnx2i", "bnx2x" ], [ "bnx2i" ] ],
 	[ "cxgb3", "cxgb3/cxgb3i", [ "cxgb3", "cxgb3i" ], [ "cxgb3i" ] ],
 	[ "enic", "enic/cnic/fnic", [ "enic", "fnic" ], [ "fnic" ] ],
-	[ "qla4xxx", "qla3xxx/qla4xxx", [ "qla4xxx", "qla3xxx" ], [ "qla4xxx" ] ],
+	[ "qla4xxx", "qla3xxx/qla4xxx", [ "qla4xxx", "qla3xxx", "qlcnic" ], [ "qla4xxx" ] ],
 	[ "be2net", "be2net/be2iscsi", [ "be2net", "be2iscsi" ], [ "be2iscsi"] ]
     ];
 
@@ -698,11 +698,12 @@ global list<term> GetOffloadItems()
 	    y2milestone( "GetOffloadItems card:%1", c );
 	    list<list> tmp = maplist( map m, c["drivers"]:[], 
 	                              ``(flatten((list<list>)m["modules"]:[])));
-	    return( $["modules": [ c["driver_module"]:"" ],
+	    map r = $["modules": [ c["driver_module"]:"" ],
 	              "iface":c["dev_name"]:"",
-		      "macaddr":c["resource","hwaddr",0,"addr"]:""]);
+		      "macaddr":c["resource","hwaddr",0,"addr"]:""];
+	    y2milestone( "GetOffloadItems cinf:%1", r );
+	    return( r );
 	    });
-	y2milestone( "GetOffloadItems hw_mods:%1", hw_mods );
 	integer idx = 0;
 	foreach( list<any> l, offload, 
 	    ``{
@@ -715,8 +716,12 @@ global list<term> GetOffloadItems()
 		    ``{
 		    //if( size(multiset::intersection(mod,(list<string>)sort(hw["modules"]:[])))>0 )
 		    if( size(mod)+size(hw["modules"]:[])>size(union(mod,hw["modules"]:[])))
+			{
+			y2milestone( "GetOffloadItems l:%1", l );
+			y2milestone( "GetOffloadItems valid:%1", hw );
 			offload_valid[idx] = add( offload_valid[idx]:[], 
 						  [ hw["iface"]:"", hw["macaddr"]:"", hw["iface"]:""+"-"+l[3,0]:""] );
+			}
 		    });
 		}
 	    idx = idx+1;
@@ -730,7 +735,8 @@ global list<term> GetOffloadItems()
 		cmd = offboard_script + " " + l[0]:"" + " | grep ..:..:..:..";
 		y2milestone( "GetOffloadItems cmd:%1", cmd );
 		map out = (map) SCR::Execute (.target.bash_output, cmd );
-		y2milestone( "GetOffloadItems iscsi_offload out:%1", out );
+		y2milestone( "GetOffloadItems iscsi_offload out:%1", 
+		             SCR::Execute (.target.bash_output, offboard_script + " " + l[0]:"" ));
 		offload_res[l[0]:""] = $[];
 		offload_res[l[0]:"","exit"] = out["exit"]:1;
 		list<string> sl = [];

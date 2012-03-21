@@ -332,8 +332,7 @@ global boolean writeInitiatorName(string new_value){
    y2milestone("%1 file exists, create backup", file);
    SCR::Execute(.target.bash, sformat("mv %1 /etc/iscsi/initiatorname.yastbackup", file));
  }
- ret = (boolean)SCR::Write (.target.string, file, sformat("InitiatorName=%1\n", new_value));
- SCR::Execute (.target.bash, "chmod 0600 $FILE" ,$["FILE":file]);
+ ret = (boolean)SCR::Write (.target.string, [file,0600], sformat("InitiatorName=%1\n", new_value));
  if (ret){
   initiatorname = new_value;
   y2milestone("Initiatorname %1 written", initiatorname);
@@ -565,8 +564,7 @@ global boolean autoyastPrepare(){
  initiatorname = ay_settings["initiatorname"]:"";
  if (size(initiatorname)>0){
   string file="/etc/iscsi/initiatorname.iscsi";
-  SCR::Write (.target.string, file, sformat("InitiatorName=%1\n", initiatorname));
-  SCR::Execute (.target.bash, "chmod 0600 $FILE" ,$["FILE":file]);
+  SCR::Write (.target.string, [file,0600], sformat("InitiatorName=%1\n", initiatorname));
  } else checkInitiatorName();
  // start daemon before
  startIScsid();

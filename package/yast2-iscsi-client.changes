@@ -4,6 +4,11 @@ Wed Feb 15 11:36:05 CET 2012 - fehr@suse.de
 - version 2.22.0
 
 -------------------------------------------------------------------
+Wed Mar 21 11:48:21 CET 2012 - fehr@suse.de
+
+- change potential race of chmod after file create (bnc#753129)
+
+-------------------------------------------------------------------
 Mon Feb  6 14:05:22 CET 2012 - fehr@suse.de
 
 - change detection of qla iscsi devices (bnc#745201)

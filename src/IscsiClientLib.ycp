@@ -383,9 +383,11 @@ global boolean checkInitiatorName(){
     y2milestone("checkInitiatorName initiatorname=%1", initiatorname);
    if (size(name_from_bios)>0 && name_from_bios!=initiatorname)
    {
-    Popup::Warning( _("InitiatorName from iBFT and from <tt>/etc/iscsi/initiatorname.iscsi</tt> differ.
-The old initiatorname will be replaced by the value of iBFT and create a backup.
-If you want to use a different initiatorname, change it in the BIOS.") );
+    Popup::Warning( _("InitiatorName from iBFT and from <tt>/etc/iscsi/initiatorname.iscsi</tt>
+differ. The old initiator name will be replaced by the value of iBFT and a 
+backup created. If you want to use a different initiator name, change it 
+in the BIOS.
+") );
     y2milestone("replacing old name %1 by name %2 from iBFT", initiatorname, name_from_bios);
     initiatorname = name_from_bios;
     ret = writeInitiatorName(initiatorname);

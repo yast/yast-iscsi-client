@@ -229,7 +229,7 @@ global boolean Write() {
 
     list<string> descr = [
 	    /* Progress stage 1/2 */
-	    _("Write the autoYaST settings"),
+	    _("Write AutoYaST settings"),
 	    /* Progress stage 2/2 */
 	    _("Set up service status")
 	];

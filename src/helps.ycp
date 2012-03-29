@@ -103,11 +103,13 @@ _("<h1>Warning</h1>") + _("<p>When accessing an iSCSI device <b>READ</b>/<b>WRIT
 
  // authentification dialog for add/discovery target
  "conn_auth"	: _("<h1>iSCSI Initiator</h1>") +_("Select the type of authentication and enter the <b>Username</b> and <b>Password</b>.") +
- _("<h1>Startup</h1>") + _("<p><b>manual</b> is for iSCSI targets to not be connected by default, user needs to do it manually</p>
-<p><b>onboot</b> is for iSCSI targets to be connected during boot, ie when root is on
-iSCSI. As such it will be evaluated from the initrd.</p>
-<p><b>automatic</b> is for iSCSI targets to be connected when the iSCSI service itself
-starts up.</p>"),
+ _("<h1>Startup</h1>") + _("<p><b>manual</b> is for iSCSI targets which are not to be connected by
+default, the user needs to connect them manually</p>
+<p><b>onboot</b> is for iSCSI targets to be connected during boot, i.e. when
+root is on iSCSI. As such it will be evaluated by the initrd.</p>
+<p><b>automatic</b> is for iSCSI targets to be connected when the iSCSI service
+starts up.</p>
+"),
 
  // list of discovered targets
  "discovered"	: _("List of discovered targets. Start a new <b>Discovery</b> or <b>Connect</b> to any target."),

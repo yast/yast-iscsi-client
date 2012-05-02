@@ -146,7 +146,7 @@ map<string, map <string, any> > widgets = $[
 		"custom_widget"	:
 		 `VBox(
 		  `Table(`id(`targets), `opt(`notify, `immediate),
-			`header(_("Portal Address"), _("Target Name"), _("Connected")),
+			`header(_("Interface"),_("Portal Address"), _("Target Name"), _("Start-Up")),
 			[]
 			),
 		  `Left(`HBox(
@@ -167,12 +167,14 @@ map<string, map <string, any> > widgets = $[
 			    `VBox(
 				`Left(`Label(_("Incoming Authentication"))),
 				`HBox(
-					`TextEntry(`id(`user_in), _("Username")), `Password(`id(`pass_in), _("Password"))
+					`HWeigth(2,`TextEntry(`id(`user_in), _("Username"))),
+                                        `HWeigth(1,`Password(`id(`pass_in), _("Password")))
 				  ),
 				`VSpacing(2),
 				`Left( `Label(_("Outgoing Authentication"))),
 				`HBox(
-					`TextEntry(`id(`user_out), _("Username")), `Password(`id(`pass_out), _("Password"))
+					`HWeigth(2,`TextEntry(`id(`user_out), _("Username"))), 
+                                        `HWeigth(1,`Password(`id(`pass_out), _("Password")))
 				     )
 				)
 			)
@@ -193,12 +195,14 @@ map<string, map <string, any> > widgets = $[
 			    `VBox(
 				`Left( `Label(_("Incoming Authentication")) ),
 				`HBox(
-					`TextEntry(`id(`user_in), _("Username")), `Password(`id(`pass_in), _("Password"))
+					`HWeight(2,`TextEntry(`id(`user_in), _("Username"))),
+                                        `HWeight(1,`Password(`id(`pass_in), _("Password")))
 				  ),
 				`VSpacing(2),
 				`Left( `Label(_("Outgoing Authentication")) ),
 				`HBox(
-					`TextEntry(`id(`user_out), _("Username")), `Password(`id(`pass_out), _("Password"))
+					`HWeight(2,`TextEntry(`id(`user_out), _("Username"))),
+                                        `HWeight(1,`Password(`id(`pass_out), _("Password")))
 				  )
 				)
 			)

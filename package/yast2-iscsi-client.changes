@@ -1,6 +1,7 @@
 -------------------------------------------------------------------
 Wed May  2 11:30:00 CEST 2012 - fehr@suse.de
 
+- version 2.22.2
 - set length proportion between username/password to 2:1 (bnc#760072)
 - add missing field to table header (bnc#760072)
 

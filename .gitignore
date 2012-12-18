@@ -18,6 +18,8 @@ missing
 .dep
 doc/autodocs/*.html
 doc/autodocs/*.tmp
+package/*.bz2
+package/*.spec
 testsuite/*.log
 testsuite/*.sum
 testsuite/*.test

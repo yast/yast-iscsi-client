@@ -1,6 +1,7 @@
 -------------------------------------------------------------------
 Tue Dec 18 12:57:18 CET 2012 - fehr@suse.de
 
+- 2.17.35
 - do not write iscsi-client section to autoinst.xml if no iscsi 
   targets are defined (bnc#792071)
 

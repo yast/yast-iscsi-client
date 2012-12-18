@@ -103,34 +103,42 @@ boolean installed_packages(){
  * (For use by autoinstallation.)
  * @return map Dumped settings (later acceptable by Import ())
  */
-global map Export () {
- list tgets = [];
- foreach(string sess, IscsiClientLib::sessions, {
- list<string> sl = splitstring(sess, " ");
- string target = sl[1]:"";
- string portal = sl[0]:"";
- string iface = sl[2]:"default";
- IscsiClientLib::currentRecord = [portal, target, iface];
- map<string, any> auth = IscsiClientLib::getNode();
- map new_target =
-		$["target": target,
-		"portal"  : portal,
-		"iface"  : iface,
-		"startup" : IscsiClientLib::getStartupStatus(),
-		];
- if (auth["authmethod"]:"None"=="None") new_target["authmethod"]="None";
-	else new_target = union(new_target, auth);
-  tgets = add(tgets, new_target);
- });
- map result = $[
-               "version" : "1.0",
+global map Export() 
+    {
+    list tgets = [];
+    foreach(string sess, IscsiClientLib::sessions, 
+	{
+	list<string> sl = splitstring(sess, " ");
+	string target = sl[1]:"";
+	string portal = sl[0]:"";
+	string iface = sl[2]:"default";
+	IscsiClientLib::currentRecord = [portal, target, iface];
+	map<string, any> auth = IscsiClientLib::getNode();
+	map new_target =
+		    $["target": target,
+		      "portal"  : portal,
+		      "iface"  : iface,
+		      "startup" : IscsiClientLib::getStartupStatus(),
+		     ];
+	if (auth["authmethod"]:"None"=="None") 
+	    new_target["authmethod"]="None";
+	else 
+	    new_target = union(new_target, auth);
+	tgets = add(tgets, new_target);
+	});
+    map result = $[];
+    if( !isempty(tgets) )
+	{
+	result = $[
+	       "version" : "1.0",
 	       "initiatorname" : IscsiClientLib::initiatorname,
-               "targets" : tgets
-                ];
-  configured = true;
-  modified = true;
- return result;
-}
+	       "targets" : tgets
+		];
+	configured = true;
+	modified = true;
+	}
+    return result;
+    }
 
 /**
  * Read all iscsi-client settings

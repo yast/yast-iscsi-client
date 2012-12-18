@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Dec 18 12:57:18 CET 2012 - fehr@suse.de
+
+- do not write iscsi-client section to autoinst.xml if no iscsi 
+  targets are defined (bnc#792071)
+
+-------------------------------------------------------------------
 Wed Mar 21 11:48:21 CET 2012 - fehr@suse.de
 
 - change potential race of chmod after file create (bnc#753129)

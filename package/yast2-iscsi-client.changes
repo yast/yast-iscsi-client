@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jan 16 10:43:58 CET 2013 - locilka@suse.com
+
+- version 2.23.2
+- Unrelated testsuite that tested Service.ycp moved to yast2.rpm
+
+-------------------------------------------------------------------
 Thu Jan  3 15:28:01 UTC 2013 - locilka@suse.com
 
 - version 2.23.1

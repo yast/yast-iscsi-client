@@ -167,14 +167,14 @@ map<string, map <string, any> > widgets = $[
 			    `VBox(
 				`Left(`Label(_("Incoming Authentication"))),
 				`HBox(
-					`HWeigth(2,`TextEntry(`id(`user_in), _("Username"))),
-                                        `HWeigth(1,`Password(`id(`pass_in), _("Password")))
+					`HWeight(2,`TextEntry(`id(`user_in), _("Username"))),
+                                        `HWeight(1,`Password(`id(`pass_in), _("Password")))
 				  ),
 				`VSpacing(2),
 				`Left( `Label(_("Outgoing Authentication"))),
 				`HBox(
-					`HWeigth(2,`TextEntry(`id(`user_out), _("Username"))), 
-                                        `HWeigth(1,`Password(`id(`pass_out), _("Password")))
+					`HWeight(2,`TextEntry(`id(`user_out), _("Username"))), 
+                                        `HWeight(1,`Password(`id(`pass_out), _("Password")))
 				     )
 				)
 			)

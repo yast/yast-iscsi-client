@@ -17,6 +17,8 @@ Requires:       yast2 >= 2.21.22
 
 BuildArchitectures:	noarch
 
+Requires:       yast2-ruby-bindings >= 1.0.0
+
 Summary:	YaST2 - iSCSI Client Configuration
 
 %description
@@ -35,9 +37,9 @@ client.
 %defattr(-,root,root)
 %dir @yncludedir@/iscsi-client
 @yncludedir@/iscsi-client/*
-@clientdir@/iscsi-client.ycp
-@clientdir@/iscsi-client_*.ycp
-@clientdir@/inst_iscsi-client.ycp
+@clientdir@/iscsi-client.rb
+@clientdir@/iscsi-client_*.rb
+@clientdir@/inst_iscsi-client.rb
 @moduledir@/IscsiClient.*
 @moduledir@/IscsiClientLib.*
 @desktopdir@/iscsi-client.desktop

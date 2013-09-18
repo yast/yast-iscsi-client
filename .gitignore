@@ -23,7 +23,6 @@ doc/autodocs/css
 doc/autodocs/js
 doc/autodocs/Yast
 package/*.bz2
-package/*.spec
 testsuite/*.log
 testsuite/*.sum
 testsuite/*.test

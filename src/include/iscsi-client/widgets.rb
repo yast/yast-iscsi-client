@@ -591,11 +591,13 @@ module Yast
       # validate IP address
       if !IscsiClientLib.useISNS
         if Ops.greater_than(Builtins.size(ip), 0)
-          if !IP.Check4(ip)
+          if !IP.Check4(ip) && !IP.Check6(ip)
+            # check for valid host name (take only first line of 'host'
+            # output because with IPv6 there might be several lines)
             output = Convert.convert(
               SCR.Execute(
                 path(".target.bash_output"),
-                Builtins.sformat("host -4 %1|tr -d '\n'", ip)
+                Builtins.sformat("host -4 %1|head -1|tr -d '\n'", ip)
               ),
               :from => "any",
               :to   => "map <string, any>"
@@ -613,6 +615,8 @@ module Yast
               UI.SetFocus(:hostname)
               return false
             end
+          elsif IP.Check6(ip)
+            ip = "[#{ip}]" # brackets needed around IPv6
           end
         else
           Popup.Error(_("Insert the IP address."))

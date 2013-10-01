@@ -22,6 +22,7 @@
 # |
 # |***************************************************************************
 require "yast"
+require 'ipaddr'
 
 module Yast
   class IscsiClientLibClass < Module
@@ -349,12 +350,17 @@ module Yast
       nil
     end
 
+    # Called for data (output) of commands:
+    #  iscsiadm -m node -P 1
+    #  iscsiadm -m session -P 1
     def ScanDiscovered(data)
       data = deep_copy(data)
       ret = []
       target = ""
       portal = ""
       iface = ""
+      Builtins.y2milestone("Got data: %1", data)
+
       Builtins.foreach(data) do |row|
         row = Builtins.substring(row, Builtins.findfirstnotof(row, "\t "), 999)
         if Builtins.search(row, "Target:") != nil
@@ -370,15 +376,16 @@ module Yast
         elsif Builtins.search(row, "Iface Name:") != nil
           iface = Ops.get(Builtins.splitstring(row, " "), 2, "")
           iface = Ops.get(@iface_file, iface, iface)
-          if Builtins.findfirstof(portal, "[]") == nil
-            ret = Builtins.add(
-              ret,
-              Ops.add(
-                Ops.add(Ops.add(Ops.add(portal, " "), target), " "),
-                iface
-              )
+          # don't sort out IPv6 any longer (fate #316261)
+          # if Builtins.findfirstof(portal, "[]") == nil
+          ret = Builtins.add(
+            ret,
+            Ops.add(
+              Ops.add(Ops.add(Ops.add(portal, " "), target), " "),
+              iface
             )
-          end
+          )
+          # end
         end
       end
       Builtins.y2milestone("ScanDiscovered ret:%1", ret)
@@ -705,6 +712,26 @@ module Yast
       ret
     end
 
+    # check whether two given IP addresses (including ports) are equal
+    def ipEqual?(session_ip, current_ip)
+      if !session_ip.start_with?("[")
+        # IPv4 - compare directly
+        return session_ip == current_ip
+      end
+      # get IP and port for IPv6
+      match_data = session_ip.match(/\[([:\w]+)\](:(\d+))?/)
+      s_ip = IPAddr.new(match_data[1] || "")
+      s_port = match_data[3] || ""
+      match_data = current_ip.match(/\[([:\w]+)\](:(\d+))?/)
+      c_ip = IPAddr.new(match_data[1] || "")
+      c_port = match_data[3] || ""
+
+      return (s_ip == c_ip) && (s_port == c_port)
+
+    rescue ArgumentError => e
+      Builtins.y2error("Invalid IP address")
+      false
+    end
 
     # check if given target is connected
     def connected(check_ip)
@@ -715,21 +742,22 @@ module Yast
       )
       ret = false
       Builtins.foreach(@sessions) do |row|
+        ip_ok = true
         list_row = Builtins.splitstring(row, " ")
+        Builtins.y2milestone("Session row: %1", list_row)
+        if check_ip
+          session_ip = Ops.get(
+                               Builtins.splitstring(Ops.get(list_row, 0, ""), ","),
+                               0, "" )
+          current_ip = Ops.get(
+                               Builtins.splitstring(Ops.get(@currentRecord, 0, ""), ","),
+                               0, "" )
+          ip_ok = ipEqual?(session_ip, current_ip)
+        end
+
         if Ops.get(list_row, 1, "") == Ops.get(@currentRecord, 1, "") &&
             Ops.get(list_row, 2, "") == Ops.get(@currentRecord, 2, "") &&
-            (check_ip ?
-              Ops.get(
-                Builtins.splitstring(Ops.get(list_row, 0, ""), ","),
-                0,
-                ""
-              ) ==
-                Ops.get(
-                  Builtins.splitstring(Ops.get(@currentRecord, 0, ""), ","),
-                  0,
-                  ""
-                ) :
-              true)
+            ip_ok
           ret = true
           raise Break
         end

@@ -93,7 +93,7 @@ module Yast
     end
 
     def GetAdmCmd(params)
-      ret = "iscsiadm"
+      ret = "LC_ALL=POSIX iscsiadm"
       ret = Ops.add(Ops.add(ret, " "), params)
       Builtins.y2milestone("GetAdmCmd:%1", ret)
       ret

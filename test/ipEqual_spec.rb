@@ -1,4 +1,4 @@
-require '../src/modules/IscsiClientLib'
+require_relative '../src/modules/IscsiClientLib'
 
 describe Yast::IscsiClientLibClass do
 

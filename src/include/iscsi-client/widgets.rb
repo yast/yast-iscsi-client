@@ -597,7 +597,7 @@ module Yast
             output = Convert.convert(
               SCR.Execute(
                 path(".target.bash_output"),
-                Builtins.sformat("host -4 %1|head -1|tr -d '\n'", ip)
+                "host #{ip}|head -1|tr -d '\n'"
               ),
               :from => "any",
               :to   => "map <string, any>"

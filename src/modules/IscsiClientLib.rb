@@ -376,8 +376,6 @@ module Yast
         elsif Builtins.search(row, "Iface Name:") != nil
           iface = Ops.get(Builtins.splitstring(row, " "), 2, "")
           iface = Ops.get(@iface_file, iface, iface)
-          # don't sort out IPv6 any longer (fate #316261)
-          # if Builtins.findfirstof(portal, "[]") == nil
           ret = Builtins.add(
             ret,
             Ops.add(
@@ -385,7 +383,6 @@ module Yast
               iface
             )
           )
-          # end
         end
       end
       Builtins.y2milestone("ScanDiscovered ret:%1", ret)
@@ -729,7 +726,7 @@ module Yast
       return (s_ip == c_ip) && (s_port == c_port)
 
     rescue ArgumentError => e
-      Builtins.y2error("Invalid IP address")
+      Builtins.y2error("Invalid IP address, error: %1", "#{e}")
       false
     end
 

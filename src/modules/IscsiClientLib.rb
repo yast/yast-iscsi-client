@@ -711,18 +711,29 @@ module Yast
 
     # check whether two given IP addresses (including ports) are equal
     def ipEqual?(session_ip, current_ip)
+      if !session_ip || !current_ip
+        return false
+      end
+      if session_ip.empty? || current_ip.empty?
+        return false
+      end
       if !session_ip.start_with?("[")
         # IPv4 - compare directly
         return session_ip == current_ip
       end
       # get IP and port for IPv6
-      match_data = session_ip.match(/\[([:\w]+)\](:(\d+))?/)
-      s_ip = IPAddr.new(match_data[1] || "")
-      s_port = match_data[3] || ""
-      match_data = current_ip.match(/\[([:\w]+)\](:(\d+))?/)
-      c_ip = IPAddr.new(match_data[1] || "")
-      c_port = match_data[3] || ""
-
+      if match_data = session_ip.match(/\[([:\w]+)\](:(\d+))?/)
+        s_ip = IPAddr.new(match_data[1] || "")
+        s_port = match_data[3] || ""
+      else
+        return false
+      end
+      if match_data = current_ip.match(/\[([:\w]+)\](:(\d+))?/)
+        c_ip = IPAddr.new(match_data[1] || "")
+        c_port = match_data[3] || ""
+      else
+        return false
+      end
       return (s_ip == c_ip) && (s_port == c_port)
 
     rescue ArgumentError => e

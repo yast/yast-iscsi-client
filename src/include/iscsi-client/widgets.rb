@@ -74,21 +74,23 @@ module Yast
         :from => "any",
         :to   => "list <string>"
       )
+      Builtins.y2milestone("Output: %1", stdout)
       if cont_loop
         return_code = Convert.to_integer(SCR.Read(path(".background.status")))
-        if return_code == 255
+        Builtins.y2milestone("Return: %1", return_code)
+        if return_code != 0
           @stat = false
-          Popup.Error(
-            Ops.get(
-              Convert.convert(
-                SCR.Read(path(".background.newerr")),
-                :from => "any",
-                :to   => "list <string>"
-              ),
-              0,
-              ""
-            )
-          )
+          error = Ops.get(
+                          Convert.convert(
+                                          SCR.Read(path(".background.newerr")),
+                                          :from => "any",
+                                          :to   => "list <string>"
+                                          ),
+                          0,
+                          ""
+                          )
+          Builtins.y2error("Error: %1", error)
+          Popup.Error(error)
         else
           @stat = true
         end

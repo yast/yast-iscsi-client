@@ -34,6 +34,36 @@ describe Yast::IscsiClientLibClass do
         expect(@iscsilib.ipEqual?("[213:23:]", "...")).to be_false
       end
     end
+    context "with invalid IPv6 arguments not matching" do
+      it "returns false" do
+        expect(@iscsilib.ipEqual?("[???]", "[***]")).to be_false
+      end
+    end
+    context "with 2 empty arguments" do
+      it "returns false" do
+        expect(@iscsilib.ipEqual?("", "")).to be_false
+      end
+    end
+    context "with empty argument session IP" do
+      it "returns false" do
+        expect(@iscsilib.ipEqual?("", "10.10.10.1:500")).to be_false
+      end
+    end
+    context "with empty argument current IP" do
+      it "returns false" do
+        expect(@iscsilib.ipEqual?("[2620:0113:1c0:8080:4ec:544a:000d:3d62]", "")).to be_false
+      end
+    end
+    context "with nil arguments" do
+      it "returns false" do
+        expect(@iscsilib.ipEqual?(nil, nil)).to be_false
+      end
+    end
+    context "with one nil argument" do
+      it "returns false" do
+        expect(@iscsilib.ipEqual?(nil, "10.10.10.1:500")).to be_false
+      end
+    end
     context "with equal (but different string) and valid IPv6 arguments (without port)" do
       it "returns true" do
         expect(@iscsilib.ipEqual?("[2620:0113:1c0:8080:4ec:544a:000d:3d62]",
@@ -50,6 +80,11 @@ describe Yast::IscsiClientLibClass do
       it "returns true" do
         expect(@iscsilib.ipEqual?("[0020:0113:80c0:8080:0:544a:3b9d:3d62]:456",
                                   "[20:113:80c0:8080::544a:3b9d:3d62]:456")).to be_true
+      end
+    end
+    context "with equal (different string, one abbreviated) valid IPv6 arguments" do
+      it "returns true" do
+        expect(@iscsilib.ipEqual?("[::1]", "[0:0:0:0:0:0:0:1]")).to be_true
       end
     end
     context "with equal (but different string) IPv6 arguments and different ports" do

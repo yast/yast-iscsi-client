@@ -36,17 +36,32 @@ describe Yast::IscsiClientLibClass do
     end
     context "with invalid IPv6 arguments not matching" do
       it "returns false" do
-        expect(@iscsilib.ipEqual?("[???]","[***]")).to be_false
+        expect(@iscsilib.ipEqual?("[???]", "[***]")).to be_false
       end
     end
-    context "with empty arguments" do
+    context "with 2 empty arguments" do
       it "returns false" do
-        expect(@iscsilib.ipEqual?("","")).to be_false
+        expect(@iscsilib.ipEqual?("", "")).to be_false
+      end
+    end
+    context "with empty argument session IP" do
+      it "returns false" do
+        expect(@iscsilib.ipEqual?("", "10.10.10.1:500")).to be_false
+      end
+    end
+    context "with empty argument current IP" do
+      it "returns false" do
+        expect(@iscsilib.ipEqual?("[2620:0113:1c0:8080:4ec:544a:000d:3d62]", "")).to be_false
       end
     end
     context "with nil arguments" do
       it "returns false" do
-        expect(@iscsilib.ipEqual?(nil,nil)).to be_false
+        expect(@iscsilib.ipEqual?(nil, nil)).to be_false
+      end
+    end
+    context "with one nil argument" do
+      it "returns false" do
+        expect(@iscsilib.ipEqual?(nil, "10.10.10.1:500")).to be_false
       end
     end
     context "with equal (but different string) and valid IPv6 arguments (without port)" do

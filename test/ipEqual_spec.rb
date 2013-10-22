@@ -82,6 +82,11 @@ describe Yast::IscsiClientLibClass do
                                   "[20:113:80c0:8080::544a:3b9d:3d62]:456")).to be_true
       end
     end
+    context "with equal (different string, one abbreviated) valid IPv6 arguments" do
+      it "returns true" do
+        expect(@iscsilib.ipEqual?("[::1]", "[0:0:0:0:0:0:0:1]")).to be_true
+      end
+    end
     context "with equal (but different string) IPv6 arguments and different ports" do
       it "returns false" do
         expect(@iscsilib.ipEqual?("[2620:0113:80c0:8080:54ec:004a:3b9d:3d62]:456",

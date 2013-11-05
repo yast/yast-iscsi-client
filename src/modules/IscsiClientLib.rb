@@ -880,7 +880,7 @@ module Yast
         else
           setValue("node.session.auth.username", "")
           setValue("node.session.auth.password", "")
-          setValue("node.session.auth.authmethod", "")
+          setValue("node.session.auth.authmethod", "None")
         end
       else
         setValue("node.session.auth.authmethod", "None")

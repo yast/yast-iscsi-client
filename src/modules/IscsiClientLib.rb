@@ -92,10 +92,17 @@ module Yast
       nil
     end
 
-    def GetAdmCmd(params)
+    # Create and return complete iscsciadm command by adding the string
+    # argument as options. If allowed, write the command to y2log file.
+    #
+    # @param  [String] params	options for iscsiadm command
+    # @param  [Boolean] do_log  write command to y2log?
+    # @return [String] complete command
+    #
+    def GetAdmCmd(params, do_log=true)
       ret = "LC_ALL=POSIX iscsiadm"
       ret = Ops.add(Ops.add(ret, " "), params)
-      Builtins.y2milestone("GetAdmCmd:%1", ret)
+      Builtins.y2milestone("GetAdmCmd: #{ret}") if do_log
       ret
     end
 
@@ -681,17 +688,18 @@ module Yast
 
     # update authentication value
     def setValue(name, value)
-      Builtins.y2milestone("set %1  for record %2", name, @currentRecord)
-      command = GetAdmCmd(
-        Builtins.sformat(
-          "-m node -I %3 -T %1 -p %2 --op=update --name=%4 --value=%5",
-          Ops.get(@currentRecord, 1, ""),
-          Ops.get(@currentRecord, 0, ""),
-          Ops.get(@currentRecord, 2, "default"),
-          name,
-          value
-        )
-      )
+      rec = @currentRecord
+      Builtins.y2milestone("set %1  for record %2", name, rec)
+
+      log = !name.include?("password");
+      cmd = "-m node -I #{rec[2]||"default"} -T #{rec[1]||""} -p #{rec[0]||""} --name=#{name}"
+
+      command = GetAdmCmd("#{cmd} --value=#{value}", log)
+      if !log
+        value = "*****" if !value.empty?
+        Builtins.y2milestone("AdmCmd:LC_ALL=POSIX iscsiadm #{cmd} --value=#{value}")
+      end
+
       ret = true
       retcode = Convert.convert(
         SCR.Execute(path(".target.bash_output"), command),

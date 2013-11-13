@@ -589,6 +589,7 @@ module Yast
       event = deep_copy(event)
       ret = true
       ip = Builtins.tostring(UI.QueryWidget(:hostname, :Value))
+      ip.strip!
       port = Builtins.tostring(UI.QueryWidget(:port, :Value))
       # validate IP address
       if !IscsiClientLib.useISNS

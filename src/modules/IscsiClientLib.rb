@@ -725,31 +725,33 @@ module Yast
       if session_ip.empty? || current_ip.empty?
         return false
       end
-      if !session_ip.start_with?("[")
-        # IPv4 - compare directly
+
+      if !session_ip.start_with?("[") && !current_ip.start_with?("[")
+        # both IPv4 - compare directly
         return session_ip == current_ip
-      end
+      elsif session_ip.start_with?("[") && current_ip.start_with?("[")
+        # both IPv6 - compare IPv6 and port separately
+        ip_port_regex = /\[([:\w]+)\](:(\d+))?/
 
-      # get IP and port for IPv6
-      ip_port_regex = /\[([:\w]+)\](:(\d+))?/
-
-      if match_data = session_ip.match(ip_port_regex)
-        s_ip = IPAddr.new(match_data[1] || "")
-        s_port = match_data[3] || ""
+        if match_data = session_ip.match(ip_port_regex)
+          s_ip = IPAddr.new(match_data[1] || "")
+          s_port = match_data[3] || ""
+        else
+          Builtins.y2error("Session IP %1 not matching", session_ip)
+          return false
+        end
+        if match_data = current_ip.match(ip_port_regex)
+          c_ip = IPAddr.new(match_data[1] || "")
+          c_port = match_data[3] || ""
+        else
+          Builtins.y2error("Current IP %1 not matching", current_ip)
+          return false
+        end
+        return (s_ip == c_ip) && (s_port == c_port)
       else
-        Builtins.y2error("Error: regex not matching for session IP %1",
-                         session_ip)
+        # comparing IPv4 and IPv6
         return false
       end
-      if match_data = current_ip.match(ip_port_regex)
-        c_ip = IPAddr.new(match_data[1] || "")
-        c_port = match_data[3] || ""
-      else
-        Builtins.y2error("Error: regex not matching for current IP: %1",
-                         current_ip)
-        return false
-      end
-      return (s_ip == c_ip) && (s_port == c_port)
 
     rescue ArgumentError => e
       Builtins.y2error("Invalid IP address, error: %1", "#{e}")

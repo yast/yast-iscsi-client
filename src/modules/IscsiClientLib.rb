@@ -92,10 +92,17 @@ module Yast
       nil
     end
 
-    def GetAdmCmd(params)
+    # Create and return complete iscsciadm command by adding the string
+    # argument as options. If allowed, write the command to y2log file.
+    #
+    # @param  [String] params	options for iscsiadm command
+    # @param  [Boolean] do_log  write command to y2log?
+    # @return [String] complete command
+    #
+    def GetAdmCmd(params, do_log=true)
       ret = "LC_ALL=POSIX iscsiadm"
       ret = Ops.add(Ops.add(ret, " "), params)
-      Builtins.y2milestone("GetAdmCmd:%1", ret)
+      Builtins.y2milestone("GetAdmCmd: #{ret}") if do_log
       ret
     end
 
@@ -681,17 +688,18 @@ module Yast
 
     # update authentication value
     def setValue(name, value)
-      Builtins.y2milestone("set %1  for record %2", name, @currentRecord)
-      command = GetAdmCmd(
-        Builtins.sformat(
-          "-m node -I %3 -T %1 -p %2 --op=update --name=%4 --value=%5",
-          Ops.get(@currentRecord, 1, ""),
-          Ops.get(@currentRecord, 0, ""),
-          Ops.get(@currentRecord, 2, "default"),
-          name,
-          value
-        )
-      )
+      rec = @currentRecord
+      Builtins.y2milestone("set %1  for record %2", name, rec)
+
+      log = !name.include?("password");
+      cmd = "-m node -I #{rec[2]||"default"} -T #{rec[1]||""} -p #{rec[0]||""} --name=#{name}"
+
+      command = GetAdmCmd("#{cmd} --value=#{value}", log)
+      if !log
+        value = "*****" if !value.empty?
+        Builtins.y2milestone("AdmCmd:LC_ALL=POSIX iscsiadm #{cmd} --value=#{value}")
+      end
+
       ret = true
       retcode = Convert.convert(
         SCR.Execute(path(".target.bash_output"), command),
@@ -717,31 +725,33 @@ module Yast
       if session_ip.empty? || current_ip.empty?
         return false
       end
-      if !session_ip.start_with?("[")
-        # IPv4 - compare directly
+
+      if !session_ip.start_with?("[") && !current_ip.start_with?("[")
+        # both IPv4 - compare directly
         return session_ip == current_ip
-      end
+      elsif session_ip.start_with?("[") && current_ip.start_with?("[")
+        # both IPv6 - compare IPv6 and port separately
+        ip_port_regex = /\[([:\w]+)\](:(\d+))?/
 
-      # get IP and port for IPv6
-      ip_port_regex = /\[([:\w]+)\](:(\d+))?/
-
-      if match_data = session_ip.match(ip_port_regex)
-        s_ip = IPAddr.new(match_data[1] || "")
-        s_port = match_data[3] || ""
+        if match_data = session_ip.match(ip_port_regex)
+          s_ip = IPAddr.new(match_data[1] || "")
+          s_port = match_data[3] || ""
+        else
+          Builtins.y2error("Session IP %1 not matching", session_ip)
+          return false
+        end
+        if match_data = current_ip.match(ip_port_regex)
+          c_ip = IPAddr.new(match_data[1] || "")
+          c_port = match_data[3] || ""
+        else
+          Builtins.y2error("Current IP %1 not matching", current_ip)
+          return false
+        end
+        return (s_ip == c_ip) && (s_port == c_port)
       else
-        Builtins.y2error("Error: regex not matching for session IP %1",
-                         session_ip)
+        # comparing IPv4 and IPv6
         return false
       end
-      if match_data = current_ip.match(ip_port_regex)
-        c_ip = IPAddr.new(match_data[1] || "")
-        c_port = match_data[3] || ""
-      else
-        Builtins.y2error("Error: regex not matching for current IP: %1",
-                         current_ip)
-        return false
-      end
-      return (s_ip == c_ip) && (s_port == c_port)
 
     rescue ArgumentError => e
       Builtins.y2error("Invalid IP address, error: %1", "#{e}")
@@ -872,7 +882,7 @@ module Yast
         else
           setValue("node.session.auth.username", "")
           setValue("node.session.auth.password", "")
-          setValue("node.session.auth.authmethod", "")
+          setValue("node.session.auth.authmethod", "None")
         end
       else
         setValue("node.session.auth.authmethod", "None")

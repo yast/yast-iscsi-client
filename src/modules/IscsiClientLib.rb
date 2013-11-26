@@ -1244,12 +1244,15 @@ module Yast
                   Ops.add(@offboard_script, " "),
                   Ops.get_string(l, 0, "")
                 ),
-                " | grep ..:..:..:.."
+                " | grep ..:..:..:.."     # grep for lines containing MAC address
               )
               Builtins.y2milestone("GetOffloadItems cmd:%1", cmd)
               out = Convert.to_map(
                 SCR.Execute(path(".target.bash_output"), cmd)
               )
+              # Example for output if offload is supported on interface:
+              # cmd: iscsi_offload eth2
+              # out: $["exit":0, "stderr":"", "stdout":"00:00:c9:b1:bc:7f ip \n"]
               Builtins.y2milestone(
                 "GetOffloadItems iscsi_offload out:%1",
                 SCR.Execute(
@@ -1324,6 +1327,9 @@ module Yast
                 SCR.Execute(path(".target.bash_output"), cmd)
               )
               Builtins.y2milestone("GetOffloadItems out:%1", out)
+              # Search for lines containing "init addr", means IPv4 address.
+              # Regarding the IPv6 support there are no changes needed here because
+              # the IP address is not used farther.
               line = Ops.get(
                 Builtins.filter(
                   Builtins.splitstring(Ops.get_string(out, "stdout", ""), "\n")

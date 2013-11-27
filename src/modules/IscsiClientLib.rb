@@ -383,13 +383,10 @@ module Yast
         elsif Builtins.search(row, "Iface Name:") != nil
           iface = Ops.get(Builtins.splitstring(row, " "), 2, "")
           iface = Ops.get(@iface_file, iface, iface)
-          ret = Builtins.add(
-            ret,
-            Ops.add(
-              Ops.add(Ops.add(Ops.add(portal, " "), target), " "),
-              iface
-            )
-          )
+          # don't add Scope:Link IPv6 address
+          if !portal.start_with?("[fe80:")
+            ret = ret << "#{portal} #{target} #{iface}"
+          end
         end
       end
       Builtins.y2milestone("ScanDiscovered ret:%1", ret)

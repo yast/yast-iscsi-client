@@ -1318,7 +1318,7 @@ module Yast
             Builtins.maplist(
               Convert.convert(eth, :from => "list", :to => "list <list>")
             ) do |l|
-              cmd = Ops.add("ifconfig ", Ops.get_string(l, 0, ""))
+              cmd = Ops.add("LC_ALL=POSIX ifconfig ", Ops.get_string(l, 0, ""))
               Builtins.y2milestone("GetOffloadItems cmd:%1", cmd)
               out = Convert.to_map(
                 SCR.Execute(path(".target.bash_output"), cmd)

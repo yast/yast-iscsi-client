@@ -1,4 +1,4 @@
-#! env rspec
+#! /usr/bin/rspec
 require_relative '../src/modules/IscsiClientLib'
 
 describe Yast::IscsiClientLibClass do

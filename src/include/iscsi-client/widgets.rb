@@ -600,7 +600,7 @@ module Yast
             output = Convert.convert(
               SCR.Execute(
                 path(".target.bash_output"),
-                "host #{ip}|head -1|tr -d '\n'"
+                "LC_ALL=POSIX host #{ip}|head -1|tr -d '\n'"
               ),
               :from => "any",
               :to   => "map <string, any>"

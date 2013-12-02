@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Nov 27 13:21:24 CET 2013 - gs@suse.de
+
+- improve IPv6 support: filter out Scope:Link IPv6 addresses
+- 3.1.2
+
+-------------------------------------------------------------------
 Tue Nov 12 14:29:00 CET 2013 - gs@suse.de
 
 - add IPv6 support (fate #316261)

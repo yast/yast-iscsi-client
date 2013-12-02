@@ -383,13 +383,10 @@ module Yast
         elsif Builtins.search(row, "Iface Name:") != nil
           iface = Ops.get(Builtins.splitstring(row, " "), 2, "")
           iface = Ops.get(@iface_file, iface, iface)
-          ret = Builtins.add(
-            ret,
-            Ops.add(
-              Ops.add(Ops.add(Ops.add(portal, " "), target), " "),
-              iface
-            )
-          )
+          # don't add Scope:Link IPv6 address
+          if !portal.start_with?("[fe80:")
+            ret = ret << "#{portal} #{target} #{iface}"
+          end
         end
       end
       Builtins.y2milestone("ScanDiscovered ret:%1", ret)
@@ -1321,7 +1318,7 @@ module Yast
             Builtins.maplist(
               Convert.convert(eth, :from => "list", :to => "list <list>")
             ) do |l|
-              cmd = Ops.add("ifconfig ", Ops.get_string(l, 0, ""))
+              cmd = Ops.add("LC_ALL=POSIX ifconfig ", Ops.get_string(l, 0, ""))
               Builtins.y2milestone("GetOffloadItems cmd:%1", cmd)
               out = Convert.to_map(
                 SCR.Execute(path(".target.bash_output"), cmd)

@@ -28,7 +28,7 @@ License:        GPL-2.0
 # Service module switched to systemd
 BuildRequires:	yast2 >= 2.23.15
 BuildRequires:	docbook-xsl-stylesheets doxygen libxslt perl-XML-Writer popt-devel sgml-skel update-desktop-files yast2-packagemanager-devel yast2-perl-bindings yast2-testsuite libicu-devel yast2-packager
-BuildRequires:  yast2-devtools >= 3.0.6
+BuildRequires:  yast2-devtools >= 3.1.10
 BuildRequires:  rubygem-rspec
 
 Requires:	yast2-packager

@@ -262,7 +262,9 @@ global list<string> ScanDiscovered( list<string> data )
 	    {
 	    if( search(row,"Current Portal:")!=nil )
 		portal = splitstring(row, " ")[2]:"";
-	    else if( search(row,"Persistent Portal:")==nil )
+	    else if( search(row,"Persistent Portal:")!=nil )
+		portal = splitstring(row, " ")[2]:"";
+	    else
 		portal = splitstring(row, " ")[1]:"";
 	    integer pos = search(portal,",");
 	    if( pos != nil )

@@ -375,7 +375,11 @@ module Yast
         elsif Builtins.search(row, "Portal:") != nil
           if Builtins.search(row, "Current Portal:") != nil
             portal = Ops.get(Builtins.splitstring(row, " "), 2, "")
-          elsif Builtins.search(row, "Persistent Portal:") == nil
+          elsif Builtins.search(row, "Persistent Portal:") != nil
+            # 'Persistent Portal' overwrites current (is used for login)
+            portal = Ops.get(Builtins.splitstring(row, " "), 2, "")
+          else
+            # read 'Portal' (from output of -m node)
             portal = Ops.get(Builtins.splitstring(row, " "), 1, "")
           end
           pos = Builtins.search(portal, ",")

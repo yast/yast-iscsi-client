@@ -12,6 +12,11 @@ Tue Dec 18 12:57:18 CET 2012 - fehr@suse.de
   targets are defined (bnc#792071)
 
 -------------------------------------------------------------------
+Thu Jan 16 14:11:11 CET 2014 - gs@suse.de
+
+- fix detection of persistent portal (bnc#856494)
+
+-------------------------------------------------------------------
 Wed Mar 21 11:48:21 CET 2012 - fehr@suse.de
 
 - change potential race of chmod after file create (bnc#753129)

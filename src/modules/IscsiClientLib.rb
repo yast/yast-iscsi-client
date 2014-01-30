@@ -37,6 +37,7 @@ module Yast
       Yast.import "Mode"
       Yast.import "String"
       Yast.import "Arch"
+      Yast.import "SystemdSocket"
 
       @sessions = []
       @discovered = []
@@ -76,6 +77,64 @@ module Yast
       ]
 
       @offload_valid = nil
+
+      @iscsid_socket = nil
+    end
+
+    def iscsidSocketActive?
+      if @iscsid_socket
+        @iscsid_socket.active?
+      else
+        false
+      end
+    end
+
+    def iscsidSocketStart
+      if @iscsid_socket
+        @iscsid_socket.start
+      else
+        false
+      end
+    end
+
+    def iscsidSocketStop
+      if @iscsid_socket
+        @iscsid_socket.stop
+     else
+        false
+      end
+    end
+
+    def iscsidSocketEnabled?
+      if @iscsid_socket
+        @iscsid_socket.enabled?
+      else
+        false
+      end
+    end
+
+    def iscsidSocketDisabled?
+      if @iscsid_socket
+        @iscsid_socket.disabled?
+      else
+        false
+      end
+    end
+
+    def iscsidSocketEnable
+      if @iscsid_socket
+        @iscsid_socket.enable
+      else
+        false
+      end
+    end
+
+    def iscsidSocketDisable
+      if @iscsid_socket
+        @iscsid_socket.disable
+      else
+        false
+      end
     end
 
     def GetOffloadCard
@@ -160,20 +219,22 @@ module Yast
 
     # get accessor for service status
     def GetStartService
-      status = Service.Enabled("iscsid")
-      Builtins.y2milestone("Status of iscsid %1", status)
-      status
+      status_d = iscsidSocketEnabled?
+      status = Service.Enabled("iscsi")
+      Builtins.y2milestone("Status iscsid.socket: %1, iscsi: %2", status_d, status)
+      return status_d && status
     end
 
     # set accessor for service status
     def SetStartService(status)
-      Builtins.y2milestone("Set status of iscsid to %1", status)
+      Builtins.y2milestone("Set status of iscsid.socket and iscsi to %1",
+                            status)
       if status == true
-        Service.Enable("boot.iscsid-early")
-        Service.Enable("iscsid")
+        Service.Enable("iscsi")
+        iscsidSocketEnable
       else
-        Service.Disable("boot.iscsid-early")
-        Service.Disable("iscsid")
+        Service.Disable("iscsi")
+        iscsidSocketDisable
       end
 
       nil
@@ -495,7 +556,8 @@ module Yast
         Builtins.y2milestone("Initiatorname %1 written", @initiatorname)
       end
       # reload service when initiatorname is changed to re-read new value (bnc#482429)
-      Service.Reload("iscsid")
+      # restart the daemon (reload not supported with systemd)
+      Service.Restart("iscsid")
       ret
     end
 
@@ -921,13 +983,21 @@ module Yast
       ret = true
       if Stage.initial
         ModuleLoading.Load("iscsi_tcp", "", "", "", false, true)
-        # start daemon before
+        # start daemon manually (systemd not available in inst-sys)
         startIScsid
       else
-        @serviceStatus = true if Service.Status("iscsid") == 0
+        # find socket (only in installed system)
+        @iscsid_socket = SystemdSocket.find("iscsid")
+
+        if (iscsidSocketActive? && (Service.Status("iscsi") == 0))
+          @serviceStatus = true
+        end
         Builtins.y2milestone("Service status = %1", @serviceStatus)
-        # if not enabled, start it manually
-        Service.Start("iscsid") if !@serviceStatus
+        # if not running, start iscsi services and iscsid.socket
+        if !@serviceStatus
+          iscsidSocketStart
+          Service.Start("iscsi")
+        end
       end
       ret
     end
@@ -935,13 +1005,20 @@ module Yast
     # set startup status of iscsid
     def setServiceStatus
       ret = true
-      # if disabled and no connected targets - stop it
-      # otherwise keep it running
-      if !GetStartService()
-        readSessions
-        if Builtins.size(@sessions) == 0
-          Builtins.y2milestone("No active sessions - stopping service")
-          Service.Stop("iscsid")
+      # only makes sense in installed system
+      if !Stage.initial
+        # if disabled and no connected targets - stop it
+        # otherwise keep it running
+        if !GetStartService()
+          readSessions
+          if Builtins.size(@sessions) == 0
+            Builtins.y2milestone("No active sessions - stopping iscsi
+                                  service and iscsid service/socket")
+            # stop iscsid.socket and iscsid.service 
+            iscsidSocketStop
+            Service.Stop("iscsid")
+            Service.Stop("iscsi")
+          end
         end
       end
       Builtins.y2milestone("Status service for iscsid: %1", ret)

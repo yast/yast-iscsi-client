@@ -46,8 +46,10 @@ module Yast
       @iface_file = {}
       @iface_eth = []
 
-      # status of rciscsid service
+      # status of iscsi.service
       @serviceStatus = false
+      # status of iscsid.socket
+      @socketStatus = false
       # main configuration file (/etc/iscsi/iscsid.conf)
       @config = {}
       # iBFT (iSCSI Boot Firmware Table)
@@ -85,6 +87,7 @@ module Yast
       if @iscsid_socket
         @iscsid_socket.active?
       else
+        Builtins.y2error("iscsid.socket not found")
         false
       end
     end
@@ -93,6 +96,7 @@ module Yast
       if @iscsid_socket
         @iscsid_socket.start
       else
+        Builtins.y2error("iscsid.socket not found")
         false
       end
     end
@@ -101,6 +105,7 @@ module Yast
       if @iscsid_socket
         @iscsid_socket.stop
      else
+        Builtins.y2error("iscsid.socket not found")
         false
       end
     end
@@ -109,6 +114,7 @@ module Yast
       if @iscsid_socket
         @iscsid_socket.enabled?
       else
+        Builtins.y2error("iscsid.socket not found")
         false
       end
     end
@@ -117,6 +123,7 @@ module Yast
       if @iscsid_socket
         @iscsid_socket.disabled?
       else
+        Builtins.y2error("iscsid.socket not found")
         false
       end
     end
@@ -125,6 +132,7 @@ module Yast
       if @iscsid_socket
         @iscsid_socket.enable
       else
+        Builtins.y2error("iscsid.socket not found")
         false
       end
     end
@@ -133,6 +141,7 @@ module Yast
       if @iscsid_socket
         @iscsid_socket.disable
       else
+        Builtins.y2error("iscsid.socket not found")
         false
       end
     end
@@ -221,13 +230,13 @@ module Yast
     def GetStartService
       status_d = iscsidSocketEnabled?
       status = Service.Enabled("iscsi")
-      Builtins.y2milestone("Status iscsid.socket: %1, iscsi: %2", status_d, status)
+      Builtins.y2milestone("Start at boot enabled for iscsid.socket: %1, iscsi: %2", status_d, status)
       return status_d && status
     end
 
     # set accessor for service status
     def SetStartService(status)
-      Builtins.y2milestone("Set status of iscsid.socket and iscsi to %1",
+      Builtins.y2milestone("Set start at boot for iscsid.socket and iscsi.service to %1",
                             status)
       if status == true
         Service.Enable("iscsi")
@@ -989,14 +998,17 @@ module Yast
         # find socket (only in installed system)
         @iscsid_socket = SystemdSocket.find("iscsid")
 
-        if (iscsidSocketActive? && (Service.Status("iscsi") == 0))
-          @serviceStatus = true
+        @serviceStatus = true if Service.Status("iscsi") == 0
+        @socketStatus = true if iscsidSocketActive?
+        Builtins.y2milestone("Status of iscsi.service = %1 iscsid.socket = %2",
+                             @serviceStatus, @socketStatus)
+        # if not running, start iscsi.service and iscsid.socket
+        if !@socketStatus
+          Service.Stop("iscsid") if Service.Status("iscsid") == 0 
+          Builtins.y2error("Cannot start iscsid.socket") if !iscsidSocketStart
         end
-        Builtins.y2milestone("Service status = %1", @serviceStatus)
-        # if not running, start iscsi services and iscsid.socket
-        if !@serviceStatus
-          iscsidSocketStart
-          Service.Start("iscsi")
+        if !@serviceStatus && !Service.Start("iscsi")
+          Builtins.y2error("Cannot start iscsi.service")
         end
       end
       ret

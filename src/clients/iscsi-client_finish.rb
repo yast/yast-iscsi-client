@@ -41,6 +41,7 @@ module Yast
       Yast.import "String"
       Yast.import "IscsiClientLib"
       Yast.import "Service"
+      Yast.import "SystemdSocket"
       Yast.include self, "installation/misc.rb"
 
       @ret = nil
@@ -87,8 +88,8 @@ module Yast
           )
         )
         if Ops.greater_than(Builtins.size(IscsiClientLib.sessions), 0)
-          SystemdSocket.find("iscsid")
-          iscsidSocketEnable
+          socket = SystemdSocket.find("iscsid")
+          socket.enable if socket
           Service.Enable("iscsi")
           Builtins.y2milestone("iscsi service and iscsid socket enabled")
         end

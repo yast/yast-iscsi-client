@@ -40,7 +40,7 @@ Requires:       yast2 >= 2.21.22
 
 BuildArchitectures:	noarch
 
-Requires:       yast2-ruby-bindings >= 1.0.0
+Requires:       yast2-ruby-bindings >= 3.1.7
 
 Summary:	YaST2 - iSCSI Client Configuration
 

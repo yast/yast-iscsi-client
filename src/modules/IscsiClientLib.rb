@@ -26,6 +26,9 @@ require 'ipaddr'
 
 module Yast
   class IscsiClientLibClass < Module
+
+    include Yast::Logger
+
     def main
       textdomain "iscsi-client"
 
@@ -87,7 +90,7 @@ module Yast
       if @iscsid_socket
         @iscsid_socket.active?
       else
-        Builtins.y2error("iscsid.socket not found")
+        log.error("iscsid.socket not found")
         false
       end
     end
@@ -96,7 +99,7 @@ module Yast
       if @iscsid_socket
         @iscsid_socket.start
       else
-        Builtins.y2error("iscsid.socket not found")
+        log.error("iscsid.socket not found")
         false
       end
     end
@@ -105,7 +108,7 @@ module Yast
       if @iscsid_socket
         @iscsid_socket.stop
      else
-        Builtins.y2error("iscsid.socket not found")
+        log.error("iscsid.socket not found")
         false
       end
     end
@@ -114,7 +117,7 @@ module Yast
       if @iscsid_socket
         @iscsid_socket.enabled?
       else
-        Builtins.y2error("iscsid.socket not found")
+        log.error("iscsid.socket not found")
         false
       end
     end
@@ -123,7 +126,7 @@ module Yast
       if @iscsid_socket
         @iscsid_socket.disabled?
       else
-        Builtins.y2error("iscsid.socket not found")
+        log.error("iscsid.socket not found")
         false
       end
     end
@@ -132,7 +135,7 @@ module Yast
       if @iscsid_socket
         @iscsid_socket.enable
       else
-        Builtins.y2error("iscsid.socket not found")
+        log.error("iscsid.socket not found")
         false
       end
     end
@@ -141,7 +144,7 @@ module Yast
       if @iscsid_socket
         @iscsid_socket.disable
       else
-        Builtins.y2error("iscsid.socket not found")
+        log.error("iscsid.socket not found")
         false
       end
     end

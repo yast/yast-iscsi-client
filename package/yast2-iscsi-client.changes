@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Mar 14 10:47:43 CET 2014 - gs@suse.de
+
+- start iscsid socket and iscsi service correctly
+  (bnc #867378, bnc #853300)
+- 3.1.4
+
+-------------------------------------------------------------------
 Wed Jan 22 14:16:37 CET 2014 - gs@suse.de
 
 - detect persistent portal correctly (bnc#856494)

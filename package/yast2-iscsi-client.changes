@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Apr  1 11:25:37 CEST 2014 - gs@suse.de
+
+- allow non-standard iqn (bnc #868220)
+
+-------------------------------------------------------------------
 Fri Mar 14 10:47:43 CET 2014 - gs@suse.de
 
 - start iscsid socket and iscsi service correctly

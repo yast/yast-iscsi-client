@@ -419,7 +419,7 @@ module Yast
         Builtins.regexpmatch(i_name, Builtins.sformat("^eui.%1%2$", reg1, reg2))
 
       if !correct
-        Popup.Warning(
+        continue = Popup.ContinueCancel(
           _(
             "Incorrect InitiatorName.\n" +
               "The correct syntax is\n" +
@@ -430,9 +430,10 @@ module Yast
               "iqn.2007-04.cz.server:storage.disk.sdb\n"
           )
         )
+        return continue
+      else
+        return true
       end
-
-      correct
     end
 
 

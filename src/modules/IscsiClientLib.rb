@@ -568,7 +568,7 @@ module Yast
         Builtins.y2milestone("Initiatorname %1 written", @initiatorname)
       end
       # reload service when initiatorname is changed to re-read new value (bnc#482429)
-      # SLES12: restart the daemon (reload not supported with systemd)
+      # SLES12: restart the daemon (reload not supported in iscsid.service)
       Service.Restart("iscsid")
       ret
     end

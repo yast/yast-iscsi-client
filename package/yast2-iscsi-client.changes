@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Apr  1 11:29:00 CEST 2014 - gs@suse.de
+
+- allow non-standard iqn (bnc #868220)
+- version 3.0.1
+
+-------------------------------------------------------------------
 Wed Jul 31 08:31:18 UTC 2013 - yast-devel@opensuse.org
 
 - converted from YCP to Ruby by YCP Killer

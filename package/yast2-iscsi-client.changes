@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Apr  8 14:37:23 CEST 2014 - gs@suse.de
+
+- don't throw exception if socket not found (bnc #872049)
+- add Requires: open-iscsi to spec-file
+- 3.1.5
+
+-------------------------------------------------------------------
 Tue Apr  1 11:25:37 CEST 2014 - gs@suse.de
 
 - allow non-standard iqn (bnc #868220)

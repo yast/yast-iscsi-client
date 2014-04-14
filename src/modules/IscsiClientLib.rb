@@ -999,7 +999,8 @@ module Yast
         startIScsid
       else
         # find socket (only in installed system)
-        @iscsid_socket = SystemdSocket.find("iscsid")
+        # throw exception if socket not found
+        @iscsid_socket = SystemdSocket.find!("iscsid")
 
         @serviceStatus = true if Service.Status("iscsi") == 0
         @socketStatus = true if iscsidSocketActive?

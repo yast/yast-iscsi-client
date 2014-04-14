@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Apr 14 12:28:33 CEST 2014 - gs@suse.de
+
+- reintroduce exception in case of socket not found
+  (Requires: open-iscsi is bug-fix for bnc #872049)
+- 3.1.6
+
+-------------------------------------------------------------------
 Tue Apr  8 14:37:23 CEST 2014 - gs@suse.de
 
 - don't throw exception if socket not found (bnc #872049)

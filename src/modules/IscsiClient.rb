@@ -208,6 +208,8 @@ module Yast
       #    Progress::NextStep();
       # read status of service
       return false if !IscsiClientLib.getServiceStatus
+      # try auto login to target
+      IscsiClientLib.autoLogOn
       Builtins.sleep(sl)
 
       # read current settings

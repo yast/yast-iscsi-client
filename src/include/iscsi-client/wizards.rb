@@ -109,7 +109,7 @@ module Yast
 
       ret = Sequencer.Run(aliases, sequence)
 
-      UI.CloseDialog
+      Wizard.CloseDialog
       deep_copy(ret)
     end
 

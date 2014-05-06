@@ -79,8 +79,12 @@ module Yast
         "disc"      => { :abort => :abort, :back => :back, :next => "global" }
       }
 
+      Wizard.OpenNextBackDialog
+      Wizard.SetDesktopTitleAndIcon("iscsi-client") if Mode.normal
+
       ret = Sequencer.Run(aliases, sequence)
 
+      Wizard.CloseDialog
       deep_copy(ret)
     end
 
@@ -105,7 +109,7 @@ module Yast
 
       ret = Sequencer.Run(aliases, sequence)
 
-      UI.CloseDialog
+      Wizard.CloseDialog
       deep_copy(ret)
     end
 

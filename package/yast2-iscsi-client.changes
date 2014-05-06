@@ -1,7 +1,8 @@
 -------------------------------------------------------------------
 Tue May  6 13:00:25 CEST 2014 - gs@suse.de
 
-- fix layout for installation workflow
+- avoid title on the left in installation workflow (bnc #868859)
+- 3.1.8
 
 -------------------------------------------------------------------
 Fri May  2 13:57:34 CEST 2014 - gs@suse.de

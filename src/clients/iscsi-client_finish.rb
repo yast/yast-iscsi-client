@@ -88,10 +88,12 @@ module Yast
           )
         )
         if Ops.greater_than(Builtins.size(IscsiClientLib.sessions), 0)
+          Builtins.y2milestone("enabling iscsi and iscsid service/socket")
           socket = SystemdSocket.find("iscsid")
           socket.enable if socket
+          # enable iscsi and iscsid service
+          Service.Enable("iscsid")
           Service.Enable("iscsi")
-          Builtins.y2milestone("iscsi service and iscsid socket enabled")
         end
       else
         Builtins.y2error("unknown function: %1", @func)

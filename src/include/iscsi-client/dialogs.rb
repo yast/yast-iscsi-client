@@ -113,8 +113,9 @@ module Yast
                   ComboBox(
                     Id(:offload_card),
                     Opt(:notify),
-                    # do not translate 'Offload' here - it's special hardware
-                    # shifting load from processor to card
+                    # prefer to not translate 'Offload' unless there is a well
+                    # known word for this technology (it's special hardware
+                    # shifting load from processor to card)
                     _("Offload Car&d"),
                     []
                   )

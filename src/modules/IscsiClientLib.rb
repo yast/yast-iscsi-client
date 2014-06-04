@@ -67,8 +67,8 @@ module Yast
       @offboard_script = "iscsi_offload"
 
       @offload = [
-        ["default", "default" + " " + _("(Software)"), [], []],
-        ["all", "all", [], []],
+        ["default", _("default (Software)"), [], []],
+        ["all", _("all"), [], []],
         ["bnx2", "bnx2/bnx2i/bnx2x", ["bnx2", "bnx2i", "bnx2x"], ["bnx2i"]],
         ["cxgb3", "cxgb3/cxgb3i", ["cxgb3", "cxgb3i"], ["cxgb3i"]],
         ["enic", "enic/cnic/fnic", ["enic", "fnic"], ["fnic"]],

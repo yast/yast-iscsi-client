@@ -106,13 +106,16 @@ module Yast
             MinWidth(
               16,
               HBox(
-                TextEntry(Id(:initiator_name), _("Initiator Name")),
+                # name of iscsi client (/etc/iscsi/initiatorname.iscsi)
+                TextEntry(Id(:initiator_name), _("&Initiator Name")),
                 MinWidth(
                   8,
                   ComboBox(
                     Id(:offload_card),
                     Opt(:notify),
-                    _("Offloa&d Card"),
+                    # do not translate 'Offload' here - it's special hardware
+                    # shifting load from processor to card
+                    _("Offload Car&d"),
                     []
                   )
                 )

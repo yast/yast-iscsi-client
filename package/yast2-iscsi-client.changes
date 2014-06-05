@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jun  4 13:18:11 CEST 2014 - gs@suse.de
+
+- mark offload card values for translation (bnc #877920)
+- 3.1.10
+
+-------------------------------------------------------------------
 Mon May 19 12:20:59 CEST 2014 - gs@suse.de
 
 - enable service 'iscsid' (additionally to socket)

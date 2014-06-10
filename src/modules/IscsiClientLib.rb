@@ -50,9 +50,11 @@ module Yast
       @iface_eth = []
 
       # status of iscsi.service
-      @serviceStatus = false
+      @iscsi_service_stat = false
       # status of iscsid.socket
-      @socketStatus = false
+      @iscsid_socket_stat = false
+      # status of iscsiuio.socket
+      @iscsiuio_socket_stat = false
       # main configuration file (/etc/iscsi/iscsid.conf)
       @config = {}
       # iBFT (iSCSI Boot Firmware Table)
@@ -84,67 +86,68 @@ module Yast
       @offload_valid = nil
 
       @iscsid_socket = nil
+      @iscsiuio_socket = nil
     end
 
-    def iscsidSocketActive?
-      if @iscsid_socket
-        @iscsid_socket.active?
+    def socketActive?(socket)
+      if socket
+        socket.active?
       else
-        log.error("iscsid.socket not found")
+        log.error "#{socket} not found"
         false
       end
     end
 
-    def iscsidSocketStart
-      if @iscsid_socket
-        @iscsid_socket.start
+    def socketStart(socket)
+      if socket
+        socket.start
       else
-        log.error("iscsid.socket not found")
+        log.error "#{socket} not found"
         false
       end
     end
 
-    def iscsidSocketStop
-      if @iscsid_socket
-        @iscsid_socket.stop
+    def socketStop(socket)
+      if socket
+        socket.stop
      else
-        log.error("iscsid.socket not found")
+        log.error "#{socket} not found"
         false
       end
     end
 
-    def iscsidSocketEnabled?
-      if @iscsid_socket
-        @iscsid_socket.enabled?
+    def socketEnabled?(socket)
+      if socket
+        socket.enabled?
       else
-        log.error("iscsid.socket not found")
+        log.error "#{socket} not found"
         false
       end
     end
 
-    def iscsidSocketDisabled?
-      if @iscsid_socket
-        @iscsid_socket.disabled?
+    def socketDisabled?(socket)
+      if socket
+        socket.disabled?
       else
-        log.error("iscsid.socket not found")
+        log.error "#{socket} not found"
         false
       end
     end
 
-    def iscsidSocketEnable
-      if @iscsid_socket
-        @iscsid_socket.enable
+    def socketEnable(socket)
+      if socket
+        socket.enable
       else
-        log.error("iscsid.socket not found")
+        log.error "#{socket} not found"
         false
       end
     end
 
-    def iscsidSocketDisable
-      if @iscsid_socket
-        @iscsid_socket.disable
+    def socketDisable(socket)
+      if socket
+        socket.disable
       else
-        log.error("iscsid.socket not found")
+        log.error "#{socket} not found"
         false
       end
     end
@@ -231,22 +234,24 @@ module Yast
 
     # get accessor for service status
     def GetStartService
-      status_d = iscsidSocketEnabled?
+      status_d = socketEnabled?(@iscsid_socket)
+      status_uio = socketEnabled?(@iscsiuio_socket)
       status = Service.Enabled("iscsi")
-      Builtins.y2milestone("Start at boot enabled for iscsid.socket: %1, iscsi: %2", status_d, status)
-      return status_d && status
+      log.info "Start at boot enabled for iscsid.socket: #{status_d}, iscsi: #{status}, iscsiuio.socket: #{status_uio}"
+      return status_d && status && status_uio
     end
 
     # set accessor for service status
     def SetStartService(status)
-      Builtins.y2milestone("Set start at boot for iscsid.socket and iscsi.service to %1",
-                            status)
+      log.info "Set start at boot for iscsid.socket, iscsiuio.socket and iscsi.service to #{status}"
       if status == true
         Service.Enable("iscsi")
-        iscsidSocketEnable
+        socketEnable(@iscsid_socket)
+        socketEnable(@iscsiuio_socket)
       else
         Service.Disable("iscsi")
-        iscsidSocketDisable
+        socketDisable(@iscsid_socket)
+        socketDisable(@iscsiuio_socket)
       end
 
       nil
@@ -997,22 +1002,31 @@ module Yast
         ModuleLoading.Load("iscsi_tcp", "", "", "", false, true)
         # start daemon manually (systemd not available in inst-sys)
         startIScsid
+        # start service 'iscsiuio'
+        Service.Start("iscsiuio")
       else
-        # find socket (only in installed system)
+        # find sockets (only in installed system)
         # throw exception if socket not found
         @iscsid_socket = SystemdSocket.find!("iscsid")
+        @iscsiuio_socket = SystemdSocket.find!("iscsiuio")
 
-        @serviceStatus = true if Service.Status("iscsi") == 0
-        @socketStatus = true if iscsidSocketActive?
-        Builtins.y2milestone("Status of iscsi.service = %1 iscsid.socket = %2",
-                             @serviceStatus, @socketStatus)
-        # if not running, start iscsi.service and iscsid.socket
-        if !@socketStatus
+        @iscsi_service_stat = true if Service.Status("iscsi") == 0
+        @iscsid_socket_stat = true if socketActive?(@iscsid_socket)
+        @iscsiuio_socket_stat = true if socketActive?(@iscsiuio_socket)
+
+        log.info "Status of iscsi.service: #{@iscsi_service_stat}, iscsid.socket: #{@iscsid_socket_stat}, iscsiuio.socket: #{@iscsiuio_socket_stat}"
+
+        # if not running, start iscsi.service, iscsid.socket and iscsiuio.socket
+        if !@iscid_socket_stat
           Service.Stop("iscsid") if Service.Status("iscsid") == 0 
-          Builtins.y2error("Cannot start iscsid.socket") if !iscsidSocketStart
+          log.error "Cannot start iscsid.socket" if !socketStart(@iscsid_socket)
         end
-        if !@serviceStatus && !Service.Start("iscsi")
-          Builtins.y2error("Cannot start iscsi.service")
+        if !@iscsiuio_socket_stat
+          Service.Stop("iscsiuio") if Service.Status("iscsiuio") == 0
+          log.error "Cannot start iscsiuio.socket" if !socketStart(@iscsiuio_socket)
+        end
+        if !@iscsi_service_stat && !Service.Start("iscsi")
+          log.errorSt "Cannot start iscsi.service"
         end
       end
       ret
@@ -1028,16 +1042,19 @@ module Yast
         if !GetStartService()
           readSessions
           if Builtins.size(@sessions) == 0
-            Builtins.y2milestone("No active sessions - stopping iscsi
-                                  service and iscsid service/socket")
+            log.info "No active sessions - stopping iscsi service and iscsid/iscsiuio service and socket"
             # stop iscsid.socket and iscsid.service 
-            iscsidSocketStop
+            socketStop(@iscsid_socket)
             Service.Stop("iscsid")
+            # stop iscsiuio.socket and iscsiuio.service
+            socketStop(@iscsiuio_socket)
+            Service.Stop("iscsiuio")
+            # stop iscsi.service
             Service.Stop("iscsi")
           end
         end
       end
-      Builtins.y2milestone("Status service for iscsid: %1", ret)
+      log.info "Status service for iscsid: #{ret}"
       ret
     end
 

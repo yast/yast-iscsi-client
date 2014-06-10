@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Jun 10 15:00:18 CEST 2014 - gs@suse.de
+
+- ensure installation of package 'iscsiuio', start 'isciuio' service
+  resp. socket (bnc #874795, bnc #881543)
+- 3.1.11
+
+-------------------------------------------------------------------
 Wed Jun  4 13:18:11 CEST 2014 - gs@suse.de
 
 - mark offload card values for translation (bnc #877920)

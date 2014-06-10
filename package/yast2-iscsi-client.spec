@@ -42,6 +42,7 @@ BuildArchitectures:	noarch
 
 Requires:       yast2-ruby-bindings >= 3.1.7
 Requires:       open-iscsi
+Requires:       iscsiuio
 
 Summary:	YaST2 - iSCSI Client Configuration
 

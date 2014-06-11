@@ -511,6 +511,8 @@ module Yast
           raise Break
         end
       end
+      # start service 'iscsiuio'
+      Service.Start("iscsiuio")
 
       nil
     end
@@ -1002,8 +1004,6 @@ module Yast
         ModuleLoading.Load("iscsi_tcp", "", "", "", false, true)
         # start daemon manually (systemd not available in inst-sys)
         startIScsid
-        # start service 'iscsiuio'
-        Service.Start("iscsiuio")
       else
         # find sockets (only in installed system)
         # throw exception if socket not found

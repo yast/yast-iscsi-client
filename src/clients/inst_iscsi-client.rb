@@ -50,6 +50,7 @@ module Yast
       Yast.import "PackagesProposal"
       Yast.import "Installation"
       Yast.import "String"
+      Yast.import "Mode"
       Yast.include self, "iscsi-client/wizards.rb"
 
       # main ui function
@@ -70,13 +71,10 @@ module Yast
       ModuleLoading.Load("iscsi_tcp", "", "", "", false, true)
       IscsiClientLib.LoadOffloadModules
 
-      # start iscsid daemon
+      # start iscsid daemon and service 'iscsiuio'
       IscsiClientLib.startIScsid
-
+      # try auto login to target
       IscsiClientLib.autoLogOn
-      # run dialog
-      @ret = MainSequence()
-      Builtins.y2debug("MainSequence ret=%1", @ret)
 
       # add package open-iscsi and iscsiuio to installed system
       iscsi_packages = ["open-iscsi", "iscsiuio"]
@@ -87,6 +85,15 @@ module Yast
           :package,
           iscsi_packages
         )
+
+      if Mode.autoinst
+        Builtins.y2milestone("Autoinstallation - IscsiClient module finished")
+        return :next
+      end
+
+      # run dialog
+      @ret = MainSequence()
+      Builtins.y2debug("MainSequence ret=%1", @ret)
 
       # Finish
       Builtins.y2milestone("IscsiClient module finished")

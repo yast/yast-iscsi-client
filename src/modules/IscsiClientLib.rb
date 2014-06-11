@@ -93,7 +93,7 @@ module Yast
       if socket
         socket.active?
       else
-        log.error "#{socket} not found"
+        log.error "socket not available"
         false
       end
     end
@@ -102,7 +102,7 @@ module Yast
       if socket
         socket.start
       else
-        log.error "#{socket} not found"
+        log.error "socket not available"
         false
       end
     end
@@ -111,7 +111,7 @@ module Yast
       if socket
         socket.stop
      else
-        log.error "#{socket} not found"
+        log.error "socket not available"
         false
       end
     end
@@ -120,7 +120,7 @@ module Yast
       if socket
         socket.enabled?
       else
-        log.error "#{socket} not found"
+        log.error "socket not available"
         false
       end
     end
@@ -129,7 +129,7 @@ module Yast
       if socket
         socket.disabled?
       else
-        log.error "#{socket} not found"
+        log.error "socket not available"
         false
       end
     end
@@ -138,7 +138,7 @@ module Yast
       if socket
         socket.enable
       else
-        log.error "#{socket} not found"
+        log.error "socket not available"
         false
       end
     end
@@ -147,7 +147,7 @@ module Yast
       if socket
         socket.disable
       else
-        log.error "#{socket} not found"
+        log.error "socket not available"
         false
       end
     end
@@ -1010,23 +1010,23 @@ module Yast
         @iscsid_socket = SystemdSocket.find!("iscsid")
         @iscsiuio_socket = SystemdSocket.find!("iscsiuio")
 
-        @iscsi_service_stat = true if Service.Status("iscsi") == 0
-        @iscsid_socket_stat = true if socketActive?(@iscsid_socket)
-        @iscsiuio_socket_stat = true if socketActive?(@iscsiuio_socket)
+        @iscsi_service_stat = Service.active?("iscsi")
+        @iscsid_socket_stat = socketActive?(@iscsid_socket)
+        @iscsiuio_socket_stat = socketActive?(@iscsiuio_socket)
 
         log.info "Status of iscsi.service: #{@iscsi_service_stat}, iscsid.socket: #{@iscsid_socket_stat}, iscsiuio.socket: #{@iscsiuio_socket_stat}"
 
         # if not running, start iscsi.service, iscsid.socket and iscsiuio.socket
         if !@iscid_socket_stat
-          Service.Stop("iscsid") if Service.Status("iscsid") == 0 
+          Service.Stop("iscsid") if Service.active?("iscsid") 
           log.error "Cannot start iscsid.socket" if !socketStart(@iscsid_socket)
         end
         if !@iscsiuio_socket_stat
-          Service.Stop("iscsiuio") if Service.Status("iscsiuio") == 0
+          Service.Stop("iscsiuio") if Service.active?("iscsiuio")
           log.error "Cannot start iscsiuio.socket" if !socketStart(@iscsiuio_socket)
         end
         if !@iscsi_service_stat && !Service.Start("iscsi")
-          log.errorSt "Cannot start iscsi.service"
+          log.error "Cannot start iscsi.service"
         end
       end
       ret

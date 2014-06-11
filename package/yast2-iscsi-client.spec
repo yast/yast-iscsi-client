@@ -17,7 +17,7 @@
 
 
 Name:           yast2-iscsi-client
-Version:        3.1.10
+Version:        3.1.11
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -42,6 +42,7 @@ BuildArchitectures:	noarch
 
 Requires:       yast2-ruby-bindings >= 3.1.7
 Requires:       open-iscsi
+Requires:       iscsiuio
 
 Summary:	YaST2 - iSCSI Client Configuration
 

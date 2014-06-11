@@ -47,7 +47,7 @@ module Yast
       Yast.import "Report"
       Yast.import "Summary"
       Yast.import "ModuleLoading"
-      Yast.import "Packages"
+      Yast.import "PackagesProposal"
       Yast.import "Installation"
       Yast.import "String"
       Yast.include self, "iscsi-client/wizards.rb"
@@ -77,8 +77,16 @@ module Yast
       # run dialog
       @ret = MainSequence()
       Builtins.y2debug("MainSequence ret=%1", @ret)
-      # add package open-iscsi to installed system
-      Packages.addAdditionalPackage("open-iscsi")
+
+      # add package open-iscsi and iscsiuio to installed system
+      iscsi_packages = ["open-iscsi", "iscsiuio"]
+      Builtins.y2milestone("Additional packages to be installed: %1",
+                            iscsi_packages)
+      PackagesProposal.AddResolvables(
+          "iscsi-client",
+          :package,
+          iscsi_packages
+        )
 
       # Finish
       Builtins.y2milestone("IscsiClient module finished")

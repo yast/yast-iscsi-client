@@ -468,8 +468,8 @@ module Yast
 
     def handleOffload(key, event)
       event = deep_copy(event)
-      if Ops.get_string(event, "EventReason", "") == "ValueChanged" &&
-          Ops.get_symbol(event, "ID", :none) == :offload_card
+      if event["EventReason"] || "" == "ValueChanged" &&
+          event["ID"] || :none == :offload_card
         if Convert.to_string(UI.QueryWidget(:offload_card, :Value)) !=
             IscsiClientLib.GetOffloadCard
           IscsiClientLib.SetOffloadCard(

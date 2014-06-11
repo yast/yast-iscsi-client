@@ -308,7 +308,7 @@ module Yast
     # installed.
     # @return [Hash] with 2 lists.
     def AutoPackages
-      { "install" => ["open-iscsi"], "remove" => [] }
+      { "install" => ["open-iscsi", "iscsiuio"], "remove" => [] }
     end
 
     publish :variable => :configured, :type => "boolean"

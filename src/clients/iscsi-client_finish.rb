@@ -94,6 +94,10 @@ module Yast
           # enable iscsi and iscsid service
           Service.Enable("iscsid")
           Service.Enable("iscsi")
+          Builtins.y2milestone("enabling iscsiuio socket and service")
+          socket = SystemdSocket.find("iscsiuio")
+          socket.enable if socket
+          Service.Enable("iscsiuio")
         end
       else
         Builtins.y2error("unknown function: %1", @func)

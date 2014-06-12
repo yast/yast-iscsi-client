@@ -925,14 +925,17 @@ module Yast
     end
 
     def autoLogOn
+      ret = true
       Builtins.y2milestone("begin of autoLogOn function")
       if Ops.greater_than(Builtins.size(getiBFT), 0)
-        Builtins.y2milestone(
-          "Autologin into iBFT : %1",
-          SCR.Execute(path(".target.bash_output"), GetAdmCmd("-m fw -l"))
-        )
+        result = Convert.to_map(SCR.Execute(path(".target.bash_output"),
+                                            GetAdmCmd("-m fw -l")))
+        if result["exit"] || 255 != 0
+          ret = false
+        end
+        log.info "Autologin into iBFT : #{result}"
       end
-      true
+      ret
     end
 
 

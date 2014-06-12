@@ -74,7 +74,7 @@ module Yast
       # start iscsid daemon and service 'iscsiuio'
       IscsiClientLib.startIScsid
       # try auto login to target
-      IscsiClientLib.autoLogOn
+      auto_login = IscsiClientLib.autoLogOn
 
       # add package open-iscsi and iscsiuio to installed system
       iscsi_packages = ["open-iscsi", "iscsiuio"]
@@ -86,7 +86,7 @@ module Yast
           iscsi_packages
         )
 
-      if Mode.autoinst
+      if Mode.autoinst && auto_login
         Builtins.y2milestone("Autoinstallation - IscsiClient module finished")
         return :next
       end

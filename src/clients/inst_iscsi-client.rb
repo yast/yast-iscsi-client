@@ -56,7 +56,13 @@ module Yast
       # main ui function
       @ret = nil
 
-      Builtins.y2milestone("start iscsid")
+      Builtins.y2milestone("Loading module %1", "iscsi_tcp")
+      ModuleLoading.Load("iscsi_tcp", "", "", "", false, true)
+
+      # start iscsid daemon and service 'iscsiuio'
+      Builtins.y2milestone("start service iscsiuio and daemon iscsid")
+      IscsiClientLib.start_services_initial
+
       SCR.Execute(
         path(".target.bash"),
         "mkdir -p /etc/iscsi; touch /etc/iscsi/initiatorname.iscsi; ln -s /etc/iscsi/initiatorname.iscsi /etc/initiatorname.iscsi"
@@ -65,14 +71,9 @@ module Yast
       #WFM::Execute (.local.bash,"test -d /etc/iscsi/ && /bin/cp -a /etc/iscsi/* " + String::Quote(Installation::destdir) + "/etc/iscsi/");
       IscsiClientLib.checkInitiatorName
 
-
       IscsiClientLib.getiBFT
-      Builtins.y2milestone("Loading module %1", "iscsi_tcp")
-      ModuleLoading.Load("iscsi_tcp", "", "", "", false, true)
       IscsiClientLib.LoadOffloadModules
 
-      # start iscsid daemon and service 'iscsiuio'
-      IscsiClientLib.startIScsid
       # try auto login to target
       auto_login = IscsiClientLib.autoLogOn
 

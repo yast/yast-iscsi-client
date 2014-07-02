@@ -104,7 +104,7 @@ module Yast
         IscsiClient.write_only = true
         ModuleLoading.Load("iscsi_tcp", "", "", "", false, true)
         IscsiClientLib.autoyastPrepare
-        IscsiClientLib.startIScsid
+        IscsiClientLib.start_services_initial
         @ret = IscsiClient.Write
         Progress.set(@progress_orig)
       else

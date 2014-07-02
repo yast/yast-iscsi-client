@@ -446,10 +446,9 @@ module Yast
           Convert.to_string(UI.QueryWidget(:initiator_name, :Value))
         )
         if Stage.initial
-          SCR.Execute(path(".target.bash"), "killproc /sbin/iscsid")
-          IscsiClientLib.startIScsid
+          IscsiClientLib.restart_iscsid_initial
         else
-          SCR.Execute(path(".target.bash"), "rciscsid restart")
+          Service.Restart("iscsid")
         end
         Builtins.y2milestone(
           "write initiatorname %1",

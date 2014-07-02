@@ -491,9 +491,23 @@ module Yast
       deep_copy(@discovered)
     end
 
+    def start_services_initial
+      # start service 'iscsiuio' and daemon 'iscsid'
+      Service.Start("iscsiuio")
+      start_iscsid_initial
+    end
 
-    def startIScsid
-      SCR.Execute(path(".target.bash"), "pgrep iscsid || iscsid")
+    def restart_iscsid_initial
+      retcode = Convert.to_map(SCR.Execute(path(".target.bash"),
+                                           "pgrep iscsid"))
+      if retcode == 0
+        Service.Stop("iscsid")
+      end
+      start_iscsid_initial
+    end
+
+    def start_iscsid_initial
+      SCR.Execute(path(".target.bash"), "pgrep iscsid || /sbin/iscsid")
       Builtins.foreach([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]) do |i|
         Builtins.sleep(1 * 1000)
         cmd = Convert.convert(
@@ -511,8 +525,6 @@ module Yast
           raise Break
         end
       end
-      # start service 'iscsiuio'
-      Service.Start("iscsiuio")
 
       nil
     end
@@ -576,7 +588,11 @@ module Yast
       end
       # reload service when initiatorname is changed to re-read new value (bnc#482429)
       # SLES12: restart the daemon (reload not supported in iscsid.service)
-      Service.Restart("iscsid")
+      if Stage.initial
+        restart_iscsid_initial
+      else
+        Service.Restart("iscsid")
+      end
       ret
     end
 
@@ -930,7 +946,7 @@ module Yast
       if Ops.greater_than(Builtins.size(getiBFT), 0)
         result = Convert.to_map(SCR.Execute(path(".target.bash_output"),
                                             GetAdmCmd("-m fw -l")))
-        if result["exit"] || 255 != 0
+        if result["exit"] != 0
           ret = false
         end
         log.info "Autologin into iBFT : #{result}"
@@ -1006,7 +1022,7 @@ module Yast
       if Stage.initial
         ModuleLoading.Load("iscsi_tcp", "", "", "", false, true)
         # start daemon manually (systemd not available in inst-sys)
-        startIScsid
+        start_services_initial
       else
         # find sockets (only in installed system)
         # throw exception if socket not found
@@ -1075,7 +1091,7 @@ module Yast
         checkInitiatorName
       end
       # start daemon before
-      startIScsid
+      start_services_initial
 
       nil
     end
@@ -1644,7 +1660,7 @@ module Yast
     publish :function => :saveConfig, :type => "void (string, string, string, string)"
     publish :function => :ScanDiscovered, :type => "list <string> (list <string>)"
     publish :function => :getDiscovered, :type => "list <string> ()"
-    publish :function => :startIScsid, :type => "void ()"
+    publish :function => :start_services_initial, :type => "void ()"
     publish :function => :readSessions, :type => "boolean ()"
     publish :function => :writeInitiatorName, :type => "boolean (string)"
     publish :function => :checkInitiatorName, :type => "boolean ()"

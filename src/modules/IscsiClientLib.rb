@@ -498,9 +498,9 @@ module Yast
     end
 
     def restart_iscsid_initial
-      retcode = Convert.to_map(SCR.Execute(path(".target.bash_output"), 
+      retcode = Convert.to_map(SCR.Execute(path(".target.bash"),
                                            "pgrep iscsid"))
-      if retcode["exit"] == 0
+      if retcode == 0
         Service.Stop("iscsid")
       end
       start_iscsid_initial

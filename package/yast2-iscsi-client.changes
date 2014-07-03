@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Jul  3 11:04:01 CEST 2014 - gs@suse.de
+
+- convert result of command call correctly (related to bnc #884761)
+- 3.1.14 
+
+-------------------------------------------------------------------
 Wed Jul  2 13:21:29 CEST 2014 - gs@suse.de
 
 - start and restart daemon 'iscsid' manually during installation

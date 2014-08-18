@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Aug 18 16:08:27 CEST 2014 - locilka@suse.com
+
+- Updating the node DB while using authentication (bnc#889967
+  comment#10)
+- 3.1.15
+
+-------------------------------------------------------------------
 Thu Jul  3 11:04:01 CEST 2014 - gs@suse.de
 
 - convert result of command call correctly (related to bnc #884761)

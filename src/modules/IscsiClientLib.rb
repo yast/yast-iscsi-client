@@ -789,7 +789,7 @@ module Yast
       Builtins.y2milestone("set %1  for record %2", name, rec)
 
       log = !name.include?("password");
-      cmd = "-m node -I #{rec[2]||"default"} -T #{rec[1]||""} -p #{rec[0]||""} --name=#{name}"
+      cmd = "-m node -I #{rec[2]||"default"} -T #{rec[1]||""} -p #{rec[0]||""} --op=update --name=#{name}"
 
       command = GetAdmCmd("#{cmd} --value=#{value}", log)
       if !log

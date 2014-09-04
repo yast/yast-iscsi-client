@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Sep  4 12:21:49 UTC 2014 - mvidner@suse.com
+
+- Use a more flexible rubygem requirement syntax (bnc#895069)
+- 3.1.16
+
+-------------------------------------------------------------------
 Mon Aug 18 16:08:27 CEST 2014 - locilka@suse.com
 
 - Updating the node DB while using authentication (bnc#889967

@@ -17,7 +17,7 @@
 
 
 Name:           yast2-iscsi-client
-Version:        3.1.15
+Version:        3.1.16
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -29,7 +29,7 @@ License:        GPL-2.0
 BuildRequires:	yast2 >= 2.23.15
 BuildRequires:	docbook-xsl-stylesheets doxygen libxslt perl-XML-Writer popt-devel sgml-skel update-desktop-files yast2-packagemanager-devel yast2-perl-bindings yast2-testsuite libicu-devel yast2-packager
 BuildRequires:  yast2-devtools >= 3.1.10
-BuildRequires:  rubygem-rspec
+BuildRequires:  rubygem(rspec)
 
 Requires:	yast2-packager
 

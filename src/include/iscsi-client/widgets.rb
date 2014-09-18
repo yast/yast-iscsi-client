@@ -301,7 +301,7 @@ module Yast
       address = Convert.to_string(UI.QueryWidget(:isns_address, :Value))
       port = Convert.to_string(UI.QueryWidget(:isns_port, :Value))
       return true if Builtins.size(address) == 0 && Builtins.size(port) == 0
-      if !IP.Check4(address)
+      if !IP.Check(address)
         Popup.Error(_("No valid IP address"))
         UI.SetFocus(:isns_address)
         return false
@@ -575,8 +575,9 @@ module Yast
     # *******************Server Location ***********************
 
     def initServerLocation(key)
-      Builtins.y2internal("is iSNS %1", IscsiClientLib.useISNS)
-      if IscsiClientLib.useISNS
+      isns_info = IscsiClientLib.useISNS()
+      Builtins.y2milestone("is iSNS %1", isns_info["use"])
+      if isns_info["use"]
         UI.ChangeWidget(:hostname, :Enabled, false)
         UI.ChangeWidget(:port, :Enabled, false)
       end
@@ -592,9 +593,10 @@ module Yast
       ip.strip!
       port = Builtins.tostring(UI.QueryWidget(:port, :Value))
       # validate IP address
-      if !IscsiClientLib.useISNS
+      isns_info = IscsiClientLib.useISNS()
+      if !isns_info["use"]
         if Ops.greater_than(Builtins.size(ip), 0)
-          if !IP.Check4(ip) && !IP.Check6(ip)
+          if !IP.Check(ip)
             # check for valid host name (take only first line of 'host'
             # output because with IPv6 there might be several lines)
             output = Convert.convert(

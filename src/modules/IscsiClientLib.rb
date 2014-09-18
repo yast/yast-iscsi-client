@@ -281,14 +281,19 @@ module Yast
 
     # do we use iSNS for targets?
     def useISNS
-      use = false
+      isns_info = {"use" => false, "address" => "", "port" => ""}
+      # validateISNS checks for not empty address and port,
+      # storeISNS adds values to config
       Builtins.foreach(getConfig) do |row|
-        if Ops.get_string(row, "name", "") == "isns.address" ||
-            Ops.get_string(row, "name", "") == "isns.port"
-          use = true
+        if row["name"] == "isns.address"
+          isns_info["address"] = row["value"]
+          isns_info["use"] = true
+        end
+        if row["name"] == "isns.port"
+          isns_info["port"] = row["value"]
         end
       end
-      use
+      isns_info
     end
 
 
@@ -1613,8 +1618,9 @@ module Yast
     def GetDiscoveryCmd(ip, port, fw)
       Builtins.y2milestone("GetDiscoveryCmd ip:%1 port:%2 fw:%3", ip, port, fw)
       command = "-m discovery -P 1"
-      if useISNS
-        command = Ops.add(command, " -t isns")
+      isns_info = useISNS()
+      if isns_info["use"]
+        command = "#{command} -t isns -p #{isns_info["address"]}:#{isns_info["port"]}"
       else
         ifs = GetDiscIfaces()
         Builtins.y2milestone("ifs=%1", ifs)
@@ -1653,7 +1659,7 @@ module Yast
     publish :function => :SetStartService, :type => "void (boolean)"
     publish :function => :getConfig, :type => "list <map <string, any>> ()"
     publish :function => :setConfig, :type => "void (list)"
-    publish :function => :useISNS, :type => "boolean ()"
+    publish :function => :useISNS, :type => "map <string, any> ()"
     publish :function => :oldConfig, :type => "void ()"
     publish :function => :getNode, :type => "map <string, any> ()"
     publish :function => :saveConfig, :type => "void (string, string, string, string)"

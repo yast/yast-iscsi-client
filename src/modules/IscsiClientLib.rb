@@ -281,15 +281,14 @@ module Yast
 
     # do we use iSNS for targets?
     def useISNS
-      isns_info = {"use" => false, "address" => "", "port" => ""}
+      isns_info = {"use" => false, "address" => "", "port" => "3205"}
       # validateISNS checks for not empty address and port,
       # storeISNS adds values to config
       Builtins.foreach(getConfig) do |row|
         if row["name"] == "isns.address"
           isns_info["address"] = row["value"]
           isns_info["use"] = true
-        end
-        if row["name"] == "isns.port"
+        elsif row["name"] == "isns.port"
           isns_info["port"] = row["value"]
         end
       end
@@ -1620,7 +1619,7 @@ module Yast
       command = "-m discovery -P 1"
       isns_info = useISNS()
       if isns_info["use"]
-        command = "#{command} -t isns -p #{isns_info["address"]}:#{isns_info["port"]}"
+        command << " -t isns -p #{isns_info["address"]}:#{isns_info["port"]}"
       else
         ifs = GetDiscIfaces()
         Builtins.y2milestone("ifs=%1", ifs)

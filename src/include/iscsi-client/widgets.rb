@@ -576,7 +576,7 @@ module Yast
 
     def initServerLocation(key)
       isns_info = IscsiClientLib.useISNS()
-      Builtins.y2internal("is iSNS %1", isns_info["use"])
+      Builtins.y2milestone("is iSNS %1", isns_info["use"])
       if isns_info["use"]
         UI.ChangeWidget(:hostname, :Enabled, false)
         UI.ChangeWidget(:port, :Enabled, false)

@@ -880,9 +880,9 @@ void CallConfigScript()
 	});
     }
 
-global string GetDiscoveryCmd( string ip, string port, boolean fw)
+global string GetDiscoveryCmd( string ip, string port, boolean fw, boolean only_new)
     {
-    y2milestone( "GetDiscoveryCmd ip:%1 port:%2 fw:%3", ip, port, fw);
+    y2milestone( "GetDiscoveryCmd ip:%1 port:%2 fw:%3 only_new: %4", ip, port, fw, only_new);
     string command = "-m discovery -P 1";
     if( useISNS() )
 	command = command + " -t isns";
@@ -897,6 +897,8 @@ global string GetDiscoveryCmd( string ip, string port, boolean fw)
 	    tgt = "fw";
 	command = command + sformat( " -t %4 %3 -p %1:%2", ip, port, 
 	                             mergestring(ifs," "), tgt);
+        if( only_new )
+            command = command + " -o new";
 	}
     command = GetAdmCmd(command);
     y2milestone( "GetDiscoveryCmd %1", command );

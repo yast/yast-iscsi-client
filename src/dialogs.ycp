@@ -123,7 +123,7 @@ map<string, map <string, any> > widgets = $[
 		"custom_widget"	:
 		 `VBox(
 		  `Table(`id(`targets), `opt(`notify, `immediate),
-			`header(_("Portal Address"), _("Target Name"), _("Connected")),
+			`header(_("Interface"), _("Portal Address"), _("Target Name"), _("Connected")),
 			[]
 			),
 		  `Left(`HBox(

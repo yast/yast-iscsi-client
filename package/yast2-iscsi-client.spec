@@ -17,7 +17,7 @@
 
 
 Name:           yast2-iscsi-client
-Version:        3.1.17
+Version:        3.1.18
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -27,7 +27,7 @@ Group:	        System/YaST
 License:        GPL-2.0
 # Service module switched to systemd
 BuildRequires:	yast2 >= 2.23.15
-BuildRequires:	docbook-xsl-stylesheets doxygen libxslt perl-XML-Writer popt-devel sgml-skel update-desktop-files yast2-packagemanager-devel yast2-perl-bindings yast2-testsuite libicu-devel yast2-packager
+BuildRequires:	docbook-xsl-stylesheets libxslt update-desktop-files yast2-testsuite
 BuildRequires:  yast2-devtools >= 3.1.10
 BuildRequires:  rubygem(rspec)
 

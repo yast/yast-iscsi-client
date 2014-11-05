@@ -1,6 +1,14 @@
 -------------------------------------------------------------------
+Wed Nov  5 14:41:39 CET 2014 - gs@suse.de
+
+- 2.17.38
+- don't change startup mode for already connected targets when
+  using the 'Add' button on 'Connected Targets' tab (bnc#886796)
+
+-------------------------------------------------------------------
 Thu Jan 16 14:11:11 CET 2014 - gs@suse.de
 
+- 2.17.37
 - fix detection of persistent portal (bnc#856494)
 
 -------------------------------------------------------------------

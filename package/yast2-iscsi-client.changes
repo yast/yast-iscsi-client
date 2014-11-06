@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Nov  6 15:41:25 CET 2014 - gs@suse.de
+
+- don't change startup mode for already connected targets when
+  using the 'Add' button on 'Connected Targets' tab (bnc #886796)
+- 3.1.19
+
+-------------------------------------------------------------------
 Wed Oct 22 13:52:08 UTC 2014 - lslezak@suse.cz
 
 - removed unnecessary BuildRequires dependencies

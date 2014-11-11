@@ -673,10 +673,8 @@ module Yast
       # 'Add' button at 'Connected Targets' is used, create discovery
       # command with option --new. The start-up mode for already connected
       # targets won't change then (fate #317874, bnc #886796).
-      option_new = false
-      if @current_tab == "client"
-        option_new = true
-      end
+      option_new = (@current_tab == "client")
+
       command = IscsiClientLib.GetDiscoveryCmd(ip, port,
                                                use_fw: false,
                                                only_new: option_new)

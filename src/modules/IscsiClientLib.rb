@@ -1687,7 +1687,7 @@ module Yast
     publish :function => :GetOffloadItems, :type => "list <term> ()"
     publish :function => :GetOffloadModules, :type => "list <string> ()"
     publish :function => :LoadOffloadModules, :type => "list <string> ()"
-    publish :function => :GetDiscoveryCmd, :type => "string (string, string, boolean, boolean)"
+    publish :function => :GetDiscoveryCmd, :type => "string (string, string, map)"
   end
 
   IscsiClientLib = IscsiClientLibClass.new

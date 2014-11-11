@@ -1639,9 +1639,8 @@ module Yast
           )
         )
       end
-      if only_new
-         command = "#{command} -o new"
-      end
+      command << " -o new" if only_new
+
       command = GetAdmCmd(command)
       Builtins.y2milestone("GetDiscoveryCmd %1", command)
       command

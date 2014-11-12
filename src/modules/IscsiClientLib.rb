@@ -1614,8 +1614,9 @@ module Yast
       nil
     end
 
-    def GetDiscoveryCmd(ip, port, fw)
-      Builtins.y2milestone("GetDiscoveryCmd ip:%1 port:%2 fw:%3", ip, port, fw)
+    def GetDiscoveryCmd(ip, port, use_fw: false, only_new: false)
+      Builtins.y2milestone("GetDiscoveryCmd ip:%1 port:%2 fw:%3 only new:%4",
+                           ip, port, use_fw, only_new)
       command = "-m discovery -P 1"
       isns_info = useISNS()
       if isns_info["use"]
@@ -1626,7 +1627,7 @@ module Yast
         ifs = Builtins.maplist(ifs) { |s| Ops.add("-I ", s) }
         Builtins.y2milestone("ifs=%1", ifs)
         tgt = "st"
-        tgt = "fw" if fw
+        tgt = "fw" if use_fw
         command = Ops.add(
           command,
           Builtins.sformat(
@@ -1638,6 +1639,8 @@ module Yast
           )
         )
       end
+      command << " -o new" if only_new
+
       command = GetAdmCmd(command)
       Builtins.y2milestone("GetDiscoveryCmd %1", command)
       command
@@ -1683,7 +1686,7 @@ module Yast
     publish :function => :GetOffloadItems, :type => "list <term> ()"
     publish :function => :GetOffloadModules, :type => "list <string> ()"
     publish :function => :LoadOffloadModules, :type => "list <string> ()"
-    publish :function => :GetDiscoveryCmd, :type => "string (string, string, boolean)"
+    publish :function => :GetDiscoveryCmd, :type => "string (string, string, map)"
   end
 
   IscsiClientLib = IscsiClientLibClass.new

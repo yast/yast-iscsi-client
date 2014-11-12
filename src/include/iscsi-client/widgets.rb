@@ -668,13 +668,24 @@ module Yast
       #y2internal("auth: %1/%2, %3/%4", user_in, pass_in, user_out, pass_out);
       @bg_finish = false
       # ` with authentication
-      command = IscsiClientLib.GetDiscoveryCmd(ip, port, false)
+
+      # Check @current_tab (dialogs.rb) here. If it's "client", i.e. the
+      # 'Add' button at 'Connected Targets' is used, create discovery
+      # command with option --new. The start-up mode for already connected
+      # targets won't change then (fate #317874, bnc #886796).
+      option_new = (@current_tab == "client")
+
+      command = IscsiClientLib.GetDiscoveryCmd(ip, port,
+                                               use_fw: false,
+                                               only_new: option_new)
       trg_list = runInBg(command)
       while !@bg_finish
 
       end
       if Builtins.size(trg_list) == 0
-        command = IscsiClientLib.GetDiscoveryCmd(ip, port, true)
+        command = IscsiClientLib.GetDiscoveryCmd(ip, port,
+                                                 use_fw: true,
+                                                 only_new: option_new)
         trg_list = runInBg(command)
         while !@bg_finish
 

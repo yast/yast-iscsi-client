@@ -274,7 +274,8 @@ global list<string> ScanDiscovered( list<string> data )
 	    {
 	    iface = splitstring(row, " ")[2]:"";
 	    iface = iface_file[iface]:iface;
-	    if( findfirstof( portal, "[]" )==nil )
+            // don't add Scope:Link IPv6 address
+	    if( !issubstring(portal, "[fe80:") )
 		ret = add(ret, portal + " " + target + " " + iface);
 	    }
 	});

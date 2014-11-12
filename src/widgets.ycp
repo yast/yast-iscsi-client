@@ -197,7 +197,7 @@ boolean validateISNS(string key, map event){
  string address = (string)UI::QueryWidget(`isns_address, `Value);
  string port	= (string)UI::QueryWidget(`isns_port,	 `Value);
  if (size(address)==0 && size(port)==0) return true;
- if(!IP::Check4(address)){
+ if(!IP::Check(address)){
   Popup::Error(_("No valid IP address"));
   UI::SetFocus(`isns_address);
   return false;
@@ -409,16 +409,18 @@ y2internal("is iSNS %1", IscsiClientLib::useISNS());
 }
 
 // do discovery to selected portal
-boolean validateServerLocation(string key, map event){
+boolean validateServerLocation(string key, map event) {
  boolean ret = true;
  string ip = tostring(UI::QueryWidget(`hostname, `Value));
  string port = tostring(UI::QueryWidget(`port, `Value));
  // validate IP address
 if (!IscsiClientLib::useISNS())
  {
-  if (size(ip)>0){
-      if (!IP::Check4(ip)) {
-		map<string, any> output = (map<string, any>)SCR::Execute(.target.bash_output, sformat("host -4 %1|tr -d '\n'", ip));
+  if (size(ip)>0) {
+      if (!IP::Check(ip)) {
+                // check for valid host name (take only first line of 'host'
+                // output because with IPv6 there might be several lines)
+		map<string, any> output = (map<string, any>)SCR::Execute(.target.bash_output, sformat("LC_ALL=POSIX host %1|head -1|tr -d '\n'", ip));
 		list<string> out=splitstring(output["stdout"]:"", " ");
 		ip=out[size(out)-1]:"";
 		y2internal("%1", out);
@@ -429,6 +431,9 @@ if (!IscsiClientLib::useISNS())
 		  return false;
 		 }
 		}
+      else if (IP::Check6(ip)) {
+              ip = sformat("[%1]", ip); // brackets needed around IPv6
+          }
    } else{
 	Popup::Error(_("Insert the IP address."));
 	UI::SetFocus(`ip);

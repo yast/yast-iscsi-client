@@ -274,7 +274,8 @@ global list<string> ScanDiscovered( list<string> data )
 	    {
 	    iface = splitstring(row, " ")[2]:"";
 	    iface = iface_file[iface]:iface;
-	    if( findfirstof( portal, "[]" )==nil )
+            // don't add Scope:Link IPv6 address
+	    if( !issubstring(portal, "[fe80:") )
 		ret = add(ret, portal + " " + target + " " + iface);
 	    }
 	});
@@ -432,16 +433,29 @@ global string getStartupStatus(){
 // update authentication value
 global boolean setValue(string name, string value){
  y2milestone("set %1  for record %2", name, currentRecord);
- string command = GetAdmCmd(sformat("-m node -I %3 -T %1 -p %2 --op=update --name=%4 --value=%5", 
+ string command = sformat("iscsiadm -m node -I %3 -T %1 -p %2 --op=update --name=%4 --value=%5", 
                                     currentRecord[1]:"", currentRecord[0]:"", currentRecord[2]:"default",
-				    name, value));
+				    name, value);
+ string log_value = value;
+ if (issubstring(name, "password"))
+ {
+    if (size(log_value) != 0)
+    {
+        log_value = "*****";
+    }
+ }
+ string log_command = sformat("iscsiadm -m node -I %3 -T %1 -p %2 --op=update --name=%4 --value=%5", 
+                                    currentRecord[1]:"", currentRecord[0]:"", currentRecord[2]:"default",
+                                    name, log_value);
+ y2milestone("Cmd: %1", log_command);
+
  boolean ret = true;
         map<string, any> retcode = (map<string, any>) SCR::Execute(.target.bash_output, command);
     if (size(retcode["stderr"]:"")>0) {
 				y2error("%1", retcode["stderr"]:"");
 				ret =  false;
 				}
-y2milestone("return value %1", ret);
+ y2milestone("return value %1", ret);
  return ret;
 }
 

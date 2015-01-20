@@ -492,11 +492,15 @@ y2internal("retcode %1", retcode);
 }
 
 global boolean autoLogOn(){
-y2milestone("begin of autoLogOn function");
- if (size(getiBFT())>0){
-  y2milestone("Autologin into iBFT : %1", SCR::Execute(.target.bash_output, GetAdmCmd("-m fw -l")));
+ boolean ret = true;
+ map<string, any> retcode = $[];
+ y2milestone("begin of autoLogOn function");
+ if (size(getiBFT())>0) {
+  retcode = (map<string, any>) SCR::Execute(.target.bash_output, GetAdmCmd("-m fw -l"));
+  if (retcode["exit"]:255 != 0) ret = false;
+  y2milestone("Autologin into iBFT : %1", retcode);
  }
- return true;
+ return ret;
 }
 
 

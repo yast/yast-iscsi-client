@@ -28,6 +28,7 @@ import "ModuleLoading";
 import "Packages";
 import "Installation";
 import "String";
+import "Mode";
 include "iscsi-client/wizards.ycp";
 
 /* main ui function */
@@ -48,12 +49,22 @@ IscsiClientLib::LoadOffloadModules();
 // start iscsid daemon
 IscsiClientLib::startIScsid();
 
-IscsiClientLib::autoLogOn();
+// try auto login to target
+boolean auto_login = true;
+auto_login = IscsiClientLib::autoLogOn();
+
+// add package open-iscsi to installed system
+Packages::addAdditionalPackage("open-iscsi");
+
+if (Mode::autoinst() && auto_login)
+{
+    y2milestone("Autoinstallation - IscsiClient module finished");
+    return (any) `next;
+}
+
 // run dialog
 ret = MainSequence();
 y2debug("MainSequence ret=%1", ret);
-// add package open-iscsi to installed system
-Packages::addAdditionalPackage("open-iscsi");
 
 /* Finish */
 y2milestone("IscsiClient module finished");

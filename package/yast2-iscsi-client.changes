@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Jun  4 14:34:47 UTC 2015 - lszhu@suse.com
+
+- Incoming authentication and outgoing authentication were set backwards (bnc#933576)
+- 3.1.22
+
+-------------------------------------------------------------------
 Fri Feb  6 13:02:45 UTC 2015 - ancor@suse.com
 
 - The unit tests are now compatible with RSpec 3 (bnc#916364)

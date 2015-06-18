@@ -88,9 +88,10 @@ module Yast
           ),
         # table of connected targets
         "server_table"   => _(
-          "List of current sessions. To add a new target, select it and press <b>Add</b>.\n" +
-            "To remove it, press <b>Log Out</b>.\n" +
-            "To change the start-up status, press <b>Toggle</b>.\n"
+          "<p>List of current sessions.<br>
+Use the <b>Add</b> button to get additional targets. A discovery is started to detect new targets and the start-up mode of already connected targets keeps unchanged.<br>
+Use <b>Log Out</b> to cancel the connection and with it remove the target from list.\n
+To change the start-up status, press <b>Edit</b>.</p>"
         ) +
           # Warning
           _("<h1>Warning</h1>") +
@@ -140,7 +141,15 @@ module Yast
           ),
         # list of discovered targets
         "discovered"     => _(
-          "List of discovered targets. Start a new <b>Discovery</b> or <b>Connect</b> to any target."
+          "<p>This screen shows the list of discovered targets.<br>
+Use the <b>Discovery</b> button to get available iSCSI targets (from server specified in pop-up).<br>
+<b>Log In</b> to a target to establih the connection. If login was successful the column <i>Connected</i> shows status 'True' and the target will appear on the <i>Connected Targets</i> screen.<br>
+<b>Please note:</b> Starting the <b>Discovery</b> again means doing a re-discovery of targets which possibly will change the start-up mode of already connected targets (to default 'manual').
+Switch to <i>Connected Targets</i> screen and use the <b>Add</b> button if you want to add new targets without changing the start-up mode.<br>
+To remove a target use the <b>Delete</b> button. <b>Hint:</b>
+Removing of targets is only possible for not connected onces. If required <b>Log Out</b> at <i>Connected Targets</i>
+first.</p>"
+
         ),
         "ibft_table"     => _("<h1>iBTF</h1>") +
           "The <p>iSCSI Boot Firmware Table</p> is a table created by the iSCSI boot firmware in order to\npass parameters about the iSCSI boot device to the loaded OS."

@@ -425,7 +425,7 @@ module Yast
         Builtins.regexpmatch(i_name, Builtins.sformat("^eui.%1%2$", reg1, reg2))
 
       if !correct
-        go_on = Popup.YesNoHeadline( _("Incorrect InitiatorName"),
+        go_on = Popup.YesNoHeadline( _("Incorrect Initiator Name"),
           _(
             "\n" +
             "The correct syntax is\n" +

@@ -1,9 +1,9 @@
 -------------------------------------------------------------------
 Thu Jun 18 14:22:05 CEST 2015 - gs@suse.de
 
-- warn only once about non-standard initiator name (bnc #926621)
+- warn only once about non-standard initiator name (bsc#926621)
 - improve help text concerning re-discovery of targets and 
-  start-up mode (bnc #924502)
+  start-up mode (bsc#924502)
 - 3.1.22
 
 -------------------------------------------------------------------

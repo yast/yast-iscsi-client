@@ -129,9 +129,6 @@ module Yast
         "conn_auth"      => _(
           "<h1>iSCSI Initiator</h1>"
         ) +
-          _(
-            "Select the type of authentication and enter the <b>Username</b> and <b>Password</b>."
-          ) +
           _("<h1>Startup</h1>") +
           _(
             "<p><b>manual</b> is for iSCSI targets which are not to be connected by\n" +
@@ -140,6 +137,15 @@ module Yast
               "root is on iSCSI. As such it will be evaluated by the initrd.</p>\n" +
               "<p><b>automatic</b> is for iSCSI targets to be connected when the iSCSI service\n" +
               "starts up.</p>\n"
+          ) +
+        _("<h1>Authentication</h1>") +
+        _(
+          "<p>The default setting here is <i>No Authentication</i>. Uncheck the checkbox if " \
+          "authentication is needed for security reasons. Enter <b>Username</b> and <b>Password</b> " \
+          "for 'Incoming Authentication', 'Outgoing Authentication' or for both.</p>" \
+          "<p><b>Please note:</b><br>" \
+          "'Incoming Authentication' here correlates to 'Outgoing Authentication' "\
+          "on iSCSI target server side and the other way round.</p>"
           ),
         # list of discovered targets
         "discovered"     => _(

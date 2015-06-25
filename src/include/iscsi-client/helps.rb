@@ -109,7 +109,7 @@ module Yast
         # discovery new target
         "discovery"      => _("<h1>iSCSI Initiator</h1>") +
           _(
-            "Enter the <b>IP Address</b> of the discovered server.\n" +
+            "Enter the <b>IP Address</b> of the iSCSI target server.\n" +
               "Only change <b>Port</b> if needed. For authentication, use <b>Username</b> and <b>Password</b>. If you do not need authentication,\n" +
               "select <b>No Authentication</b>.\n"
           ) +
@@ -144,19 +144,19 @@ module Yast
         # list of discovered targets
         "discovered"     => _(
           "<p>This screen shows the list of discovered targets.</p>" \
-          "<p>Use the <b>Discovery</b> button to get available iSCSI targets (from server " \
-          "specified in pop-up).<br>" \
+          "<p>Use the <b>Discovery</b> button to get available iSCSI targets " \
+          "from a server specified by IP address.<br>" \
           "<b>Log In</b> to a target to establih the connection. If login was successful " \
           "the column <i>Connected</i> shows status 'True' and the target will appear on " \
-          "the <i>Connected Targets</i> screen.<p>" \
-          "<p><b>Please note:</b> Starting the <b>Discovery</b> again means doing a re-discovery "\
+          "the <i>Connected Targets</i> screen.<br>" \
+          "To remove a target use the <b>Delete</b> button.<br> <b>Hint:</b> " \
+          "Removing of targets is only possible for not connected onces. " \
+          "If required, <b>Log Out</b> at <i>Connected Targets</i> first.</p>" \
+          "<p><b>Please note:</b> Starting the <b>Discovery</b> again means doing a re-discovery " \
           "of targets which possibly will change the start-up mode of already connected targets " \
           "(to default 'manual'). " \
           "Switch to <i>Connected Targets</i> screen and use the <b>Add</b> button if you want " \
-          "to add new targets without changing the start-up mode.</p>" \
-          "<p>To remove a target use the <b>Delete</b> button.<br> <b>Hint:</b> " \
-          "Removing of targets is only possible for not connected onces. " \
-          "If required, <b>Log Out</b> at <i>Connected Targets</i> first.</p>"
+          "to add new targets without changing the start-up mode.</p>"
         ),
         "ibft_table"     => _("<h1>iBTF</h1>") +
           "The <p>iSCSI Boot Firmware Table</p> is a table created by the iSCSI boot firmware in order to\npass parameters about the iSCSI boot device to the loaded OS."

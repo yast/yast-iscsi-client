@@ -407,6 +407,12 @@ module Yast
       #  is freely selectable. For further details please check the iSCSI spec.
 
       i_name = Convert.to_string(UI.QueryWidget(:initiator_name, :Value))
+
+      # name not changed at all or already saved after checking it
+      if IscsiClientLib.initiatorname == i_name
+        return true
+      end
+
       # regexp for "yyyy-mm."
       reg1 = "[[:digit:]]{4}-[[:digit:]]{2}."
       # regexp for "cz.suse" or just "suse", "cz.su-se"
@@ -419,18 +425,20 @@ module Yast
         Builtins.regexpmatch(i_name, Builtins.sformat("^eui.%1%2$", reg1, reg2))
 
       if !correct
-        continue = Popup.ContinueCancel(
+        go_on = Popup.YesNoHeadline( _("Incorrect Initiator Name"),
           _(
-            "Incorrect InitiatorName.\n" +
-              "The correct syntax is\n" +
-              "iqn.yyyy-mm.reversed.domain.name[:identifier]\n" +
-              "or eui.yyyy-mm.reversed.domain.name[:identifier]\n" +
-              "\n" +
-              "Example:\n" +
-              "iqn.2007-04.cz.server:storage.disk.sdb\n"
+            "\n" +
+            "The correct syntax is\n" +
+            "iqn.yyyy-mm.reversed.domain.name[:identifier]\n" +
+            "or eui.yyyy-mm.reversed.domain.name[:identifier]\n" +
+            "\n" +
+            "Example:\n" +
+            "iqn.2007-04.cz.server:storage.disk.sdb\n" +
+            "\n" +
+            "Do you want to use the name?\n"
           )
         )
-        return continue
+        return go_on
       else
         return true
       end

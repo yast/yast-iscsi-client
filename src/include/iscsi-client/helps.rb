@@ -88,9 +88,12 @@ module Yast
           ),
         # table of connected targets
         "server_table"   => _(
-          "List of current sessions. To add a new target, select it and press <b>Add</b>.\n" +
-            "To remove it, press <b>Log Out</b>.\n" +
-            "To change the start-up status, press <b>Toggle</b>.\n"
+          "<p>List of current sessions.</p>" \
+            "<p>Use the <b>Add</b> button to get additional targets. A discovery is started to " \
+            "detect new targets and the start-up mode of already connected targets keeps " \
+            "unchanged.<br>" \
+            "Use <b>Log Out</b> to cancel the connection and with it remove the target from the list.<br>" \
+            "To change the start-up status, press <b>Edit</b>.</p>"
         ) +
           # Warning
           _("<h1>Warning</h1>") +
@@ -98,7 +101,7 @@ module Yast
             "<p>When accessing an iSCSI device <b>READ</b>/<b>WRITE</b>, make sure that this access is exclusive. Otherwise there is a potential risk of data corruption.</p>\n"
           ),
         "initiator_name" => _(
-          "<p><b>InitiatorName</b> is a value from <tt>/etc/iscsi/initiatorname.iscsi</tt>. \nIn case you have iBFT, this value will be added from there and you are only able to change it in the BIOS setup.</p>"
+          "<p><b>Initiator Name</b> is a value from <tt>/etc/iscsi/initiatorname.iscsi</tt>. \nIn case you have iBFT, this value will be added from there and you are only able to change it in the BIOS setup.</p>"
         ),
         "isns"           => _(
           "If you want to use <b>iSNS</b> (Internet  Storage  Name Service) for discovering targets instead of the default SendTargets method,\nfill in the IP address of the iSNS server and port. The default port should be 3205.\n"
@@ -106,7 +109,7 @@ module Yast
         # discovery new target
         "discovery"      => _("<h1>iSCSI Initiator</h1>") +
           _(
-            "Enter the <b>IP Address</b> of the discovered server.\n" +
+            "Enter the <b>IP Address</b> of the iSCSI target server.\n" +
               "Only change <b>Port</b> if needed. For authentication, use <b>Username</b> and <b>Password</b>. If you do not need authentication,\n" +
               "select <b>No Authentication</b>.\n"
           ) +
@@ -126,9 +129,6 @@ module Yast
         "conn_auth"      => _(
           "<h1>iSCSI Initiator</h1>"
         ) +
-          _(
-            "Select the type of authentication and enter the <b>Username</b> and <b>Password</b>."
-          ) +
           _("<h1>Startup</h1>") +
           _(
             "<p><b>manual</b> is for iSCSI targets which are not to be connected by\n" +
@@ -137,10 +137,32 @@ module Yast
               "root is on iSCSI. As such it will be evaluated by the initrd.</p>\n" +
               "<p><b>automatic</b> is for iSCSI targets to be connected when the iSCSI service\n" +
               "starts up.</p>\n"
+          ) +
+        _("<h1>Authentication</h1>") +
+        _(
+          "<p>The default setting here is <i>No Authentication</i>. Uncheck the checkbox if " \
+          "authentication is needed for security reasons. Enter <b>Username</b> and <b>Password</b> " \
+          "for 'Incoming Authentication', 'Outgoing Authentication' or for both.</p>" \
+          "<p><b>Please note:</b><br>" \
+          "'Incoming Authentication' here correlates to 'Outgoing Authentication' "\
+          "on iSCSI target server side and the other way round.</p>"
           ),
         # list of discovered targets
         "discovered"     => _(
-          "List of discovered targets. Start a new <b>Discovery</b> or <b>Connect</b> to any target."
+          "<p>This screen shows the list of discovered targets.</p>" \
+          "<p>Use the <b>Discovery</b> button to get available iSCSI targets " \
+          "from a server specified by IP address.<br>" \
+          "<b>Log In</b> to a target to establih the connection. If login was successful " \
+          "the column <i>Connected</i> shows status 'True' and the target will appear on " \
+          "the <i>Connected Targets</i> screen.<br>" \
+          "To remove a target use the <b>Delete</b> button.<br> <b>Hint:</b> " \
+          "Removing of targets is only possible for not connected onces. " \
+          "If required, <b>Log Out</b> at <i>Connected Targets</i> first.</p>" \
+          "<p><b>Please note:</b> Starting the <b>Discovery</b> again means doing a re-discovery " \
+          "of targets which possibly will change the start-up mode of already connected targets " \
+          "(to default 'manual'). " \
+          "Switch to <i>Connected Targets</i> screen and use the <b>Add</b> button if you want " \
+          "to add new targets without changing the start-up mode.</p>"
         ),
         "ibft_table"     => _("<h1>iBTF</h1>") +
           "The <p>iSCSI Boot Firmware Table</p> is a table created by the iSCSI boot firmware in order to\npass parameters about the iSCSI boot device to the loaded OS."

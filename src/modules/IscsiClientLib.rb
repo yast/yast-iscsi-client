@@ -1008,6 +1008,11 @@ module Yast
         :to   => "map <string, any>"
       )
       Builtins.y2internal("output %1", output)
+
+      if (output["exit"] || -1) != 0
+        Report.Error( _("Target connection failed.\n") +
+                      output["stderr"] || "" )
+      end
       # if (output["exit"]:-1==0){
       # set startup status to auto by default (bnc#400610)
       setStartupStatus("onboot") if !Mode.autoinst

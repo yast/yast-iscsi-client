@@ -158,7 +158,7 @@ module Yast
               HBox(
                 PushButton(Id(:add), _("Add")), #			`PushButton(`id(`toggle), _("Toggle Start-Up"))
                 PushButton(Id(:edit), _("Edit")),
-                PushButton(Id(:del), _("Log Out"))
+                PushButton(Id(:del), _("Disconnect"))
               )
             )
           ),
@@ -190,7 +190,7 @@ module Yast
             Left(
               HBox(
                 PushButton(Id(:discovery), _("Discovery")),
-                PushButton(Id(:connect), _("Log In")),
+                PushButton(Id(:connect), _("Connect")),
                 PushButton(Id(:delete), Label.DeleteButton)
               )
             )

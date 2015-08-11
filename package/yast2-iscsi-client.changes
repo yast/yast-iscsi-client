@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Jul 30 12:06:28 CEST 2015 - gs@suse.de
+
+- show error popup if target connection failed (bsc#9339537)
+- rename Log In/Log Out to Connect/Disconnect (bsc#939529)
+- 3.1.23
+
+-------------------------------------------------------------------
 Thu Jun 18 14:22:05 CEST 2015 - gs@suse.de
 
 - warn only once about non-standard initiator name (bsc#926621)

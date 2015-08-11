@@ -92,7 +92,7 @@ module Yast
             "<p>Use the <b>Add</b> button to get additional targets. A discovery is started to " \
             "detect new targets and the start-up mode of already connected targets keeps " \
             "unchanged.<br>" \
-            "Use <b>Log Out</b> to cancel the connection and with it remove the target from the list.<br>" \
+            "Use <b>Disconnect</b> to cancel the connection and with it remove the target from the list.<br>" \
             "To change the start-up status, press <b>Edit</b>.</p>"
         ) +
           # Warning
@@ -152,12 +152,12 @@ module Yast
           "<p>This screen shows the list of discovered targets.</p>" \
           "<p>Use the <b>Discovery</b> button to get available iSCSI targets " \
           "from a server specified by IP address.<br>" \
-          "<b>Log In</b> to a target to establih the connection. If login was successful " \
+          "<b>Connect</b> to a target to establih the connection. If login was successful " \
           "the column <i>Connected</i> shows status 'True' and the target will appear on " \
           "the <i>Connected Targets</i> screen.<br>" \
           "To remove a target use the <b>Delete</b> button.<br> <b>Hint:</b> " \
           "Removing of targets is only possible for not connected onces. " \
-          "If required, <b>Log Out</b> at <i>Connected Targets</i> first.</p>" \
+          "If required, <b>Disconnect</b> at <i>Connected Targets</i> first.</p>" \
           "<p><b>Please note:</b> Starting the <b>Discovery</b> again means doing a re-discovery " \
           "of targets which possibly will change the start-up mode of already connected targets " \
           "(to default 'manual'). " \

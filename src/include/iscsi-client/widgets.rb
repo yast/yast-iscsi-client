@@ -685,7 +685,7 @@ module Yast
 
       command = IscsiClientLib.GetDiscoveryCmd(ip, port,
                                                use_fw: false,
-                                               only_new: option_new)
+                                               only_new: TRUE)
       trg_list = runInBg(command)
       while !@bg_finish
 

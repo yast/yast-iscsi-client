@@ -190,44 +190,46 @@ module Yast
       deep_copy(hidden)
     end
 
+    # Look for iSCSI boot firmware table (available only on special hardware/netcards)
+    #
+    # @return [String] stdout of command 'iscsiadm -m fw' (--mode fw)
+    #
+    def getFirmwareInfo
+      bios_info = SCR.Execute(path(".target.bash_output"), GetAdmCmd("-m fw"))
 
-    # get iBFT (available only on some special hardware)
+      bios_info["stdout"] || ""
+    end
+
+    # Get iBFT (iSCSI boot firmware table) info
+    #
+    # @return [Hash] iBFT data converted to a hash (passwords are hidden)
+    #
     def getiBFT
       if @ibft == nil
         if !Arch.i386 && !Arch.x86_64
-          Builtins.y2milestone(
-            "Because architecture %1 is is different from x86, not using iBFT",
-            Arch.arch_short
-          )
+          log.info "Because architecture #{Arch.arch_short} is different from x86, not using iBFT"
           return {}
         end
         @ibft = {}
-        Builtins.y2milestone(
-          "check and modprobe iscsi_ibft : %1",
-          SCR.Execute(
-            path(".target.bash_output"),
-            "lsmod |grep -q iscsi_ibft || modprobe iscsi_ibft"
-          )
-        )
-        from_bios = Ops.get_string(
-          Convert.convert(
-            SCR.Execute(path(".target.bash_output"), GetAdmCmd("-m fw")),
-            :from => "any",
-            :to   => "map <string, any>"
-          ),
-          "stdout",
-          ""
-        )
-        Builtins.foreach(Builtins.splitstring(from_bios, "\n")) do |row|
-          key_val = Builtins.splitstring(row, "=")
-          #   if (size(key_val[0]:"")>0) ibft[key_val[0]:""] = key_val[1]:"";
-          kv = String.CutBlanks(Ops.get(key_val, 0, ""))
-          if Ops.greater_than(Builtins.size(kv), 0)
-            Ops.set(@ibft, kv, String.CutBlanks(Ops.get(key_val, 1, "")))
+
+        ret = SCR.Execute(path(".target.bash_output"),
+                          "lsmod |grep -q iscsi_ibft || modprobe iscsi_ibft")
+
+        log.info "check and modprobe iscsi_ibft: #{ret}"
+
+        from_bios = getFirmwareInfo.split("\n")
+
+        from_bios.each do |row|
+          key, val = row.split("=")
+
+          key = key.to_s.strip
+          if !key.empty?
+            @ibft[key] = val.to_s.strip
           end
         end
       end
-      Builtins.y2milestone("iBFT %1", hidePassword(@ibft))
+
+      log.info "iBFT: #{hidePassword(@ibft)}"
       deep_copy(@ibft)
     end
 

@@ -192,15 +192,12 @@ module Yast
 
     # Look for iSCSI boot firmware table (available only on special hardware/netcards)
     #
-    # @return [String] stdout of command 'iscsiadm -m fw'
+    # @return [String] stdout of command 'iscsiadm -m fw' (--mode fw)
     #
     def getFirmwareInfo
-      bios_info = Convert.to_map(SCR.Execute(path(".target.bash_output"),
-                                             GetAdmCmd("-m fw")))
+      bios_info = SCR.Execute(path(".target.bash_output"), GetAdmCmd("-m fw"))
 
-      fw_info = bios_info.fetch("stdout", "")
-
-      deep_copy(fw_info)
+      bios_info["stdout"] || ""
     end
 
     # Get iBFT (iSCSI boot firmware table) info
@@ -210,24 +207,24 @@ module Yast
     def getiBFT
       if @ibft == nil
         if !Arch.i386 && !Arch.x86_64
-          log.info "Because architecture #{Arch.arch_short} is is different from x86, not using iBFT"
+          log.info "Because architecture #{Arch.arch_short} is different from x86, not using iBFT"
           return {}
         end
         @ibft = {}
 
-        retcode = Convert.to_map(SCR.Execute(path(".target.bash_output"),
-                                             "lsmod |grep -q iscsi_ibft || modprobe iscsi_ibft"))
+        ret = SCR.Execute(path(".target.bash_output"),
+                          "lsmod |grep -q iscsi_ibft || modprobe iscsi_ibft")
 
-        log.info "check and modprobe iscsi_ibft: #{retcode}"
+        log.info "check and modprobe iscsi_ibft: #{ret}"
 
         from_bios = getFirmwareInfo.split("\n")
 
         from_bios.each do |row|
-          splitted_row = row.split("=")
+          key, val = row.split("=")
 
-          key_val = splitted_row.fetch(0, "").strip
-          if !key_val.empty?
-            @ibft[key_val] = splitted_row.fetch(1, "").strip
+          key = key.to_s.strip
+          if !key.empty?
+            @ibft[key] = val.to_s.strip
           end
         end
       end

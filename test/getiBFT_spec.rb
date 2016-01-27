@@ -38,8 +38,8 @@ describe Yast::IscsiClientLibClass do
 
     context "when could not get list of targets from firmware" do
       it "returns an empty map " do
-        @iscsilib.stub(:getFirmwareInfo).
-          and_return("")
+        Yast::Arch.stub(:architecture).and_return("x86_64")
+        @iscsilib.stub(:getFirmwareInfo).and_return("")
 
         ibft_data = @iscsilib.getiBFT()
          
@@ -49,8 +49,7 @@ describe Yast::IscsiClientLibClass do
 
     context "when not on x86 hardware" do
       it "returns an empty map " do
-        Yast::Arch.stub(:x86_64).and_return(false)
-        Yast::Arch.stub(:i386).and_return(false)      
+        Yast::Arch.stub(:architecture).and_return("s390_64")
         
         ibft_data = @iscsilib.getiBFT()
 

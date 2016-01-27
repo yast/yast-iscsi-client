@@ -13,13 +13,15 @@ describe Yast::IscsiClientLibClass do
       it "returns data in form of a map " do
         @iscsilib.stub(:getFirmwareInfo).
           and_return("# BEGIN RECORD 2.0-872\n"\
-                     "# END RECORD\n"\
                      "iface.bootproto = STATIC\n"\
+                     "iface.transport_name = tcp\n"\
                      "iface.hwaddress = 00:00:c9:b1:bc:7f\n"\
                      "iface.initiatorname = iqn.2011-05.com.emulex:eraptorrfshoneport1\n"\
+                     "iface.ipaddress = 2620:0113:80c0:8000:000c:0000:0000:04dc\n"\
                      "node.conn[0].address = 172.0.21.6\n"\
                      "node.conn[0].port = 3260\n"\
-                     "node.name = iqn.1986-03.com.ibm:sn.135061874\n"
+                     "node.name = iqn.1986-03.com.ibm:sn.135061874\n"\
+                     "# END RECORD\n"
                      )
 
         ibft_data = @iscsilib.getiBFT()
@@ -30,6 +32,8 @@ describe Yast::IscsiClientLibClass do
                                   "iface.bootproto" => "STATIC", 
                                   "iface.hwaddress" => "00:00:c9:b1:bc:7f", 
                                   "iface.initiatorname" => "iqn.2011-05.com.emulex:eraptorrfshoneport1", 
+                                  "iface.transport_name" => "tcp",
+                                  "iface.ipaddress" => "2620:0113:80c0:8000:000c:0000:0000:04dc",
                                   "node.conn[0].address" => "172.0.21.6", 
                                   "node.conn[0].port" => "3260", 
                                   "node.name" => "iqn.1986-03.com.ibm:sn.135061874"})

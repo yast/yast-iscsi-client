@@ -230,41 +230,6 @@ module Yast
           when :edit
             record = setRecord
             return :edit
-          when :toggle
-            # change manual/onboot status of connected target
-            # don't use automatic anymore (replaced by onboot) (bnc#449108)
-            record = setRecord
-            if Ops.greater_than(Builtins.size(record), 0)
-              Builtins.y2milestone("toggle record %1", record)
-              startup = IscsiClientLib.getStartupStatus
-              if Ops.greater_than(Builtins.size(startup), 0)
-                # toggle all 3 possible values (bnc#457252)
-                options = ["manual", "onboot", "automatic"]
-                pos = 0
-                Builtins.foreach(options) do |option|
-                  if startup == option
-                    startup = Ops.get(
-                      options,
-                      Ops.greater_than(Builtins.size(options), Ops.add(pos, 1)) ?
-                        Ops.add(pos, 1) :
-                        0,
-                      ""
-                    )
-                    Builtins.y2milestone(
-                      "Changing state from %1 to %2",
-                      option,
-                      startup
-                    )
-                    IscsiClientLib.setStartupStatus(startup)
-                    raise Break
-                  end
-                  pos = Ops.add(pos, 1)
-                end
-                initConnectedTable("")
-              end
-            else
-              Popup.Error(_("No record found."))
-            end
         end
       end
       # if nothing selected - disable some buttons, otherwise enable them

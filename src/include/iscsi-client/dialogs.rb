@@ -156,7 +156,7 @@ module Yast
             ),
             Left(
               HBox(
-                PushButton(Id(:add), _("Add")), #			`PushButton(`id(`toggle), _("Toggle Start-Up"))
+                PushButton(Id(:add), _("Add")),
                 PushButton(Id(:edit), _("Edit")),
                 PushButton(Id(:del), _("Disconnect"))
               )

@@ -213,7 +213,7 @@ module Yast
       retval = {}
       return retval if stdout.empty?
 
-      stdout.split("\n").each do |row|
+      stdout.lines.each do |row|
         key, val = row.split("=")
 
         key = key.to_s.strip
@@ -768,13 +768,11 @@ module Yast
     # return [Hash]    stdout of 'iscsiadm -m node -I <iface> -T <target> -p <ip>'
     #                  converted to a hash
     def getCurrentNodeValues
-      node_val = {}
-
       ret = SCR.Execute(path(".target.bash_output"),
                         GetAdmCmd("-m node -I #{@currentRecord[2]||"default"} -T #{@currentRecord[1]||""} -p #{@currentRecord[0]||""}"))
-      return node_val unless (ret["exit"] || -1) == 0
+      return {} if ret["exit"] != 0
 
-      node_val = nodeInfoToMap(ret["stdout"] || "")
+      nodeInfoToMap(ret["stdout"] || "")
     end
 
     # Get (manual/onboot/automatic) status of target connection
@@ -782,7 +780,6 @@ module Yast
     # return [String]   startup status of the iSCSI node
     #
     def getStartupStatus
-      status = ""
       log.info "Getting status of record #{@currentRecord}"
 
       curr_node = getCurrentNodeValues
@@ -794,15 +791,16 @@ module Yast
            (ibft["iface.initiatorname"] == curr_node["iface.initiatorname"]) &&
            (ibft["node.name"] == curr_node["node.name"]) &&
            (ibft["node.conn[0].address"] == curr_node["node.conn[0].address"])
+
           # always show status "onboot" (startup value from node doesn't matter for iBFT) 
-          status = "onboot"
           log.info "Startup status for iBFT is always onboot"
+          return "onboot"
         end
-      else
-        status = curr_node["node.conn[0].startup"] || ""
       end
 
+      status = curr_node["node.conn[0].startup"] || ""
       log.info "Startup status for #{@currentRecord} is #{status}"
+
       status
     end
 

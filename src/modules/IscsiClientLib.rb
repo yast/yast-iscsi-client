@@ -200,37 +200,52 @@ module Yast
       bios_info["stdout"] || ""
     end
 
+    # Takes the output of 'iscsiadm' either in 'node', 'session' or 'fw' mode, i.e.
+    # output where info is seperated by '=', like
+    # iface.transport_name = tcp
+    # iface.hwaddress = 42:52:54:00:8b:6a
+    # iface.bootproto = DHCP
+    #
+    #  @param [String]   stdout (where info is seperated by '=') of iscsiadm command
+    #  @return [Hash]    command output converted to hash
+    #
+    def nodeInfoToMap (stdout)
+      retval = {}
+      return retval if stdout.empty?
+
+      stdout.lines.each do |row|
+        key, val = row.split("=")
+
+        key = key.to_s.strip
+        if !key.empty?
+          retval[key] = val.to_s.strip
+        end
+      end
+
+      retval
+    end
+
     # Get iBFT (iSCSI boot firmware table) info
     #
     # @return [Hash] iBFT data converted to a hash (passwords are hidden)
     #
     def getiBFT
       if @ibft == nil
-        if !Arch.i386 && !Arch.x86_64
-          log.info "Because architecture #{Arch.arch_short} is different from x86, not using iBFT"
-          return {}
-        end
         @ibft = {}
 
+        if !Arch.i386 && !Arch.x86_64
+          log.info "Because architecture #{Arch.arch_short} is different from x86, not using iBFT"
+          return @ibft
+        end
         ret = SCR.Execute(path(".target.bash_output"),
                           "lsmod |grep -q iscsi_ibft || modprobe iscsi_ibft")
-
         log.info "check and modprobe iscsi_ibft: #{ret}"
 
-        from_bios = getFirmwareInfo.split("\n")
-
-        from_bios.each do |row|
-          key, val = row.split("=")
-
-          key = key.to_s.strip
-          if !key.empty?
-            @ibft[key] = val.to_s.strip
-          end
-        end
+        @ibft = nodeInfoToMap(getFirmwareInfo)
       end
 
       log.info "iBFT: #{hidePassword(@ibft)}"
-      deep_copy(@ibft)
+      @ibft
     end
 
 
@@ -633,7 +648,7 @@ module Yast
     def checkInitiatorName
       ret = true
       file = "/etc/iscsi/initiatorname.iscsi"
-      name_from_bios = Ops.get_string(getiBFT, "iface.initiatorname", "")
+      name_from_bios = getiBFT["iface.initiatorname"] || ""
       # if (size((map<string, any>)SCR::Read (.target.lstat, file)) == 0 || ((map<string, any>)SCR::Read (.target.lstat, file))["size"]:0==0){
       @initiatorname = Ops.get_string(
         Convert.convert(
@@ -748,44 +763,44 @@ module Yast
       ret
     end
 
-    # get (manual/onboot) status of target connecting
+    # Get info about current iSCSI node
+    #
+    # return [Hash]    stdout of 'iscsiadm -m node -I <iface> -T <target> -p <ip>'
+    #                  converted to a hash
+    def getCurrentNodeValues
+      ret = SCR.Execute(path(".target.bash_output"),
+                        GetAdmCmd("-m node -I #{@currentRecord[2]||"default"} -T #{@currentRecord[1]||""} -p #{@currentRecord[0]||""}"))
+      return {} if ret["exit"] != 0
+
+      nodeInfoToMap(ret["stdout"] || "")
+    end
+
+    # Get (manual/onboot/automatic) status of target connection
+    #
+    # return [String]   startup status of the iSCSI node
+    #
     def getStartupStatus
-      status = ""
-      Builtins.y2milestone("Getting status of record %1", @currentRecord)
-      retcode = Convert.convert(
-        SCR.Execute(
-          path(".target.bash_output"),
-          GetAdmCmd(
-            Builtins.sformat(
-              "-m node -I %3 -T %1 -p %2",
-              Ops.get(@currentRecord, 1, ""),
-              Ops.get(@currentRecord, 0, ""),
-              Ops.get(@currentRecord, 2, "default")
-            )
-          )
-        ),
-        :from => "any",
-        :to   => "map <string, any>"
-      )
-      if Ops.greater_than(
-          Builtins.size(Ops.get_string(retcode, "stderr", "")),
-          0
-        )
-        return ""
-      end
-      Builtins.foreach(
-        Builtins.splitstring(Ops.get_string(retcode, "stdout", ""), "\n")
-      ) do |row|
-        if Builtins.issubstring(row, "node.conn[0].startup")
-          status = Ops.get(Builtins.splitstring(row, " "), 2, "")
-          raise Break
+      log.info "Getting status of record #{@currentRecord}"
+
+      curr_node = getCurrentNodeValues
+      ibft = getiBFT
+
+      if (!ibft.empty?)
+        # check whether current session/record is iBFT device 
+        if (ibft["iface.transport_name"] == curr_node["iface.transport_name"]) &&
+           (ibft["iface.initiatorname"] == curr_node["iface.initiatorname"]) &&
+           (ibft["node.name"] == curr_node["node.name"]) &&
+           (ibft["node.conn[0].address"] == curr_node["node.conn[0].address"])
+
+          # always show status "onboot" (startup value from node doesn't matter for iBFT) 
+          log.info "Startup status for iBFT is always onboot"
+          return "onboot"
         end
       end
-      Builtins.y2milestone(
-        "Startup status for %1 is %2",
-        @currentRecord,
-        status
-      )
+
+      status = curr_node["node.conn[0].startup"] || ""
+      log.info "Startup status for #{@currentRecord} is #{status}"
+
       status
     end
 
@@ -947,8 +962,8 @@ module Yast
 
     def autoLogOn
       ret = true
-      Builtins.y2milestone("begin of autoLogOn function")
-      if Ops.greater_than(Builtins.size(getiBFT), 0)
+      log.info "begin of autoLogOn function"
+      if !getiBFT.empty?
         result = Convert.to_map(SCR.Execute(path(".target.bash_output"),
                                             GetAdmCmd("-m fw -l")))
         if result["exit"] != 0
@@ -1307,6 +1322,7 @@ module Yast
           :from => "any",
           :to   => "list <map>"
         )
+
         hw_mods = Builtins.maplist(cards) do |c|
           Builtins.y2milestone("GetOffloadItems card:%1", c)
           tmp = Builtins.maplist(Ops.get_list(c, "drivers", [])) do |m|
@@ -1323,7 +1339,8 @@ module Yast
           }
           Builtins.y2milestone("GetOffloadItems cinf:%1", r)
           deep_copy(r)
-        end
+        end    # maplist(cards)
+
         idx = 0
         Builtins.foreach(@offload) do |l|
           valid = false

@@ -300,9 +300,12 @@ module Yast
           "opt"    => [:hstretch, :notify],
           "label"  => _("Startup"),
           "items"  => [
-            ["manual", "manual"],
-            ["onboot", "onboot"],
-            ["automatic", "automatic"]
+            # iSCSI target has to be connected manually
+            ["manual", _("manual")],
+            # iSCSI target available at boot (respected by 'dracut')
+            ["onboot", _("onboot")],
+            # iSCSI target enabled automatically (by 'systemd')
+            ["automatic", _("automatic")]
           ]
         },
         # widget for portal address
@@ -503,6 +506,7 @@ module Yast
       @current_tab = return_to
       caption = _("iSCSI Initiator Discovery")
       w = CWM.CreateWidgets(["startup", "conn_auth"], @widgets)
+
       contents = VBox(
         VStretch(),
         HBox(
@@ -528,6 +532,11 @@ module Yast
         Label.BackButton,
         Label.NextButton
       )
+
+      if (IscsiClientLib.isiBFT?(IscsiClientLib.getCurrentNodeValues))
+        UI.ChangeWidget(Id("startup"), :Enabled, false)
+      end
+
       ret = CWM.Run(
         w,
         { :abort => fun_ref(method(:ReallyAbort), "boolean ()") }

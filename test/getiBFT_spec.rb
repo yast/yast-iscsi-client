@@ -11,6 +11,7 @@ describe Yast::IscsiClientLibClass do
   describe "#getiBFT" do
     context "when filtering output of 'iscsiadm -m fw'" do
       it "returns data in form of a map " do
+        Yast::Arch.stub(:architecture).and_return("x86_64")
         @iscsilib.stub(:getFirmwareInfo).
           and_return("# BEGIN RECORD 2.0-872\n"\
                      "iface.bootproto = STATIC\n"\

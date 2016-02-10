@@ -775,25 +775,33 @@ module Yast
       nodeInfoToMap(ret["stdout"] || "")
     end
 
+    # Check whether iSCSI nodes are equal
+    #
+    # @param   [Hash]    iSCSI node values as hash
+    # @param   [Hash]    iSCSI node values as hash
+    #
+    # @return  [Bool]    nodes are equal?
+    #
+    def equal_nodes?(n1, n2)
+      return false if n1.empty?
+
+      keys = [
+              "iface.transport_name",
+              "iface.initiatorname",
+              "node.name",
+              "node.conn[0].address"
+             ]
+
+      keys.all? { |key| n1[key] == n2[key] }
+    end
+
     # Checks whether iSCSI session (values provided as hash) is iBFT session
     #
     # @param  [Hash]      iSCSI node values as hash
     # @return [Bool]      is iSCSI session booted from firmware?
     #
     def isiBFT?(node_info)
-      ret = false
-      ibft = getiBFT
-
-      if (!ibft.empty?)
-        # check whether session/record is iBFT device
-        if (ibft["iface.transport_name"] == node_info["iface.transport_name"]) &&
-           (ibft["iface.initiatorname"] == node_info["iface.initiatorname"]) &&
-           (ibft["node.name"] == node_info["node.name"]) &&
-           (ibft["node.conn[0].address"] == node_info["node.conn[0].address"])
-          ret = true
-        end
-      end
-      ret
+      return equal_nodes?(getiBFT, node_info)
     end
 
     # Get (manual/onboot/automatic) status of target connection

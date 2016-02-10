@@ -11,8 +11,8 @@ describe Yast::IscsiClientLibClass do
   describe "#getiBFT" do
     context "when filtering output of 'iscsiadm -m fw'" do
       it "returns data in form of a map " do
-        Yast::Arch.stub(:architecture).and_return("x86_64")
-        @iscsilib.stub(:getFirmwareInfo).
+        allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
+        allow(@iscsilib).to receive(:getFirmwareInfo).
           and_return("# BEGIN RECORD 2.0-872\n"\
                      "iface.bootproto = STATIC\n"\
                      "iface.transport_name = tcp\n"\
@@ -43,8 +43,8 @@ describe Yast::IscsiClientLibClass do
 
     context "when could not get list of targets from firmware" do
       it "returns an empty map " do
-        Yast::Arch.stub(:architecture).and_return("x86_64")
-        @iscsilib.stub(:getFirmwareInfo).and_return("")
+        allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
+        allow(@iscsilib).to receive(:getFirmwareInfo).and_return("")
 
         ibft_data = @iscsilib.getiBFT()
          
@@ -54,7 +54,7 @@ describe Yast::IscsiClientLibClass do
 
     context "when not on x86 hardware" do
       it "returns an empty map " do
-        Yast::Arch.stub(:architecture).and_return("s390_64")
+        allow(Yast::Arch).to receive(:architecture).and_return("s390_64")
         
         ibft_data = @iscsilib.getiBFT()
 

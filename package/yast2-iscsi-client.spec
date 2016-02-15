@@ -27,7 +27,7 @@ Group:	        System/YaST
 License:        GPL-2.0
 # Service module switched to systemd
 BuildRequires:	yast2 >= 2.23.15
-BuildRequires:	docbook-xsl-stylesheets libxslt update-desktop-files yast2-testsuite
+BuildRequires:	docbook-xsl-stylesheets libxslt update-desktop-files
 BuildRequires:  yast2-devtools >= 3.1.10
 BuildRequires:  rubygem(rspec)
 

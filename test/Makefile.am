@@ -1,5 +1,6 @@
 TESTS = \
   ipEqual_spec.rb       \
+  saveConfig_spec.rb    \
   ScanDiscovered_spec.rb \
   getiBFT_spec.rb      
 

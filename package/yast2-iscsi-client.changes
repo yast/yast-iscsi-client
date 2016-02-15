@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Feb  9 15:23:12 CET 2016 - gs@suse.de
+
+- display startup mode "onboot" for iBFT sessions and don't allow
+  to change the mode on 'Edit' screen (bnc#954509)
+- 3.1.24
+
+-------------------------------------------------------------------
 Thu Jul 30 12:06:28 CEST 2015 - gs@suse.de
 
 - show error popup if target connection failed (bsc#9339537)

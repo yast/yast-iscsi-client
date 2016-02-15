@@ -782,7 +782,7 @@ module Yast
     #
     # @return  [Bool]    nodes are equal?
     #
-    def equal_nodes?(n1, n2)
+    def equalNodes?(n1, n2)
       return false if n1.empty?
 
       keys = [
@@ -800,8 +800,8 @@ module Yast
     # @param  [Hash]      iSCSI node values as hash
     # @return [Bool]      is iSCSI session booted from firmware?
     #
-    def isiBFT?(node_info)
-      return equal_nodes?(getiBFT, node_info)
+    def iBFT?(node_info)
+      return equalNodes?(getiBFT, node_info)
     end
 
     # Get (manual/onboot/automatic) status of target connection
@@ -812,7 +812,7 @@ module Yast
       log.info "Getting status of record #{@currentRecord}"
       curr_node = getCurrentNodeValues
 
-      if (isiBFT?(curr_node))
+      if (iBFT?(curr_node))
           # always show status "onboot" for iBFT (startup value from node doesn't matter)
           log.info "Startup status for iBFT is always onboot"
           return "onboot"
@@ -1731,7 +1731,7 @@ module Yast
     publish :function => :LoadOffloadModules, :type => "list <string> ()"
     publish :function => :GetDiscoveryCmd, :type => "string (string, string, map)"
     publish :function => :getCurrentNodeValues, :type => "map <string, any>) ()"
-    publish :function => :isiBFT, :type => "boolean (map <string, any>)"
+    publish :function => :iBFT?, :type => "boolean (map <string, any>)"
   end
 
   IscsiClientLib = IscsiClientLibClass.new

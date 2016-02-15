@@ -765,8 +765,8 @@ module Yast
 
     # Get info about current iSCSI node
     #
-    # return [Hash]    stdout of 'iscsiadm -m node -I <iface> -T <target> -p <ip>'
-    #                  converted to a hash
+    # @return [Hash]    stdout of 'iscsiadm -m node -I <iface> -T <target> -p <ip>'
+    #                   converted to a hash
     def getCurrentNodeValues
       ret = SCR.Execute(path(".target.bash_output"),
                         GetAdmCmd("-m node -I #{@currentRecord[2]||"default"} -T #{@currentRecord[1]||""} -p #{@currentRecord[0]||""}"))
@@ -775,29 +775,48 @@ module Yast
       nodeInfoToMap(ret["stdout"] || "")
     end
 
+    # Check whether iSCSI nodes are equal
+    #
+    # @param   [Hash]    iSCSI node values as hash
+    # @param   [Hash]    iSCSI node values as hash
+    #
+    # @return  [Bool]    nodes are equal?
+    #
+    def equalNodes?(n1, n2)
+      return false if n1.empty?
+
+      keys = [
+              "iface.transport_name",
+              "iface.initiatorname",
+              "node.name",
+              "node.conn[0].address"
+             ]
+
+      keys.all? { |key| n1[key] == n2[key] }
+    end
+
+    # Checks whether iSCSI session (values provided as hash) is iBFT session
+    #
+    # @param  [Hash]      iSCSI node values as hash
+    # @return [Bool]      is iSCSI session booted from firmware?
+    #
+    def iBFT?(node_info)
+      return equalNodes?(getiBFT, node_info)
+    end
+
     # Get (manual/onboot/automatic) status of target connection
     #
-    # return [String]   startup status of the iSCSI node
+    # @return [String]   startup status of the iSCSI node
     #
     def getStartupStatus
       log.info "Getting status of record #{@currentRecord}"
-
       curr_node = getCurrentNodeValues
-      ibft = getiBFT
 
-      if (!ibft.empty?)
-        # check whether current session/record is iBFT device 
-        if (ibft["iface.transport_name"] == curr_node["iface.transport_name"]) &&
-           (ibft["iface.initiatorname"] == curr_node["iface.initiatorname"]) &&
-           (ibft["node.name"] == curr_node["node.name"]) &&
-           (ibft["node.conn[0].address"] == curr_node["node.conn[0].address"])
-
-          # always show status "onboot" (startup value from node doesn't matter for iBFT) 
+      if (iBFT?(curr_node))
+          # always show status "onboot" for iBFT (startup value from node doesn't matter)
           log.info "Startup status for iBFT is always onboot"
           return "onboot"
-        end
       end
-
       status = curr_node["node.conn[0].startup"] || ""
       log.info "Startup status for #{@currentRecord} is #{status}"
 
@@ -1711,6 +1730,8 @@ module Yast
     publish :function => :GetOffloadModules, :type => "list <string> ()"
     publish :function => :LoadOffloadModules, :type => "list <string> ()"
     publish :function => :GetDiscoveryCmd, :type => "string (string, string, map)"
+    publish :function => :getCurrentNodeValues, :type => "map <string, any>) ()"
+    publish :function => :iBFT?, :type => "boolean (map <string, any>)"
   end
 
   IscsiClientLib = IscsiClientLibClass.new

@@ -533,7 +533,7 @@ module Yast
         Label.NextButton
       )
 
-      if (IscsiClientLib.isiBFT?(IscsiClientLib.getCurrentNodeValues))
+      if (IscsiClientLib.iBFT?(IscsiClientLib.getCurrentNodeValues))
         UI.ChangeWidget(Id("startup"), :Enabled, false)
       end
 

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Feb 16 11:28:14 CET 2016 - gs@suse.de
+
+- fix syntax error in "publish" section of IscsiClientLib.rb
+- 3.1.25 
+
+-------------------------------------------------------------------
 Tue Feb  9 15:23:12 CET 2016 - gs@suse.de
 
 - display startup mode "onboot" for iBFT sessions and don't allow

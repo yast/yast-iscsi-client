@@ -1730,7 +1730,7 @@ module Yast
     publish :function => :GetOffloadModules, :type => "list <string> ()"
     publish :function => :LoadOffloadModules, :type => "list <string> ()"
     publish :function => :GetDiscoveryCmd, :type => "string (string, string, map)"
-    publish :function => :getCurrentNodeValues, :type => "map <string, any>) ()"
+    publish :function => :getCurrentNodeValues, :type => "map <string, any> ()"
     publish :function => :iBFT?, :type => "boolean (map <string, any>)"
   end
 

@@ -1663,7 +1663,7 @@ module Yast
       command = "-m discovery -P 1"
       isns_info = useISNS()
       if isns_info["use"]
-        command << " -t isns -p #{isns_info["address"]}:#{isns_info["port"]}"
+        command << " -t isns -p #{ip}:#{port}"
       else
         ifs = GetDiscIfaces()
         Builtins.y2milestone("ifs=%1", ifs)
@@ -1671,16 +1671,7 @@ module Yast
         Builtins.y2milestone("ifs=%1", ifs)
         tgt = "st"
         tgt = "fw" if use_fw
-        command = Ops.add(
-          command,
-          Builtins.sformat(
-            " -t %4 %3 -p %1:%2",
-            ip,
-            port,
-            Builtins.mergestring(ifs, " "),
-            tgt
-          )
-        )
+        command << " -t #{tgt} #{ifs.join(" ")} -p #{ip}:#{port}"
       end
       command << " -o new" if only_new
 

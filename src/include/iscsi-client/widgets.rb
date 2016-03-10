@@ -560,54 +560,51 @@ module Yast
 
     # do discovery to selected portal
     def validateServerLocation(key, event)
-      event = deep_copy(event)
-      ret = true
       ip = Builtins.tostring(UI.QueryWidget(:hostname, :Value))
       ip.strip!
-      port = Builtins.tostring(UI.QueryWidget(:port, :Value))
-      # validate IP address
-      isns_info = IscsiClientLib.useISNS()
-      if !isns_info["use"]
-        if Ops.greater_than(Builtins.size(ip), 0)
-          if !IP.Check(ip)
-            # check for valid host name (take only first line of 'host'
-            # output because with IPv6 there might be several lines)
-            output = Convert.convert(
-              SCR.Execute(
-                path(".target.bash_output"),
-                "LC_ALL=POSIX host #{ip}|head -1|tr -d '\n'"
-              ),
-              :from => "any",
-              :to   => "map <string, any>"
-            )
-            out = Builtins.splitstring(
-              Ops.get_string(output, "stdout", ""),
-              " "
-            )
-            ip = Ops.get(out, Ops.subtract(Builtins.size(out), 1), "")
-            Builtins.y2internal("%1", out)
-            if Ops.get_integer(output, "exit", -1) == 0
 
-            else
-              Popup.Error(Ops.get_string(output, "stdout", ""))
-              UI.SetFocus(:hostname)
-              return false
-            end
-          elsif IP.Check6(ip)
-            ip = "[#{ip}]" # brackets needed around IPv6
-          end
-        else
+      port = Builtins.tostring(UI.QueryWidget(:port, :Value))
+      isns_info = IscsiClientLib.useISNS
+
+      if !isns_info["use"]
+        # validate ip
+        if ip.empty?
           Popup.Error(_("Insert the IP address."))
           UI.SetFocus(:ip)
           return false
         end
+        if !IP.Check(ip)
+          # check for valid host name (take only first line of 'host'
+          # output because with IPv6 there might be several lines)
+          result =  SCR.Execute( path(".target.bash_output"),
+              "LC_ALL=POSIX host #{ip}|head -1|tr -d '\n'")
+          output = result["stdout"] || ""
+          Builtins.y2milestone("%1", output)
+
+          if (result["exit"] != 0) || output.include?("not found:")
+            Popup.Error(_("Please check IP address resp. host name.\n") + "#{output}")
+            UI.SetFocus(:hostname)
+            return false
+          elsif !output.empty?
+            ip = output.split(" ").last
+          end
+        end
         # validate port number
-        if Builtins.size(port) == 0
+        if port.empty?
           Popup.Error(_("Insert the port."))
           UI.SetFocus(:port)
           return false
         end
+      else
+        # use iSNS (ip and port already validated in validateISNS)
+        ip = isns_info["address"] || ""
+        port = isns_info["port"] || ""
       end
+
+      if IP.Check6(ip)
+       ip = "[#{ip}]" # brackets needed around IPv6
+      end
+
       # store old config
       IscsiClientLib.getConfig
 

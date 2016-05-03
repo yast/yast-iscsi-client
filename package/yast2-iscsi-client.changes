@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue May  3 14:01:09 CEST 2016 - gs@suse.de
+
+- set user and password correctly for global authentication
+  (bsc#978183), improve error handling (bsc#959292)
+- 3.1.27
+
+-------------------------------------------------------------------
 Thu Mar 10 09:19:54 CET 2016 - gs@suse.de
 
 - show correct error message if host name isn't found (bsc#959292)

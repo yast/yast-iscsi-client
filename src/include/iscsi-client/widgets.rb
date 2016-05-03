@@ -605,7 +605,7 @@ module Yast
        ip = "[#{ip}]" # brackets needed around IPv6
       end
 
-      # store old config
+      # store /etc/iscsi/iscsi.conf
       IscsiClientLib.getConfig
 
       auth_none = Convert.to_boolean(UI.QueryWidget(Id(:auth_none), :Value))
@@ -633,11 +633,10 @@ module Yast
         pass_out = ""
       end
 
-      # write authentication data
+      # temporarily write authentication data to /etc/iscsi/iscsi.conf
       IscsiClientLib.saveConfig(user_in, pass_in, user_out, pass_out)
-      #y2internal("auth: %1/%2, %3/%4", user_in, pass_in, user_out, pass_out);
+
       @bg_finish = false
-      # ` with authentication
 
       # Check @current_tab (dialogs.rb) here. If it's "client", i.e. the
       # 'Add' button at 'Connected Targets' is used, create discovery
@@ -662,7 +661,7 @@ module Yast
         end
       end
       IscsiClientLib.targets = IscsiClientLib.ScanDiscovered(trg_list)
-      # restore old config
+      # restore saved config
       IscsiClientLib.oldConfig
 
       @stat

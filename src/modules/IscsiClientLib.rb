@@ -418,17 +418,28 @@ module Yast
       tmp_conf = deep_copy(@config)
       tmp_val = Ops.get_list(tmp_conf, "value", [])
 
-      if Ops.greater_than(Builtins.size(user_in), 0) &&
-          Ops.greater_than(Builtins.size(pass_in), 0)
-        tmp_val = setOrAdd(tmp_val, "node.session.auth.username", user_in)
-        tmp_val = setOrAdd(tmp_val, "node.session.auth.password", pass_in)
+      if !user_in.empty? && !pass_in.empty?
+        tmp_val = setOrAdd(
+          tmp_val,
+          "discovery.sendtargets.auth.authmethod",
+          "CHAP"
+        )
+        tmp_val = setOrAdd(
+          tmp_val,
+          "discovery.sendtargets.auth.username_in",
+          user_in
+        )
+        tmp_val = setOrAdd(
+          tmp_val,
+          "discovery.sendtargets.auth.password_in",
+          pass_in
+        )
       else
-        tmp_val = delete(tmp_val, "node.session.auth.username")
-        tmp_val = delete(tmp_val, "node.session.auth.password")
+        tmp_val = delete(tmp_val, "discovery.sendtargets.auth.username_in")
+        tmp_val = delete(tmp_val, "discovery.sendtargets.auth.password_in")
       end
 
-      if Ops.greater_than(Builtins.size(user_out), 0) &&
-          Ops.greater_than(Builtins.size(pass_out), 0)
+      if !user_out.empty? && !pass_out.empty?
         tmp_val = setOrAdd(
           tmp_val,
           "discovery.sendtargets.auth.authmethod",
@@ -445,10 +456,14 @@ module Yast
           pass_out
         )
       else
-        tmp_val = delete(tmp_val, "discovery.sendtargets.auth.authmethod")
         tmp_val = delete(tmp_val, "discovery.sendtargets.auth.username")
         tmp_val = delete(tmp_val, "discovery.sendtargets.auth.password")
       end
+
+      if user_in.empty? && user_out.empty?
+        tmp_val = delete(tmp_val, "discovery.sendtargets.auth.authmethod")
+      end
+
       Ops.set(tmp_conf, "value", tmp_val)
       SCR.Write(path(".etc.iscsid.all"), tmp_conf)
       SCR.Write(path(".etc.iscsid"), nil)

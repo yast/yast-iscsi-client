@@ -574,19 +574,21 @@ module Yast
           return false
         end
         if !IP.Check(ip)
-          # check for valid host name (take only first line of 'host'
-          # output because with IPv6 there might be several lines)
+          # check for valid host name
           result =  SCR.Execute( path(".target.bash_output"),
-              "LC_ALL=POSIX host #{ip}|head -1|tr -d '\n'")
+                                 "LC_ALL=POSIX host #{ip}")
+          Builtins.y2milestone("Cmd: host %1, result: %2", ip, result)
           output = result["stdout"] || ""
-          Builtins.y2milestone("%1", output)
 
-          if (result["exit"] != 0) || output.include?("not found:")
-            Popup.Error(_("Please check IP address resp. host name.\n") + "#{output}")
+          if (result["exit"] != 0)
+            Popup.Error(_("Please check IP address resp. host name.\n") + "#{output}" + "#{result["stderr"]}")
             UI.SetFocus(:hostname)
             return false
           elsif !output.empty?
-            ip = output.split(" ").last
+            # take only first line of 'host' output because with IPv6
+            # there might be several lines
+            ip_info = output.split("\n").first
+            ip = ip_info.split(" ").last
           end
         end
         # validate port number

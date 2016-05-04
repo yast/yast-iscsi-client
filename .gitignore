@@ -30,3 +30,5 @@ testsuite/tmp*
 testsuite/site.exp
 testsuite/config
 testsuite/run
+test-driver
+

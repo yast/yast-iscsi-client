@@ -574,19 +574,21 @@ module Yast
           return false
         end
         if !IP.Check(ip)
-          # check for valid host name (take only first line of 'host'
-          # output because with IPv6 there might be several lines)
+          # check for valid host name
           result =  SCR.Execute( path(".target.bash_output"),
-              "LC_ALL=POSIX host #{ip}|head -1|tr -d '\n'")
+                                 "LC_ALL=POSIX host #{ip}")
+          Builtins.y2milestone("Cmd: host %1, result: %2", ip, result)
           output = result["stdout"] || ""
-          Builtins.y2milestone("%1", output)
 
-          if (result["exit"] != 0) || output.include?("not found:")
-            Popup.Error(_("Please check IP address resp. host name.\n") + "#{output}")
+          if (result["exit"] != 0)
+            Popup.Error(_("Please check IP address resp. host name.\n") + "#{output}" + "#{result["stderr"]}")
             UI.SetFocus(:hostname)
             return false
           elsif !output.empty?
-            ip = output.split(" ").last
+            # take only first line of 'host' output because with IPv6
+            # there might be several lines
+            ip_info = output.split("\n").first
+            ip = ip_info.split(" ").last
           end
         end
         # validate port number
@@ -605,7 +607,7 @@ module Yast
        ip = "[#{ip}]" # brackets needed around IPv6
       end
 
-      # store old config
+      # store /etc/iscsi/iscsi.conf
       IscsiClientLib.getConfig
 
       auth_none = Convert.to_boolean(UI.QueryWidget(Id(:auth_none), :Value))
@@ -633,11 +635,10 @@ module Yast
         pass_out = ""
       end
 
-      # write authentication data
+      # temporarily write authentication data to /etc/iscsi/iscsi.conf
       IscsiClientLib.saveConfig(user_in, pass_in, user_out, pass_out)
-      #y2internal("auth: %1/%2, %3/%4", user_in, pass_in, user_out, pass_out);
+
       @bg_finish = false
-      # ` with authentication
 
       # Check @current_tab (dialogs.rb) here. If it's "client", i.e. the
       # 'Add' button at 'Connected Targets' is used, create discovery
@@ -662,7 +663,7 @@ module Yast
         end
       end
       IscsiClientLib.targets = IscsiClientLib.ScanDiscovered(trg_list)
-      # restore old config
+      # restore saved config
       IscsiClientLib.oldConfig
 
       @stat

@@ -247,23 +247,23 @@ describe Yast::IscsiClientLibClass do
           {
             "comment" => "",
             "kind" => "value",
-            "name" => "node.session.auth.username",
+            "name" => "discovery.sendtargets.auth.authmethod",
+            "type" => 1,
+            "value" => "CHAP"
+          },
+          {
+            "comment" => "",
+            "kind" => "value",
+            "name" => "discovery.sendtargets.auth.username_in",
             "type" => 1,
             "value" => "incuser"
           },
           {
             "comment" => "",
             "kind" => "value",
-            "name" => "node.session.auth.password",
+            "name" => "discovery.sendtargets.auth.password_in",
             "type" => 1,
             "value" => "incpass"
-          },
-          {
-            "comment" => "",
-            "kind" => "value",
-            "name" => "discovery.sendtargets.auth.authmethod",
-            "type" => 1,
-            "value" => "CHAP"
           },
           {
             "comment" => "",

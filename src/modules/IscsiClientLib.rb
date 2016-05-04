@@ -418,7 +418,7 @@ module Yast
       tmp_conf = deep_copy(@config)
       tmp_val = Ops.get_list(tmp_conf, "value", [])
 
-      if !user_in.empty? && !pass_in.empty?
+      if (specified = !user_in.empty? && !pass_in.empty?)
         tmp_val = setOrAdd(
           tmp_val,
           "discovery.sendtargets.auth.authmethod",
@@ -439,7 +439,7 @@ module Yast
         tmp_val = delete(tmp_val, "discovery.sendtargets.auth.password_in")
       end
 
-      if !user_out.empty? && !pass_out.empty?
+      if (specified = !user_out.empty? && !pass_out.empty?)
         tmp_val = setOrAdd(
           tmp_val,
           "discovery.sendtargets.auth.authmethod",

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jun  7 10:45:54 UTC 2016 - igonzalezsosa@suse.com
+
+- Stop generating autodocs (fate#320356)
+- 3.1.28
+
+-------------------------------------------------------------------
 Tue May  3 14:01:09 CEST 2016 - gs@suse.de
 
 - set user and password correctly for global authentication

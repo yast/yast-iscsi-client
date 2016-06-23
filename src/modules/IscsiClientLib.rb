@@ -1060,18 +1060,19 @@ module Yast
       )
       Builtins.y2internal("output %1", output)
 
-      if (output["exit"] || -1) != 0
-        Report.Error( _("Target connection failed.\n") +
-                      output["stderr"] || "" )
+      # Only log the fact that the session is already present (not an error at all)
+      # to avoid a popup for AutoYaST install (bsc#981693)
+      if output["exit"] == 15
+        Builtins.y2milestone("Session already present %1", output["stderr"] || "")
+      # Report a warning (not an error) if login failed for other reasons
+      # (also related to bsc#981693, warning popups usually are skipped)
+      elsif output["exit"] != 0
+        Report.Warning( _("Target connection failed.\n") +
+                        output["stderr"] || "" )
       end
-      # if (output["exit"]:-1==0){
-      # set startup status to auto by default (bnc#400610)
+
       setStartupStatus("onboot") if !Mode.autoinst
       true 
-      # } else {
-      # 	y2error("Error while Log-on into target : %1", output);
-      # 	return false;
-      # 	}
     end
 
 

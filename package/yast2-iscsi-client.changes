@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Jun 23 11:46:46 CEST 2016 - gs@suse.de
+
+- don't treat the attempt to login twice to a target as an error,
+  report a warning if login fails for other reasons (bsc#981693)
+- 3.1.29
+
+-------------------------------------------------------------------
 Tue Jun  7 10:45:54 UTC 2016 - igonzalezsosa@suse.com
 
 - Stop generating autodocs (fate#320356)

@@ -235,16 +235,16 @@ module Yast
             CheckBoxFrame(
               Id(:auth_none),
               Opt(:invertAutoEnable),
-              _("No Authentication"),
+              _("No Discovery Authentication"),
               true,
               VBox(
-                Left(Label(_("Incoming Authentication"))),
+                Left(Label(_("Authentication by Initiator"))),
                 HBox(
                   HWeight(2, TextEntry(Id(:user_in), _("Username"))),
                   HWeight(1, Password(Id(:pass_in), _("Password")))
                 ),
                 VSpacing(2),
-                Left(Label(_("Outgoing Authentication"))),
+                Left(Label(_("Authentication by Targets"))),
                 HBox(
                   HWeight(2, TextEntry(Id(:user_out), _("Username"))),
                   HWeight(1, Password(Id(:pass_out), _("Password")))
@@ -269,16 +269,16 @@ module Yast
             CheckBoxFrame(
               Id(:auth_none),
               Opt(:invertAutoEnable),
-              _("No Authentication"),
+              _("No Login Authentication"),
               true,
               VBox(
-                Left(Label(_("Incoming Authentication"))),
+                Left(Label(_("Authentication by Initiator"))),
                 HBox(
                   HWeight(2, TextEntry(Id(:user_in), _("Username"))),
                   HWeight(1, Password(Id(:pass_in), _("Password")))
                 ),
                 VSpacing(2),
-                Left(Label(_("Outgoing Authentication"))),
+                Left(Label(_("Authentication by Targets"))),
                 HBox(
                   HWeight(2, TextEntry(Id(:user_out), _("Username"))),
                   HWeight(1, Password(Id(:pass_out), _("Password")))

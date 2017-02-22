@@ -32,6 +32,8 @@ module Yast
     def initialize_iscsi_client_helps(include_target)
       textdomain "iscsi-client"
 
+      use_bidirectional_auth = _("If authentication is needed for secure access, please use <b>Authentication by Initiator</b> and <b>Authentication by Targets</b> " \
+      "together. Please do not only use one of them for security reasons.\n")
       # All helps are here
       @HELPS = {
         # Read dialog help 1/2
@@ -110,8 +112,9 @@ module Yast
         "discovery"      => _("<h1>iSCSI Initiator</h1>") +
           _(
             "Enter the <b>IP Address</b> of the iSCSI target server.\n" +
-              "Only change <b>Port</b> if needed. For authentication, use <b>Username</b> and <b>Password</b>. If you do not need authentication,\n" +
-              "select <b>No Authentication</b>.\n"
+              "Only change <b>Port</b>. If you do not need authentication,\n" +
+              "select <b>No Discovery Authentication</b>. " + \
+               use_bidirectional_auth
           ) +
           # Warning
           _("<h1>Warning</h1>") +
@@ -141,11 +144,8 @@ module Yast
         _("<h1>Authentication</h1>") +
         _(
           "<p>The default setting here is <i>No Authentication</i>. Uncheck the checkbox if " \
-          "authentication is needed for security reasons. Enter <b>Username</b> and <b>Password</b> " \
-          "for 'Incoming Authentication', 'Outgoing Authentication' or for both.</p>" \
-          "<p><b>Please note:</b><br>" \
-          "'Incoming Authentication' here correlates to 'Outgoing Authentication' "\
-          "on iSCSI target server side and the other way round.</p>"
+          "authentication is needed for security reasons." \
+          + use_bidirectional_auth + "</p>"
           ),
         # list of discovered targets
         "discovered"     => _(

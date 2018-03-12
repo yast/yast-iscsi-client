@@ -38,7 +38,6 @@ module Yast
       Yast.import "Wizard"
       Yast.import "IscsiClient"
       Yast.import "CWMServiceStart"
-      Yast.import "CWMFirewallInterfaces"
       Yast.import "CWMTab"
       Yast.import "CWM"
       Yast.import "Stage"

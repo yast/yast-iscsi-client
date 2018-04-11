@@ -31,4 +31,7 @@ testsuite/site.exp
 testsuite/config
 testsuite/run
 test-driver
-
+doc/autodocs
+/.yardoc
+test/*.log
+test/*.trs

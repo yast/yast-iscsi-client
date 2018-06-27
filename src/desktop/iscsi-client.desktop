@@ -15,6 +15,7 @@ X-SuSE-YaST-SortKey=
 X-SuSE-YaST-AutoInstResource=iscsi-client
 X-SuSE-YaST-AutoInstClonable=true
 X-SuSE-YaST-AutoInstSchema=iscsi-client.rnc
+SuSE-YaST-Keywords=network,system
 
 Icon=yast-iscsi-client
 Exec=xdg-su -c "/sbin/yast2 iscsi-client"

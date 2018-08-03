@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Aug  3 11:56:56 UTC 2018 - dgonzalez@suse.com
+
+- Fix detection of service current status (bsc#1103681).
+- 4.0.2
+
+-------------------------------------------------------------------
 Wed Jun 27 12:40:11 CEST 2018 - schubi@suse.de
 
 - Added additional searchkeys to desktop file (fate#321043).

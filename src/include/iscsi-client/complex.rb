@@ -67,12 +67,18 @@ module Yast
     end
 
     # Write settings dialog
-    # @return `abort if aborted and `next otherwise
+    #
+    # @return [Symbol] :abort if aborted, :next otherwise
     def WriteDialog
-      Wizard.RestoreHelp(Ops.get_string(@HELPS, "write", ""))
-      # IscsiClient::AbortFunction = PollAbort;
-      ret = IscsiClient.Write
-      ret ? :next : :abort
+      help = @HELPS.fetch("write") { "" }
+
+      Wizard.CreateDialog
+      Wizard.RestoreHelp(help)
+      result = IscsiClient.Write
+      Wizard.CloseDialog
+
+      return :next if result
+      :abort
     end
   end
 end

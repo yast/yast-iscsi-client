@@ -219,9 +219,11 @@ module Yast
       Builtins.sleep(sl)
 
       return false if Abort()
-      #    Progress::NextStep();
-      # read status of service
-      return false if !IscsiClientLib.getServiceStatus
+
+      if Mode.auto || Mode.commandline
+        return false unless IscsiClientLib.getServiceStatus
+      end
+
       # try auto login to target
       IscsiClientLib.autoLogOn
       Builtins.sleep(sl)
@@ -229,7 +231,6 @@ module Yast
       # read current settings
       #    if(!IscsiClientLib::autoLogOn()) return false;
       Progress.NextStage
-
 
       # read config file
       if IscsiClientLib.readSessions == false
@@ -277,7 +278,7 @@ module Yast
       return false if Abort()
       Progress.NextStage
       # set open-iscsi service status
-      return false if !IscsiClientLib.setServiceStatus
+      return false unless save_status
       Builtins.sleep(sl)
 
       return false if Abort()
@@ -289,6 +290,20 @@ module Yast
       Builtins.sleep(sl)
 
       true
+    end
+
+    # Saves service status (start mode and starts/stops the service)
+    #
+    # @note For AutoYaST and for command line actions, it uses the old way for
+    # backward compatibility, see {IscsiClientLib#setServiceStatus}. When the
+    # service is configured by using the UI, it directly saves the service, see
+    # {Yast2::SystemService#save}.
+    def save_status
+      if Mode.auto || Mode.commandline
+        IscsiClientLib.setServiceStatus
+      else
+        services.save
+      end
     end
 
     # Get all iscsi-client settings from the first parameter

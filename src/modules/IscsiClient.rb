@@ -30,7 +30,10 @@
 #
 # Representation of the configuration of iscsi-client.
 # Input and output routines.
+
 require "yast"
+require "yast2/system_service"
+require "yast2/compound_service"
 
 module Yast
   class IscsiClientClass < Module
@@ -67,6 +70,17 @@ module Yast
       # Abort function
       # return boolean return true if abort
       @AbortFunction = fun_ref(method(:Modified), "boolean ()")
+    end
+
+    # Returns a related iSCSI services
+    #
+    # @return [Yast2::CompundService]
+    def services
+      @services ||= Yast2::CompoundService.new(
+        Yast2::SystemService.find("iscsi"),
+        Yast2::SystemService.find("iscsid"),
+        Yast2::SystemService.find("iscsiuio")
+      )
     end
 
     # Abort function

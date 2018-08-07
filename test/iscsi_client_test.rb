@@ -7,7 +7,7 @@ Yast.import "IscsiClient"
 describe Yast::IscsiClient do
   subject { described_class }
 
-  let(:service) { double("Yast2::SystemService", is_a?: true).as_null_object }
+  let(:service) { instance_double("Yast2::SystemService", is_a?: true) }
 
   describe "#services" do
     before do

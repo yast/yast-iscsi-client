@@ -25,7 +25,8 @@ Source0:        %{name}-%{version}.tar.bz2
 
 Group:	        System/YaST
 License:        GPL-2.0
-# Service module switched to systemd
+# Yast2::SystemService
+BuildRequires:	yast2 >= 4.1.0
 BuildRequires:	yast2 >= 2.23.15
 BuildRequires:	docbook-xsl-stylesheets libxslt update-desktop-files
 BuildRequires:  yast2-devtools >= 3.1.10
@@ -33,10 +34,8 @@ BuildRequires:  rubygem(rspec)
 
 Requires:	yast2-packager
 
-# network needs Wizard::OpenCancelOKDialog()
-#  function from yast2-2.18.2
-# Wizard::SetDesktopTitleAndIcon
-Requires:       yast2 >= 2.21.22
+# Yast2::SystemService
+Requires:	    yast2 >= 4.1.0
 
 BuildArchitectures:	noarch
 

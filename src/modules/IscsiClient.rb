@@ -60,9 +60,9 @@ module Yast
       # Data was modified?
       @modified = false
 
-
       @proposal_valid = false
 
+      # FIXME: write_only seems to be not in use
       # Write only, used during autoinstallation.
       # Don't run services and SuSEconfig, it's all done at one place.
       @write_only = false
@@ -344,6 +344,7 @@ module Yast
     publish :function => :Modified, :type => "boolean ()"
     publish :variable => :modified, :type => "boolean"
     publish :variable => :proposal_valid, :type => "boolean"
+    # FIXME: write_only seems to be not in use
     publish :variable => :write_only, :type => "boolean"
     publish :variable => :AbortFunction, :type => "boolean ()"
     publish :function => :Abort, :type => "boolean ()"

@@ -72,7 +72,7 @@ module Yast
       @AbortFunction = fun_ref(method(:Modified), "boolean ()")
     end
 
-    # Returns a related iSCSI services
+    # Returns iSCSI related services
     #
     # @return [Yast2::CompundService]
     def services
@@ -344,7 +344,7 @@ module Yast
     publish :function => :Modified, :type => "boolean ()"
     publish :variable => :modified, :type => "boolean"
     publish :variable => :proposal_valid, :type => "boolean"
-    # FIXME: write_only seems to be not in use
+    # FIXME: write_only it is not used anymore
     publish :variable => :write_only, :type => "boolean"
     publish :variable => :AbortFunction, :type => "boolean ()"
     publish :function => :Abort, :type => "boolean ()"

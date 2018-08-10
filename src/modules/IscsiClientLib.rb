@@ -1077,8 +1077,8 @@ module Yast
 
 
     # FIXME: this method has too much responsibility and it is doing
-    # "unexpected" things according to its name. Ideally, only must to return
-    # the service status without change the status of related services and
+    # "unexpected" things according to its name. Ideally, it only must return
+    # the service status without changing the status of related services and
     # sockets.
     #
     # get status of iscsid

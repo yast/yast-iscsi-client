@@ -30,7 +30,10 @@
 #
 # Representation of the configuration of iscsi-client.
 # Input and output routines.
+
 require "yast"
+require "yast2/system_service"
+require "yast2/compound_service"
 
 module Yast
   class IscsiClientClass < Module
@@ -57,9 +60,9 @@ module Yast
       # Data was modified?
       @modified = false
 
-
       @proposal_valid = false
 
+      # FIXME: write_only seems to be not in use
       # Write only, used during autoinstallation.
       # Don't run services and SuSEconfig, it's all done at one place.
       @write_only = false
@@ -67,6 +70,17 @@ module Yast
       # Abort function
       # return boolean return true if abort
       @AbortFunction = fun_ref(method(:Modified), "boolean ()")
+    end
+
+    # Returns iSCSI related services
+    #
+    # @return [Yast2::CompundService]
+    def services
+      @services ||= Yast2::CompoundService.new(
+        Yast2::SystemService.find("iscsi"),
+        Yast2::SystemService.find("iscsid"),
+        Yast2::SystemService.find("iscsiuio")
+      )
     end
 
     # Abort function
@@ -205,9 +219,11 @@ module Yast
       Builtins.sleep(sl)
 
       return false if Abort()
-      #    Progress::NextStep();
-      # read status of service
-      return false if !IscsiClientLib.getServiceStatus
+
+      if Mode.auto || Mode.commandline
+        return false unless IscsiClientLib.getServiceStatus
+      end
+
       # try auto login to target
       IscsiClientLib.autoLogOn
       Builtins.sleep(sl)
@@ -215,7 +231,6 @@ module Yast
       # read current settings
       #    if(!IscsiClientLib::autoLogOn()) return false;
       Progress.NextStage
-
 
       # read config file
       if IscsiClientLib.readSessions == false
@@ -263,7 +278,7 @@ module Yast
       return false if Abort()
       Progress.NextStage
       # set open-iscsi service status
-      return false if !IscsiClientLib.setServiceStatus
+      return false unless save_status
       Builtins.sleep(sl)
 
       return false if Abort()
@@ -275,6 +290,20 @@ module Yast
       Builtins.sleep(sl)
 
       true
+    end
+
+    # Saves service status (start mode and starts/stops the service)
+    #
+    # @note For AutoYaST and for command line actions, it uses the old way for
+    # backward compatibility, see {IscsiClientLib#setServiceStatus}. When the
+    # service is configured by using the UI, it directly saves the service, see
+    # {Yast2::SystemService#save}.
+    def save_status
+      if Mode.auto || Mode.commandline
+        IscsiClientLib.setServiceStatus
+      else
+        services.save
+      end
     end
 
     # Get all iscsi-client settings from the first parameter
@@ -315,6 +344,7 @@ module Yast
     publish :function => :Modified, :type => "boolean ()"
     publish :variable => :modified, :type => "boolean"
     publish :variable => :proposal_valid, :type => "boolean"
+    # FIXME: write_only it is not used anymore
     publish :variable => :write_only, :type => "boolean"
     publish :variable => :AbortFunction, :type => "boolean ()"
     publish :function => :Abort, :type => "boolean ()"

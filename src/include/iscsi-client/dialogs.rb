@@ -29,6 +29,9 @@
 # $Id$
 #
 # Main file for iscsi-client configuration. Uses all other files.
+
+require "cwm/service_widget"
+
 module Yast
   module IscsiClientDialogsInclude
     def initialize_iscsi_client_dialogs(include_target)
@@ -50,34 +53,8 @@ module Yast
       Yast.include include_target, "iscsi-client/widgets.rb"
 
       @widgets = {
-        "auto_start_up"    => CWMServiceStart.CreateAutoStartWidget(
-          {
-            "get_service_auto_start" => fun_ref(
-              IscsiClientLib.method(:GetStartService),
-              "boolean ()"
-            ),
-            "set_service_auto_start" => fun_ref(
-              IscsiClientLib.method(:SetStartService),
-              "void (boolean)"
-            ),
-            # radio button (starting SLP service - option 1)
-            "start_auto_button"      => _(
-              "When &Booting"
-            ),
-            # radio button (starting SLP service - option 2)
-            "start_manual_button"    => _(
-              "&Manually"
-            ),
-            "help"                   => Builtins.sformat(
-              CWMServiceStart.AutoStartHelpTemplate,
-              # part of help text, used to describe radiobuttons (matching starting SLP service but without "&")
-              _("When Booting"),
-              # part of help text, used to describe radiobuttons (matching starting SLP service but without "&")
-              _("Manually")
-            )
-          }
-        ),
-        "isns"             => {
+        "auto_start_up"       => service_widget.cwm_definition,
+        "isns"                => {
           "widget"            => :custom,
           "custom_widget"     => HBox(
             MinWidth(
@@ -382,6 +359,13 @@ module Yast
           "widget_names" => ["ibft_table"]
         }
       }
+    end
+
+    # Widget to define state and start mode of the service
+    #
+    # @return [::CWM::ServiceWidget]
+    def service_widget
+      @service_widget ||= ::CWM::ServiceWidget.new(IscsiClient.services)
     end
 
     # main tabbed dialog

@@ -25,8 +25,9 @@ Source0:        %{name}-%{version}.tar.bz2
 
 Group:	        System/YaST
 License:        GPL-2.0
-# Yast2::SystemService
-BuildRequires:	yast2 >= 4.1.0
+
+# Yast2::Systemd::Socket
+BuildRequires:	yast2 >= 4.1.3
 BuildRequires:	yast2 >= 2.23.15
 BuildRequires:	docbook-xsl-stylesheets libxslt update-desktop-files
 BuildRequires:  yast2-devtools >= 3.1.10
@@ -34,8 +35,8 @@ BuildRequires:  rubygem(rspec)
 
 Requires:	yast2-packager
 
-# Yast2::SystemService
-Requires:	    yast2 >= 4.1.0
+# Yast2::Systemd::Socket
+Requires:	    yast2 >= 4.1.3
 
 BuildArchitectures:	noarch
 

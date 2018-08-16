@@ -22,7 +22,8 @@
 # |
 # |***************************************************************************
 require "yast"
-require 'ipaddr'
+require "yast2/systemd/socket"
+require "ipaddr"
 
 module Yast
   class IscsiClientLibClass < Module
@@ -40,7 +41,6 @@ module Yast
       Yast.import "Mode"
       Yast.import "String"
       Yast.import "Arch"
-      Yast.import "SystemdSocket"
 
       @sessions = []
       @discovered = []
@@ -1091,8 +1091,8 @@ module Yast
       else
         # find sockets (only in installed system)
         # throw exception if socket not found
-        @iscsid_socket = SystemdSocket.find!("iscsid")
-        @iscsiuio_socket = SystemdSocket.find!("iscsiuio")
+        @iscsid_socket = Yast2::Systemd::Socket.find!("iscsid")
+        @iscsiuio_socket = Yast2::Systemd::Socket.find!("iscsiuio")
 
         @iscsi_service_stat = Service.active?("iscsi")
         @iscsid_socket_stat = socketActive?(@iscsid_socket)

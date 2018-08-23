@@ -30,6 +30,8 @@
 # Authors:
 #  Michal Zugec <mzugec@suse.cz>
 #
+require "yast2/systemd/socket"
+
 module Yast
   class IscsiClientFinishClient < Client
     def main
@@ -41,7 +43,6 @@ module Yast
       Yast.import "String"
       Yast.import "IscsiClientLib"
       Yast.import "Service"
-      Yast.import "SystemdSocket"
       Yast.include self, "installation/misc.rb"
 
       @ret = nil
@@ -89,13 +90,13 @@ module Yast
         )
         if Ops.greater_than(Builtins.size(IscsiClientLib.sessions), 0)
           Builtins.y2milestone("enabling iscsi and iscsid service/socket")
-          socket = SystemdSocket.find("iscsid")
+          socket = Yast2::Systemd::Socket.find("iscsid")
           socket.enable if socket
           # enable iscsi and iscsid service
           Service.Enable("iscsid")
           Service.Enable("iscsi")
           Builtins.y2milestone("enabling iscsiuio socket and service")
-          socket = SystemdSocket.find("iscsiuio")
+          socket = Yast2::Systemd::Socket.find("iscsiuio")
           socket.enable if socket
           Service.Enable("iscsiuio")
         end

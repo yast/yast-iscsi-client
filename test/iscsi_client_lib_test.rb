@@ -10,7 +10,7 @@ describe Yast::IscsiClientLibClass do
     before do
       allow(Yast::Service).to receive(:Stop).with(anything)
       allow(Yast::Service).to receive(:active?).with(anything)
-      allow(Yast::SystemdSocket).to receive(:find!).with(anything)
+      allow(Yast2::Systemd::Socket).to receive(:find!).with(anything)
       allow(subject).to receive(:socketActive?)
       allow(subject.log).to receive(:error)
     end
@@ -19,7 +19,7 @@ describe Yast::IscsiClientLibClass do
       let(:iscsid_socket) { double("iscsid.socket", start: true) }
 
       before do
-        allow(Yast::SystemdSocket).to receive(:find!).with("iscsid").and_return(iscsid_socket)
+        allow(Yast2::Systemd::Socket).to receive(:find!).with("iscsid").and_return(iscsid_socket)
         allow(subject).to receive(:socketActive?).with(iscsid_socket).and_return(socket_status)
       end
 

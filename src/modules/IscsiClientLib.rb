@@ -727,9 +727,9 @@ module Yast
             name_from_bios != @initiatorname
           Popup.Warning(
             _(
-              "InitiatorName from iBFT and from <tt>/etc/iscsi/initiatorname.iscsi</tt>\n" +
-                "differ. The old initiator name will be replaced by the value of iBFT and a \n" +
-                "backup created. If you want to use a different initiator name, change it \n" +
+              "InitiatorName from iBFT and from <tt>/etc/iscsi/initiatorname.iscsi</tt>\n" \
+                "differ. The old initiator name will be replaced by the value of iBFT and a \n" \
+                "backup created. If you want to use a different initiator name, change it \n" \
                 "in the BIOS.\n"
             )
           )

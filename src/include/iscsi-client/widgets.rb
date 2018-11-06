@@ -388,14 +388,14 @@ module Yast
       if !correct
         go_on = Popup.YesNoHeadline(_("Incorrect Initiator Name"),
           _(
-            "\n" +
-            "The correct syntax is\n" +
-            "iqn.yyyy-mm.reversed.domain.name[:identifier]\n" +
-            "or eui.yyyy-mm.reversed.domain.name[:identifier]\n" +
-            "\n" +
-            "Example:\n" +
-            "iqn.2007-04.cz.server:storage.disk.sdb\n" +
-            "\n" +
+            "\n" \
+            "The correct syntax is\n" \
+            "iqn.yyyy-mm.reversed.domain.name[:identifier]\n" \
+            "or eui.yyyy-mm.reversed.domain.name[:identifier]\n" \
+            "\n" \
+            "Example:\n" \
+            "iqn.2007-04.cz.server:storage.disk.sdb\n" \
+            "\n" \
             "Do you want to use the name?\n"
           )
         )

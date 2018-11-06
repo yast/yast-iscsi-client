@@ -50,9 +50,9 @@ module Yast
         ) +
           # Write dialog help 2/2
           _(
-            "<p><b><big>Aborting Saving</big></b><br>\n" +
-              "Abort the save procedure by pressing <b>Abort</b>.\n" +
-              "An additional dialog informs whether it is safe to do so.\n" +
+            "<p><b><big>Aborting Saving</big></b><br>\n" \
+              "Abort the save procedure by pressing <b>Abort</b>.\n" \
+              "An additional dialog informs whether it is safe to do so.\n" \
               "</p>\n"
           ),
         # Summary dialog help 1/3
@@ -61,21 +61,21 @@ module Yast
         ) +
           # Summary dialog help 2/3
           _(
-            "<p><b><big>Adding an iSCSI Initiator</big></b><br>\n" +
-              "Select an iSCSI initiator from the list of detected initiators.\n" +
-              "If your iSCSI initiator was not detected, use <b>Other (not detected)</b>.\n" +
+            "<p><b><big>Adding an iSCSI Initiator</big></b><br>\n" \
+              "Select an iSCSI initiator from the list of detected initiators.\n" \
+              "If your iSCSI initiator was not detected, use <b>Other (not detected)</b>.\n" \
               "Then press <b>Configure</b>.</p>\n"
           ) +
           # Summary dialog help 3/3
           _(
-            "<p><b><big>Editing or Deleting</big></b><br>\n" +
-              "If you press <b>Edit</b>, an additional dialog in which to change\n" +
+            "<p><b><big>Editing or Deleting</big></b><br>\n" \
+              "If you press <b>Edit</b>, an additional dialog in which to change\n" \
               "the configuration opens.</p>\n"
           ),
         # Ovreview dialog help 1/3
         "overview"       => _(
-          "<p><b><big>iSCSI Initiator Configuration Overview</big></b><br>\n" +
-            "Obtain an overview of installed iSCSI initiators. Additionally\n" +
+          "<p><b><big>iSCSI Initiator Configuration Overview</big></b><br>\n" \
+            "Obtain an overview of installed iSCSI initiators. Additionally\n" \
             "edit their configurations.<br></p>\n"
         ) +
           # Ovreview dialog help 2/3
@@ -84,8 +84,8 @@ module Yast
           ) +
           # Ovreview dialog help 3/3
           _(
-            "<p><b><big>Editing or Deleting</big></b><br>\n" +
-              "Choose an iSCSI Initiator to change or remove.\n" +
+            "<p><b><big>Editing or Deleting</big></b><br>\n" \
+              "Choose an iSCSI Initiator to change or remove.\n" \
               "Then press <b>Edit</b> or <b>Delete</b> as desired.</p>\n"
           ),
         # table of connected targets
@@ -111,8 +111,8 @@ module Yast
         # discovery new target
         "discovery"      => _("<h1>iSCSI Initiator</h1>") +
           _(
-            "Enter the <b>IP Address</b> of the iSCSI target server.\n" +
-              "Only change <b>Port</b>. If you do not need authentication,\n" +
+            "Enter the <b>IP Address</b> of the iSCSI target server.\n" \
+              "Only change <b>Port</b>. If you do not need authentication,\n" \
               "select <b>No Discovery Authentication</b>. ") + use_bidirectional_auth +
           # Warning
           _("<h1>Warning</h1>") +
@@ -132,11 +132,11 @@ module Yast
         ) +
           _("<h1>Startup</h1>") +
           _(
-            "<p><b>manual</b> is for iSCSI targets which are not to be connected by\n" +
-              "default, the user needs to connect them manually</p>\n" +
-              "<p><b>onboot</b> is for iSCSI targets to be connected during boot, i.e. when\n" +
-              "root is on iSCSI. As such it will be evaluated by the initrd.</p>\n" +
-              "<p><b>automatic</b> is for iSCSI targets to be connected when the iSCSI service\n" +
+            "<p><b>manual</b> is for iSCSI targets which are not to be connected by\n" \
+              "default, the user needs to connect them manually</p>\n" \
+              "<p><b>onboot</b> is for iSCSI targets to be connected during boot, i.e. when\n" \
+              "root is on iSCSI. As such it will be evaluated by the initrd.</p>\n" \
+              "<p><b>automatic</b> is for iSCSI targets to be connected when the iSCSI service\n" \
               "starts up.</p>\n"
           ) +
         _("<h1>Authentication</h1>") +

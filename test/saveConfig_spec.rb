@@ -20,9 +20,9 @@ describe Yast::IscsiClientLibClass do
         "type"    => -1,
         "value"   => [
           {
-            "comment" => "#\n" +
-            "# Open-iSCSI default configuration.\n" +
-            "# Could be located at /etc/iscsid.conf or ~/.iscsid.conf\n" +
+            "comment" => "#\n" \
+            "# Open-iSCSI default configuration.\n" \
+            "# Could be located at /etc/iscsid.conf or ~/.iscsid.conf\n" \
             "#\n",
             "kind"    => "value",
             "name"    => "node.active_cnx",

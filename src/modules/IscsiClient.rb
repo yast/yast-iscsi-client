@@ -111,7 +111,7 @@ module Yast
           "<p>To configure the iSCSI initiator, the <b>%1</b> package must be installed.</p>"
         ) +
           _("<p>Install it now?</p>")
-        )
+      )
         Popup.Error(Message.CannotContinueWithoutPackagesInstalled)
       else
         ret = true

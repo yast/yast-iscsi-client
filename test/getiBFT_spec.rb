@@ -23,7 +23,7 @@ describe Yast::IscsiClientLibClass do
                      "node.conn[0].port = 3260\n"\
                      "node.name = iqn.1986-03.com.ibm:sn.135061874\n"\
                      "# END RECORD\n"
-                     )
+          )
 
         ibft_data = @iscsilib.getiBFT()
 

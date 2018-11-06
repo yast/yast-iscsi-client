@@ -46,7 +46,7 @@ describe Yast::IscsiClientLibClass do
                                         ])).to eq(
                                                 ["10.120.66.182:3260 iqn.2013-10.de.suse:test_file1 default",
                                                  "[2620:113:80c0:8080:e051:f9ea:73c7:9171]:3260 iqn.2013-10.de.suse:test_file2 default"]
-                                                )
+                                        )
       end
     end
   end
@@ -69,7 +69,7 @@ describe Yast::IscsiClientLibClass do
                                                    "[2620:113:80c0:8080:e051:f9ea:73c7:9171]:3260 iqn.2013-10.de.suse:test_file2 default",
                                                    "10.120.66.182:3260 iqn.2013-10.de.suse:test_file2 default",
                                                    "[2620:113:80c0:8080:a00:27ff:fe1b:a7fe]:3260 iqn.2013-10.de.suse:test_file2 default"]
-                                                  )
+                                        )
       end
     end
   end

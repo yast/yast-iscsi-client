@@ -143,7 +143,7 @@ module Yast
         _(
           "<p>The default setting here is <i>No Authentication</i>. Uncheck the checkbox if " \
           "authentication is needed for security reasons." \
-          ) + use_bidirectional_auth + "</p>",
+        ) + use_bidirectional_auth + "</p>",
         # list of discovered targets
         "discovered"     => _(
           "<p>This screen shows the list of discovered targets.</p>" \

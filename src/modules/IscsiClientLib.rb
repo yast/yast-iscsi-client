@@ -604,7 +604,7 @@ module Yast
           0
         ),
         0
-        )
+      )
         Builtins.y2milestone("%1 file exists, create backup", file)
         SCR.Execute(
           path(".target.bash"),
@@ -769,7 +769,7 @@ module Yast
       if Ops.greater_than(
         Builtins.size(Ops.get_string(retcode, "stderr", "")),
         0
-        )
+      )
         return false
       end
 
@@ -860,7 +860,7 @@ module Yast
       if Ops.greater_than(
         Builtins.size(Ops.get_string(retcode, "stderr", "")),
         0
-        )
+      )
         Builtins.y2error("%1", Ops.get_string(retcode, "stderr", ""))
         ret = false
       end
@@ -968,7 +968,7 @@ module Yast
       if Ops.greater_than(
         Builtins.size(Ops.get_string(retcode, "stderr", "")),
         0
-        )
+      )
         return false
       else
         retcode = Convert.convert(
@@ -1215,7 +1215,7 @@ module Yast
         if Ops.greater_than(
           Builtins.size(Ops.get_string(@ay_settings, "initiatorname", "")),
           0
-          )
+        )
           overview = Ops.add(
             Ops.add(
               Ops.add(overview, "<p><b>Initiatorname: </b>"),
@@ -1227,7 +1227,7 @@ module Yast
         if Ops.greater_than(
           Builtins.size(Ops.get_list(@ay_settings, "targets", [])),
           0
-          )
+        )
           Builtins.foreach(Ops.get_list(@ay_settings, "targets", [])) do |target|
             overview = Ops.add(
               Ops.add(
@@ -1403,7 +1403,7 @@ module Yast
                   )
                 ),
                 0
-                )
+              )
                 Builtins.y2milestone("GetOffloadItems l:%1", l)
                 Builtins.y2milestone("GetOffloadItems valid:%1", hw)
                 Ops.set(

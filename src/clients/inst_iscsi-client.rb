@@ -85,7 +85,7 @@ module Yast
         "iscsi-client",
         :package,
         iscsi_packages
-        )
+      )
 
       if Mode.autoinst && auto_login
         Builtins.y2milestone("Autoinstallation - IscsiClient module finished")

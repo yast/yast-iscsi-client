@@ -85,10 +85,10 @@ module Yast
               SCR.Read(path(".background.newerr")),
               :from => "any",
               :to   => "list <string>"
-                            ),
+            ),
             0,
             ""
-                          )
+          )
           Builtins.y2error("Error: %1", error)
           Popup.Error(error)
         else
@@ -212,7 +212,7 @@ module Yast
             if Ops.greater_than(Builtins.size(record), 0)
               if Popup.ContinueCancel(
                   _("Really log out from the selected target?")
-                )
+              )
                 if !IscsiClientLib.deleteRecord
                   Popup.Error(
                     _(
@@ -348,7 +348,7 @@ module Yast
           Ops.get_string(IscsiClientLib.getiBFT, "iSCSI_INITIATOR_NAME", "")
         ),
         0
-        )
+      )
         UI.ChangeWidget(:initiator_name, :Enabled, false)
         UI.ChangeWidget(:write, :Enabled, false)
       end
@@ -754,7 +754,7 @@ module Yast
               _("Continue"),
               _("Cancel"),
               :focus_yes
-              )
+            )
               return nil
             end
           end
@@ -842,7 +842,7 @@ module Yast
         ),
         3,
         ""
-        ) ==
+      ) ==
           _("True")
         UI.ChangeWidget(:connect, :Enabled, false)
       else
@@ -874,7 +874,7 @@ module Yast
                 _("Continue"),
                 _("Cancel"),
                 :focus_yes
-                )
+              )
                 return nil
               end
             end

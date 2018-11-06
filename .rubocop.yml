@@ -225,17 +225,6 @@ Style/LeadingCommentSpace:
     - 'src/clients/iscsi-client.rb'
     - 'src/include/iscsi-client/widgets.rb'
 
-# Offense count: 9
-# Cop supports --auto-correct.
-Style/MethodCallParentheses:
-  Exclude:
-    - 'src/include/iscsi-client/widgets.rb'
-    - 'src/modules/IscsiClientLib.rb'
-    - 'test/ScanDiscovered_spec.rb'
-    - 'test/getiBFT_spec.rb'
-    - 'test/ipEqual_spec.rb'
-    - 'test/saveConfig_spec.rb'
-
 # Offense count: 99
 # Configuration parameters: EnforcedStyle, SupportedStyles.
 # SupportedStyles: snake_case, camelCase

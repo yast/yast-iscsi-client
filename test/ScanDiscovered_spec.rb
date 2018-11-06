@@ -4,7 +4,7 @@ require_relative '../src/modules/IscsiClientLib'
 describe Yast::IscsiClientLibClass do
   before :each do
     @iscsilib = Yast::IscsiClientLibClass.new
-    @iscsilib.main()
+    @iscsilib.main
   end
 
   describe "#ScanDiscovered for iscsiadm -m session -P 1" do

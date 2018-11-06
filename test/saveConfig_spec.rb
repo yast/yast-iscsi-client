@@ -4,7 +4,7 @@ require_relative '../src/modules/IscsiClientLib'
 describe Yast::IscsiClientLibClass do
   subject do
     @iscsilib = Yast::IscsiClientLibClass.new
-    @iscsilib.main()
+    @iscsilib.main
     @iscsilib
   end
 

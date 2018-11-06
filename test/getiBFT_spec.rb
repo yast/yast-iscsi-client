@@ -5,7 +5,7 @@ describe Yast::IscsiClientLibClass do
 
   before :each do
     @iscsilib = Yast::IscsiClientLibClass.new
-    @iscsilib.main()
+    @iscsilib.main
   end
 
   describe "#getiBFT" do
@@ -25,7 +25,7 @@ describe Yast::IscsiClientLibClass do
                      "# END RECORD\n"
           )
 
-        ibft_data = @iscsilib.getiBFT()
+        ibft_data = @iscsilib.getiBFT
 
         expect(ibft_data).to eq(
                                 "# BEGIN RECORD 2.0-872" => "",
@@ -46,7 +46,7 @@ describe Yast::IscsiClientLibClass do
         allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
         allow(@iscsilib).to receive(:getFirmwareInfo).and_return("")
 
-        ibft_data = @iscsilib.getiBFT()
+        ibft_data = @iscsilib.getiBFT
 
         expect(ibft_data).to eq({})
       end
@@ -56,7 +56,7 @@ describe Yast::IscsiClientLibClass do
       it "returns an empty map " do
         allow(Yast::Arch).to receive(:architecture).and_return("s390_64")
 
-        ibft_data = @iscsilib.getiBFT()
+        ibft_data = @iscsilib.getiBFT
 
         expect(ibft_data).to eq({})
       end

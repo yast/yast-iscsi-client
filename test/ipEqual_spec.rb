@@ -5,7 +5,7 @@ describe Yast::IscsiClientLibClass do
 
   before :each do
     @iscsilib = Yast::IscsiClientLibClass.new
-    @iscsilib.main()
+    @iscsilib.main
   end
 
   describe "#ipEqual" do

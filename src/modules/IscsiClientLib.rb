@@ -1072,7 +1072,7 @@ module Yast
       end
 
       setStartupStatus("onboot") if !Mode.autoinst
-      true 
+      true
     end
 
 
@@ -1102,7 +1102,7 @@ module Yast
 
         # if not running, start iscsi.service, iscsid.socket and iscsiuio.socket
         if !@iscsid_socket_stat
-          Service.Stop("iscsid") if Service.active?("iscsid") 
+          Service.Stop("iscsid") if Service.active?("iscsid")
           log.error "Cannot start iscsid.socket" if !socketStart(@iscsid_socket)
         end
         if !@iscsiuio_socket_stat
@@ -1127,7 +1127,7 @@ module Yast
           readSessions
           if Builtins.size(@sessions) == 0
             log.info "No active sessions - stopping iscsi service and iscsid/iscsiuio service and socket"
-            # stop iscsid.socket and iscsid.service 
+            # stop iscsid.socket and iscsid.service
             socketStop(@iscsid_socket)
             Service.Stop("iscsid")
             # stop iscsiuio.socket and iscsiuio.service

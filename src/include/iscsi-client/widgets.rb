@@ -184,7 +184,7 @@ module Yast
         IscsiClientLib.currentRecord = Builtins.splitstring(
           Ops.get(IscsiClientLib.sessions, current, ""),
           " "
-        ) 
+        )
         #	 record = deletechars(record, "[]");
       elsif Ops.greater_than(Builtins.size(IscsiClientLib.sessions), 0)
         IscsiClientLib.currentRecord = Builtins.splitstring(
@@ -514,7 +514,7 @@ module Yast
           Id(:pass_out),
           :Value,
           Ops.get_string(auth, "password", "")
-        ) 
+        )
         #   if ((size(auth["username"]:"")>0)&&(size(auth["password"]:"")>0)) setAuthOut(true);
       end
       startup = IscsiClientLib.getStartupStatus

@@ -163,7 +163,7 @@ module Yast
         ),
         "ibft_table"     => _("<h1>iBTF</h1>") +
           "The <p>iSCSI Boot Firmware Table</p> is a table created by the iSCSI boot firmware in order to\npass parameters about the iSCSI boot device to the loaded OS."
-      } 
+      }
 
       # EOF
     end

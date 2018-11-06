@@ -502,21 +502,6 @@ Style/TrailingBlankLines:
   Exclude:
     - 'test/ScanDiscovered_spec.rb'
 
-# Offense count: 47
-# Cop supports --auto-correct.
-Style/TrailingWhitespace:
-  Exclude:
-    - 'src/clients/inst_iscsi-client.rb'
-    - 'src/clients/iscsi-client.rb'
-    - 'src/clients/iscsi-client_auto.rb'
-    - 'src/clients/iscsi-client_proposal.rb'
-    - 'src/include/iscsi-client/helps.rb'
-    - 'src/include/iscsi-client/widgets.rb'
-    - 'src/modules/IscsiClientLib.rb'
-    - 'test/ScanDiscovered_spec.rb'
-    - 'test/getiBFT_spec.rb'
-    - 'test/ipEqual_spec.rb'
-
 # Offense count: 3
 # Cop supports --auto-correct.
 Style/UnneededInterpolation:

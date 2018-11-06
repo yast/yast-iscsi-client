@@ -12,8 +12,8 @@ describe Yast::IscsiClientLibClass do
     context "when filtering output of 'iscsiadm -m fw'" do
       it "returns data in form of a map " do
         allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
-        allow(@iscsilib).to receive(:getFirmwareInfo).
-          and_return("# BEGIN RECORD 2.0-872\n"\
+        allow(@iscsilib).to receive(:getFirmwareInfo)
+          .and_return("# BEGIN RECORD 2.0-872\n"\
                      "iface.bootproto = STATIC\n"\
                      "iface.transport_name = tcp\n"\
                      "iface.hwaddress = 00:00:c9:b1:bc:7f\n"\

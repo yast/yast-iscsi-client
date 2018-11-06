@@ -95,14 +95,6 @@ Style/Documentation:
 
 # Offense count: 1
 # Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle, SupportedStyles.
-# SupportedStyles: leading, trailing
-Style/DotPosition:
-  Exclude:
-    - 'test/getiBFT_spec.rb'
-
-# Offense count: 1
-# Cop supports --auto-correct.
 Style/ElseAlignment:
   Exclude:
     - 'src/modules/IscsiClientLib.rb'

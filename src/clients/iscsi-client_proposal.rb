@@ -33,7 +33,6 @@
 module Yast
   class IscsiClientProposalClient < Client
     def main
-
       textdomain "iscsi-client"
 
       Yast.import "IscsiClient"

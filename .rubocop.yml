@@ -457,14 +457,6 @@ Style/StringLiterals:
     - 'test/ipEqual_spec.rb'
     - 'test/saveConfig_spec.rb'
 
-# Offense count: 1
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle, SupportedStyles.
-# SupportedStyles: final_newline, final_blank_line
-Style/TrailingBlankLines:
-  Exclude:
-    - 'test/ScanDiscovered_spec.rb'
-
 # Offense count: 3
 # Cop supports --auto-correct.
 Style/UnneededInterpolation:

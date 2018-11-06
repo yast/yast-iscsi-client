@@ -189,14 +189,6 @@ Style/MethodName:
     - 'src/modules/IscsiClient.rb'
     - 'src/modules/IscsiClientLib.rb'
 
-# Offense count: 3
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle, SupportedStyles.
-# SupportedStyles: symmetrical, new_line, same_line
-Style/MultilineArrayBraceLayout:
-  Exclude:
-    - 'test/ScanDiscovered_spec.rb'
-
 # Offense count: 1
 Style/MultilineTernaryOperator:
   Exclude:

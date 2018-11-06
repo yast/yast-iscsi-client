@@ -42,8 +42,7 @@ describe Yast::IscsiClientLibClass do
                                          "\t\tSID: 1",
                                          "\t\tiSCSI Connection State: TRANSPORT WAIT",
                                          "\t\tiSCSI Session State: FREE",
-                                         "\t\tInternal iscsid Session State: REOPEN", ""
-                                        ]
+                                         "\t\tInternal iscsid Session State: REOPEN", ""]
         )).to eq(
                                                 ["10.120.66.182:3260 iqn.2013-10.de.suse:test_file1 default",
                                                  "[2620:113:80c0:8080:e051:f9ea:73c7:9171]:3260 iqn.2013-10.de.suse:test_file2 default"]
@@ -64,13 +63,13 @@ describe Yast::IscsiClientLibClass do
                                          "\tPortal: 10.120.66.182:3260,1",
                                          "\t\tIface Name: default",
                                          "\tPortal: [2620:113:80c0:8080:a00:27ff:fe1b:a7fe]:3260,1",
-                                         "\t\tIface Name: default"
-                                        ]
+                                         "\t\tIface Name: default"]
         )). to eq(
                                                   [
                                                    "[2620:113:80c0:8080:e051:f9ea:73c7:9171]:3260 iqn.2013-10.de.suse:test_file2 default",
                                                    "10.120.66.182:3260 iqn.2013-10.de.suse:test_file2 default",
-                                                   "[2620:113:80c0:8080:a00:27ff:fe1b:a7fe]:3260 iqn.2013-10.de.suse:test_file2 default"]
+                                                   "[2620:113:80c0:8080:a00:27ff:fe1b:a7fe]:3260 iqn.2013-10.de.suse:test_file2 default"
+]
         )
       end
     end

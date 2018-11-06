@@ -906,7 +906,7 @@ module Yast
       end
 
     rescue ArgumentError => e
-      Builtins.y2error("Invalid IP address, error: %1", "#{e}")
+      Builtins.y2error("Invalid IP address, error: %1", e.to_s)
       false
     end
 

@@ -436,13 +436,6 @@ Style/StringLiterals:
     - 'test/ipEqual_spec.rb'
     - 'test/saveConfig_spec.rb'
 
-# Offense count: 3
-# Cop supports --auto-correct.
-Style/UnneededInterpolation:
-  Exclude:
-    - 'src/include/iscsi-client/widgets.rb'
-    - 'src/modules/IscsiClientLib.rb'
-
 # Offense count: 5
 # Configuration parameters: EnforcedStyle, SupportedStyles.
 # SupportedStyles: snake_case, camelCase

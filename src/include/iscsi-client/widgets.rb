@@ -581,7 +581,7 @@ module Yast
           output = result["stdout"] || ""
 
           if (result["exit"] != 0)
-            Popup.Error(_("Please check IP address resp. host name.\n") + "#{output}" + "#{result["stderr"]}")
+            Popup.Error(_("Please check IP address resp. host name.\n") + output.to_s + (result["stderr"]).to_s)
             UI.SetFocus(:hostname)
             return false
           elsif !output.empty?

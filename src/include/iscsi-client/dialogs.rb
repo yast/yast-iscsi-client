@@ -382,11 +382,11 @@ module Yast
 
       widget_descr = {
         "tab" => CWMTab.CreateWidget(
-                      "tab_order"    => tab_order,
-                      "tabs"         => @tabs_descr,
-                      "widget_descr" => @widgets,
-                      "initial_tab"  => Stage.initial ? "general" : @current_tab,
-                      "tab_help"     => _("<h1>iSCSI Initiator</h1>")
+          "tab_order"    => tab_order,
+          "tabs"         => @tabs_descr,
+          "widget_descr" => @widgets,
+          "initial_tab"  => Stage.initial ? "general" : @current_tab,
+          "tab_help"     => _("<h1>iSCSI Initiator</h1>")
         )
       }
       contents = VBox("tab")
@@ -463,7 +463,7 @@ module Yast
       w = CWM.CreateWidgets(["targets_table"], @widgets)
       contents = VBox(
         HBox(HSpacing(1), VBox(Ops.get_term(w, [0, "widget"]) { VSpacing(1) }), HSpacing(
-          1
+                                                                                  1
         ))
       )
       help = CWM.MergeHelps(w)

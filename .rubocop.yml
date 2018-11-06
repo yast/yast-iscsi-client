@@ -105,20 +105,6 @@ Style/FileName:
     - 'src/modules/IscsiClient.rb'
     - 'src/modules/IscsiClientLib.rb'
 
-# Offense count: 24
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle, SupportedStyles, IndentationWidth.
-# SupportedStyles: consistent, special_for_inner_method_call, special_for_inner_method_call_in_parentheses
-Style/FirstParameterIndentation:
-  Exclude:
-    - 'src/clients/inst_iscsi-client.rb'
-    - 'src/include/iscsi-client/dialogs.rb'
-    - 'src/include/iscsi-client/widgets.rb'
-    - 'src/modules/IscsiClient.rb'
-    - 'src/modules/IscsiClientLib.rb'
-    - 'test/ScanDiscovered_spec.rb'
-    - 'test/getiBFT_spec.rb'
-
 # Offense count: 2
 # Configuration parameters: MinBodyLength.
 Style/GuardClause:

@@ -27,16 +27,16 @@ describe Yast::IscsiClientLibClass do
         ibft_data = @iscsilib.getiBFT
 
         expect(ibft_data).to eq(
-                                "# BEGIN RECORD 2.0-872" => "",
-                                "# END RECORD"           => "",
-                                "iface.bootproto"        => "STATIC",
-                                "iface.hwaddress"        => "00:00:c9:b1:bc:7f",
-                                "iface.initiatorname"    => "iqn.2011-05.com.emulex:eraptorrfshoneport1",
-                                "iface.transport_name"   => "tcp",
-                                "iface.ipaddress"        => "2620:0113:80c0:8000:000c:0000:0000:04dc",
-                                "node.conn[0].address"   => "172.0.21.6",
-                                "node.conn[0].port"      => "3260",
-                                "node.name"              => "iqn.1986-03.com.ibm:sn.135061874"
+          "# BEGIN RECORD 2.0-872" => "",
+          "# END RECORD"           => "",
+          "iface.bootproto"        => "STATIC",
+          "iface.hwaddress"        => "00:00:c9:b1:bc:7f",
+          "iface.initiatorname"    => "iqn.2011-05.com.emulex:eraptorrfshoneport1",
+          "iface.transport_name"   => "tcp",
+          "iface.ipaddress"        => "2620:0113:80c0:8000:000c:0000:0000:04dc",
+          "node.conn[0].address"   => "172.0.21.6",
+          "node.conn[0].port"      => "3260",
+          "node.name"              => "iqn.1986-03.com.ibm:sn.135061874"
         )
       end
     end

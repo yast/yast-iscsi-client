@@ -211,7 +211,7 @@ module Yast
           record = setRecord
           if Ops.greater_than(Builtins.size(record), 0)
             if Popup.ContinueCancel(
-                _("Really log out from the selected target?")
+              _("Really log out from the selected target?")
             )
               if !IscsiClientLib.deleteRecord
                 Popup.Error(

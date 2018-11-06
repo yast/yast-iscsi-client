@@ -1379,7 +1379,7 @@ module Yast
           }
           Builtins.y2milestone("GetOffloadItems cinf:%1", r)
           deep_copy(r)
-        end    # maplist(cards)
+        end # maplist(cards)
 
         idx = 0
         Builtins.foreach(@offload) do |l|
@@ -1441,7 +1441,7 @@ module Yast
                   Ops.add(@offboard_script, " "),
                   Ops.get_string(l, 0, "")
                 ),
-                " | grep ..:..:..:.."     # grep for lines containing MAC address
+                " | grep ..:..:..:.." # grep for lines containing MAC address
               )
               Builtins.y2milestone("GetOffloadItems cmd:%1", cmd)
               out = Convert.to_map(

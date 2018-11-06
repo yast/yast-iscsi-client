@@ -199,14 +199,6 @@ Style/EmptyLinesAroundClassBody:
   Exclude:
     - 'src/modules/IscsiClientLib.rb'
 
-# Offense count: 3
-# Cop supports --auto-correct.
-# Configuration parameters: AllowForAlignment, ForceEqualSignAlignment.
-Style/ExtraSpacing:
-  Exclude:
-    - 'src/include/iscsi-client/widgets.rb'
-    - 'src/modules/IscsiClientLib.rb'
-
 # Offense count: 7
 # Configuration parameters: ExpectMatchingDefinition, Regex, IgnoreExecutableScripts.
 Style/FileName:

@@ -367,9 +367,7 @@ module Yast
       i_name = Convert.to_string(UI.QueryWidget(:initiator_name, :Value))
 
       # name not changed at all or already saved after checking it
-      if IscsiClientLib.initiatorname == i_name
-        return true
-      end
+      return true if IscsiClientLib.initiatorname == i_name
 
       # regexp for "yyyy-mm."
       reg1 = "[[:digit:]]{4}-[[:digit:]]{2}."

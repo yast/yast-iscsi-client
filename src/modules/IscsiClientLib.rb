@@ -216,9 +216,7 @@ module Yast
         key, val = row.split("=")
 
         key = key.to_s.strip
-        if !key.empty?
-          retval[key] = val.to_s.strip
-        end
+        retval[key] = val.to_s.strip if !key.empty?
       end
 
       retval
@@ -530,9 +528,7 @@ module Yast
 
     def restart_iscsid_initial
       retcode = Convert.to_integer(SCR.Execute(path(".target.bash"), "pgrep iscsid"))
-      if retcode == 0
-        Service.Stop("iscsid")
-      end
+      Service.Stop("iscsid") if retcode == 0
       start_iscsid_initial
     end
 
@@ -865,12 +861,8 @@ module Yast
 
     # check whether two given IP addresses (including ports) are equal
     def ipEqual?(session_ip, current_ip)
-      if !session_ip || !current_ip
-        return false
-      end
-      if session_ip.empty? || current_ip.empty?
-        return false
-      end
+      return false if !session_ip || !current_ip
+      return false if session_ip.empty? || current_ip.empty?
 
       if !session_ip.start_with?("[") && !current_ip.start_with?("[")
         # both IPv4 - compare directly
@@ -996,9 +988,7 @@ module Yast
       if !getiBFT.empty?
         result = Convert.to_map(SCR.Execute(path(".target.bash_output"),
           GetAdmCmd("-m fw -l")))
-        if result["exit"] != 0
-          ret = false
-        end
+        ret = false if result["exit"] != 0
         log.info "Autologin into iBFT : #{result}"
       end
       ret

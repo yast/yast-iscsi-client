@@ -143,14 +143,6 @@ Style/IfInsideElse:
   Exclude:
     - 'src/include/iscsi-client/widgets.rb'
 
-# Offense count: 6
-# Cop supports --auto-correct.
-# Configuration parameters: MaxLineLength.
-Style/IfUnlessModifier:
-  Exclude:
-    - 'src/include/iscsi-client/widgets.rb'
-    - 'src/modules/IscsiClientLib.rb'
-
 # Offense count: 10
 # Cop supports --auto-correct.
 # Configuration parameters: EnforcedStyle, SupportedStyles.

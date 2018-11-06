@@ -516,6 +516,7 @@ module Yast
 
       nil
     end
+
     # handle for enable/disable widgets in authentication dialog
     def handleDiscAuth(_key, event)
       event = deep_copy(event)

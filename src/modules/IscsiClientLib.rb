@@ -1637,6 +1637,7 @@ module Yast
       Builtins.y2milestone("GetDiscIfaces:%1", ret)
       deep_copy(ret)
     end
+
     def CallConfigScript
       sl = Builtins.filter(GetDiscIfaces()) { |s| s != "default" }
       Builtins.y2milestone("CallConfigScript list:%1", sl)

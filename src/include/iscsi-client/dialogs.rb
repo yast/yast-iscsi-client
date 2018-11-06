@@ -383,13 +383,11 @@ module Yast
 
       widget_descr = {
         "tab" => CWMTab.CreateWidget(
-          {
-            "tab_order"    => tab_order,
-            "tabs"         => @tabs_descr,
-            "widget_descr" => @widgets,
-            "initial_tab"  => Stage.initial ? "general" : @current_tab,
-            "tab_help"     => _("<h1>iSCSI Initiator</h1>")
-          }
+                      "tab_order"    => tab_order,
+                      "tabs"         => @tabs_descr,
+                      "widget_descr" => @widgets,
+                      "initial_tab"  => Stage.initial ? "general" : @current_tab,
+                      "tab_help"     => _("<h1>iSCSI Initiator</h1>")
         )
       }
       contents = VBox("tab")
@@ -415,7 +413,7 @@ module Yast
       Wizard.HideBackButton
       ret = CWM.Run(
         w,
-        { :abort => fun_ref(method(:ReallyAbort), "boolean ()") }
+        :abort => fun_ref(method(:ReallyAbort), "boolean ()")
       )
       ret
     end
@@ -454,7 +452,7 @@ module Yast
 
       ret = CWM.Run(
         w,
-        { :abort => fun_ref(method(:ReallyAbort), "boolean ()") }
+        :abort => fun_ref(method(:ReallyAbort), "boolean ()")
       )
       deep_copy(ret)
     end
@@ -480,7 +478,7 @@ module Yast
       )
       ret = CWM.Run(
         w,
-        { :abort => fun_ref(method(:ReallyAbort), "boolean ()") }
+        :abort => fun_ref(method(:ReallyAbort), "boolean ()")
       )
       deep_copy(ret)
     end
@@ -523,7 +521,7 @@ module Yast
 
       ret = CWM.Run(
         w,
-        { :abort => fun_ref(method(:ReallyAbort), "boolean ()") }
+        :abort => fun_ref(method(:ReallyAbort), "boolean ()")
       )
       deep_copy(ret)
     end

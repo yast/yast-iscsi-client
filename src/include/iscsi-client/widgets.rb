@@ -311,25 +311,21 @@ module Yast
         if !found_addr
           tmp_config = Builtins.add(
             tmp_config,
-            {
-              "name"    => "isns.address",
-              "value"   => address,
-              "kind"    => "value",
-              "type"    => 1,
-              "comment" => ""
-            }
+            "name"    => "isns.address",
+            "value"   => address,
+            "kind"    => "value",
+            "type"    => 1,
+            "comment" => ""
           )
         end
         if !found_port
           tmp_config = Builtins.add(
             tmp_config,
-            {
-              "name"    => "isns.port",
-              "value"   => port,
-              "kind"    => "value",
-              "type"    => 1,
-              "comment" => ""
-            }
+            "name"    => "isns.port",
+            "value"   => port,
+            "kind"    => "value",
+            "type"    => 1,
+            "comment" => ""
           )
         end
       end

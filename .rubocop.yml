@@ -73,16 +73,6 @@ Metrics/ModuleLength:
 Metrics/PerceivedComplexity:
   Max: 23
 
-# Offense count: 8
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle, SupportedStyles.
-# SupportedStyles: braces, no_braces, context_dependent
-Style/BracesAroundHashParameters:
-  Exclude:
-    - 'src/include/iscsi-client/dialogs.rb'
-    - 'src/include/iscsi-client/widgets.rb'
-    - 'test/getiBFT_spec.rb'
-
 # Offense count: 11
 # Cop supports --auto-correct.
 # Configuration parameters: IndentWhenRelativeTo, SupportedStyles, IndentOneStep, IndentationWidth.

@@ -795,11 +795,11 @@ module Yast
       return false if n1.empty?
 
       keys = [
-              "iface.transport_name",
-              "iface.initiatorname",
-              "node.name",
-              "node.conn[0].address"
-             ]
+        "iface.transport_name",
+        "iface.initiatorname",
+        "node.name",
+        "node.conn[0].address"
+      ]
 
       keys.all? { |key| n1[key] == n2[key] }
     end

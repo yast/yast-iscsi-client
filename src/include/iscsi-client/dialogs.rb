@@ -53,8 +53,8 @@ module Yast
       Yast.include include_target, "iscsi-client/widgets.rb"
 
       @widgets = {
-        "auto_start_up"       => service_widget.cwm_definition,
-        "isns"                => {
+        "auto_start_up"    => service_widget.cwm_definition,
+        "isns"             => {
           "widget"            => :custom,
           "custom_widget"     => HBox(
             MinWidth(
@@ -312,7 +312,6 @@ module Yast
         }
       }
 
-
       @tabs_descr = {
         # service status dialog
         "general"    => {
@@ -383,13 +382,11 @@ module Yast
 
       widget_descr = {
         "tab" => CWMTab.CreateWidget(
-          {
-            "tab_order"    => tab_order,
-            "tabs"         => @tabs_descr,
-            "widget_descr" => @widgets,
-            "initial_tab"  => Stage.initial ? "general" : @current_tab,
-            "tab_help"     => _("<h1>iSCSI Initiator</h1>")
-          }
+          "tab_order"    => tab_order,
+          "tabs"         => @tabs_descr,
+          "widget_descr" => @widgets,
+          "initial_tab"  => Stage.initial ? "general" : @current_tab,
+          "tab_help"     => _("<h1>iSCSI Initiator</h1>")
         )
       }
       contents = VBox("tab")
@@ -415,7 +412,7 @@ module Yast
       Wizard.HideBackButton
       ret = CWM.Run(
         w,
-        { :abort => fun_ref(method(:ReallyAbort), "boolean ()") }
+        :abort => fun_ref(method(:ReallyAbort), "boolean ()")
       )
       ret
     end
@@ -454,7 +451,7 @@ module Yast
 
       ret = CWM.Run(
         w,
-        { :abort => fun_ref(method(:ReallyAbort), "boolean ()") }
+        :abort => fun_ref(method(:ReallyAbort), "boolean ()")
       )
       deep_copy(ret)
     end
@@ -466,7 +463,7 @@ module Yast
       w = CWM.CreateWidgets(["targets_table"], @widgets)
       contents = VBox(
         HBox(HSpacing(1), VBox(Ops.get_term(w, [0, "widget"]) { VSpacing(1) }), HSpacing(
-          1
+                                                                                  1
         ))
       )
       help = CWM.MergeHelps(w)
@@ -480,7 +477,7 @@ module Yast
       )
       ret = CWM.Run(
         w,
-        { :abort => fun_ref(method(:ReallyAbort), "boolean ()") }
+        :abort => fun_ref(method(:ReallyAbort), "boolean ()")
       )
       deep_copy(ret)
     end
@@ -517,13 +514,13 @@ module Yast
         Label.NextButton
       )
 
-      if (IscsiClientLib.iBFT?(IscsiClientLib.getCurrentNodeValues))
+      if IscsiClientLib.iBFT?(IscsiClientLib.getCurrentNodeValues)
         UI.ChangeWidget(Id("startup"), :Enabled, false)
       end
 
       ret = CWM.Run(
         w,
-        { :abort => fun_ref(method(:ReallyAbort), "boolean ()") }
+        :abort => fun_ref(method(:ReallyAbort), "boolean ()")
       )
       deep_copy(ret)
     end

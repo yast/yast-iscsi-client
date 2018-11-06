@@ -31,7 +31,7 @@
 # Main file for iscsi-client configuration. Uses all other files.
 module Yast
   module IscsiClientWidgetsInclude
-    def initialize_iscsi_client_widgets(include_target)
+    def initialize_iscsi_client_widgets(_include_target)
       textdomain "iscsi-client"
       Yast.import "IP"
 
@@ -81,14 +81,14 @@ module Yast
         if return_code != 0
           @stat = false
           error = Ops.get(
-                          Convert.convert(
-                                          SCR.Read(path(".background.newerr")),
-                                          :from => "any",
-                                          :to   => "list <string>"
-                                          ),
-                          0,
-                          ""
-                          )
+            Convert.convert(
+              SCR.Read(path(".background.newerr")),
+              :from => "any",
+              :to   => "list <string>"
+            ),
+            0,
+            ""
+          )
           Builtins.y2error("Error: %1", error)
           Popup.Error(error)
         else
@@ -147,7 +147,7 @@ module Yast
     end
 
     # init table of connected sessions
-    def initConnectedTable(key)
+    def initConnectedTable(_key)
       if IscsiClientLib.readSessions == false
         Popup.Error(_("Error While Connecting iscsid"))
       end
@@ -184,7 +184,7 @@ module Yast
         IscsiClientLib.currentRecord = Builtins.splitstring(
           Ops.get(IscsiClientLib.sessions, current, ""),
           " "
-        ) 
+        )
         #	 record = deletechars(record, "[]");
       elsif Ops.greater_than(Builtins.size(IscsiClientLib.sessions), 0)
         IscsiClientLib.currentRecord = Builtins.splitstring(
@@ -196,40 +196,40 @@ module Yast
     end
 
     # handle for table of connected sessions
-    def handleConnectedTable(key, event)
+    def handleConnectedTable(_key, event)
       event = deep_copy(event)
       if Ops.get_string(event, "EventReason", "") == "Activated"
         record = []
         case Ops.get_symbol(event, "ID")
-          when :add
-            # add a new target, discovery
-            # goto DiscAuthDialog("client")) ()
-            Builtins.y2milestone("Goto dicovered authentication dialog")
-            return :add
-          when :del
-            # delete (logout from) connected target
-            record = setRecord
-            if Ops.greater_than(Builtins.size(record), 0)
-              if Popup.ContinueCancel(
-                  _("Really log out from the selected target?")
-                )
-                if !IscsiClientLib.deleteRecord
-                  Popup.Error(
-                    _(
-                      "Error occurred while logging out from the selected target."
-                    )
+        when :add
+          # add a new target, discovery
+          # goto DiscAuthDialog("client")) ()
+          Builtins.y2milestone("Goto dicovered authentication dialog")
+          return :add
+        when :del
+          # delete (logout from) connected target
+          record = setRecord
+          if Ops.greater_than(Builtins.size(record), 0)
+            if Popup.ContinueCancel(
+              _("Really log out from the selected target?")
+            )
+              if !IscsiClientLib.deleteRecord
+                Popup.Error(
+                  _(
+                    "Error occurred while logging out from the selected target."
                   )
-                else
-                  Builtins.y2milestone("Delete record %1", record)
-                  initConnectedTable("")
-                end
+                )
+              else
+                Builtins.y2milestone("Delete record %1", record)
+                initConnectedTable("")
               end
-            else
-              Popup.Error(_("No record found."))
             end
-          when :edit
-            record = setRecord
-            return :edit
+          else
+            Popup.Error(_("No record found."))
+          end
+        when :edit
+          record = setRecord
+          return :edit
         end
       end
       # if nothing selected - disable some buttons, otherwise enable them
@@ -243,7 +243,7 @@ module Yast
       nil
     end
 
-    def initISNS(key)
+    def initISNS(_key)
       Builtins.foreach(IscsiClientLib.getConfig) do |row|
         if Ops.get_string(row, "name", "") == "isns.address"
           UI.ChangeWidget(
@@ -261,7 +261,7 @@ module Yast
       nil
     end
 
-    def validateISNS(key, event)
+    def validateISNS(_key, event)
       event = deep_copy(event)
       address = Convert.to_string(UI.QueryWidget(:isns_address, :Value))
       port = Convert.to_string(UI.QueryWidget(:isns_port, :Value))
@@ -279,8 +279,7 @@ module Yast
       true
     end
 
-
-    def storeISNS(key, event)
+    def storeISNS(_key, event)
       event = deep_copy(event)
       address = Convert.to_string(UI.QueryWidget(:isns_address, :Value))
       port = Convert.to_string(UI.QueryWidget(:isns_port, :Value))
@@ -300,9 +299,9 @@ module Yast
         if (Ops.get_string(row, "name", "") == "isns.address" ||
             Ops.get_string(row, "name", "") == "isns.port") &&
             Ops.greater_than(Builtins.size(address), 0) &&
-              Ops.greater_than(Builtins.size(port), 0) ||
+            Ops.greater_than(Builtins.size(port), 0) ||
             Ops.get_string(row, "name", "") != "isns.address" &&
-              Ops.get_string(row, "name", "") != "isns.port"
+                Ops.get_string(row, "name", "") != "isns.port"
           tmp_config = Builtins.add(tmp_config, row)
         end
       end
@@ -311,25 +310,21 @@ module Yast
         if !found_addr
           tmp_config = Builtins.add(
             tmp_config,
-            {
-              "name"    => "isns.address",
-              "value"   => address,
-              "kind"    => "value",
-              "type"    => 1,
-              "comment" => ""
-            }
+            "name"    => "isns.address",
+            "value"   => address,
+            "kind"    => "value",
+            "type"    => 1,
+            "comment" => ""
           )
         end
         if !found_port
           tmp_config = Builtins.add(
             tmp_config,
-            {
-              "name"    => "isns.port",
-              "value"   => port,
-              "kind"    => "value",
-              "type"    => 1,
-              "comment" => ""
-            }
+            "name"    => "isns.port",
+            "value"   => port,
+            "kind"    => "value",
+            "type"    => 1,
+            "comment" => ""
           )
         end
       end
@@ -339,20 +334,18 @@ module Yast
       nil
     end
 
-
-
-    def initInitName(key)
+    def initInitName(_key)
       Builtins.y2milestone("initiatorname %1", IscsiClientLib.initiatorname)
       UI.ChangeWidget(:initiator_name, :Value, IscsiClientLib.initiatorname)
       UI.ChangeWidget(:offload_card, :Items, IscsiClientLib.GetOffloadItems)
       UI.ChangeWidget(:offload_card, :Value, IscsiClientLib.GetOffloadCard)
       Builtins.y2milestone("OffloadCard %1", IscsiClientLib.GetOffloadCard)
       if Ops.greater_than(
-          Builtins.size(
-            Ops.get_string(IscsiClientLib.getiBFT, "iSCSI_INITIATOR_NAME", "")
-          ),
-          0
-        )
+        Builtins.size(
+          Ops.get_string(IscsiClientLib.getiBFT, "iSCSI_INITIATOR_NAME", "")
+        ),
+        0
+      )
         UI.ChangeWidget(:initiator_name, :Enabled, false)
         UI.ChangeWidget(:write, :Enabled, false)
       end
@@ -360,7 +353,7 @@ module Yast
       nil
     end
 
-    def validateInitName(key, event)
+    def validateInitName(_key, event)
       event = deep_copy(event)
       #  Targets definitions start with "Target" and the target name.
       #  The target name must be a globally unique name, the iSCSI
@@ -374,9 +367,7 @@ module Yast
       i_name = Convert.to_string(UI.QueryWidget(:initiator_name, :Value))
 
       # name not changed at all or already saved after checking it
-      if IscsiClientLib.initiatorname == i_name
-        return true
-      end
+      return true if IscsiClientLib.initiatorname == i_name
 
       # regexp for "yyyy-mm."
       reg1 = "[[:digit:]]{4}-[[:digit:]]{2}."
@@ -390,27 +381,25 @@ module Yast
         Builtins.regexpmatch(i_name, Builtins.sformat("^eui.%1%2$", reg1, reg2))
 
       if !correct
-        go_on = Popup.YesNoHeadline( _("Incorrect Initiator Name"),
+        go_on = Popup.YesNoHeadline(_("Incorrect Initiator Name"),
           _(
-            "\n" +
-            "The correct syntax is\n" +
-            "iqn.yyyy-mm.reversed.domain.name[:identifier]\n" +
-            "or eui.yyyy-mm.reversed.domain.name[:identifier]\n" +
-            "\n" +
-            "Example:\n" +
-            "iqn.2007-04.cz.server:storage.disk.sdb\n" +
-            "\n" +
+            "\n" \
+            "The correct syntax is\n" \
+            "iqn.yyyy-mm.reversed.domain.name[:identifier]\n" \
+            "or eui.yyyy-mm.reversed.domain.name[:identifier]\n" \
+            "\n" \
+            "Example:\n" \
+            "iqn.2007-04.cz.server:storage.disk.sdb\n" \
+            "\n" \
             "Do you want to use the name?\n"
-          )
-        )
+          ))
         return go_on
       else
         return true
       end
     end
 
-
-    def storeInitName(key, event)
+    def storeInitName(_key, event)
       event = deep_copy(event)
       if Convert.to_string(UI.QueryWidget(:initiator_name, :Value)) !=
           IscsiClientLib.initiatorname
@@ -438,7 +427,7 @@ module Yast
       nil
     end
 
-    def handleOffload(key, event)
+    def handleOffload(_key, event)
       event = deep_copy(event)
       if event["EventReason"] || "" == "ValueChanged" &&
           event["ID"] || :none == :offload_card
@@ -457,7 +446,7 @@ module Yast
     end
 
     # ***************** iBFT table **************************
-    def initiBFT(key)
+    def initiBFT(_key)
       items = []
       Builtins.foreach(IscsiClientLib.hidePassword(IscsiClientLib.getiBFT)) do |key2, value|
         items = Builtins.add(items, Item(Id(Builtins.size(items)), key2, value))
@@ -485,11 +474,11 @@ module Yast
     # }
 
     # disable both incoming and outgoing
-    def initDiscAuth(key)
+    def initDiscAuth(_key)
       nil
     end
 
-    def initConnAuth(key)
+    def initConnAuth(_key)
       # setAuthIn(false);
       # setAuthOut(false);
       auth = IscsiClientLib.getNode
@@ -514,7 +503,7 @@ module Yast
           Id(:pass_out),
           :Value,
           Ops.get_string(auth, "password", "")
-        ) 
+        )
         #   if ((size(auth["username"]:"")>0)&&(size(auth["password"]:"")>0)) setAuthOut(true);
       end
       startup = IscsiClientLib.getStartupStatus
@@ -524,31 +513,32 @@ module Yast
 
       nil
     end
+
     # handle for enable/disable widgets in authentication dialog
-    def handleDiscAuth(key, event)
+    def handleDiscAuth(_key, event)
       event = deep_copy(event)
       if Ops.get_string(event, "EventReason", "") == "ValueChanged"
         status = false
         case Ops.get_symbol(event, "ID")
-          when :auth_none
-            status = Convert.to_boolean(UI.QueryWidget(Id(:auth_none), :Value))
-          when :auth_in
-            status = Convert.to_boolean(UI.QueryWidget(Id(:auth_in), :Value))
-          when :auth_out
-            status = Convert.to_boolean(UI.QueryWidget(Id(:auth_out), :Value))
+        when :auth_none
+          status = Convert.to_boolean(UI.QueryWidget(Id(:auth_none), :Value))
+        when :auth_in
+          status = Convert.to_boolean(UI.QueryWidget(Id(:auth_in), :Value))
+        when :auth_out
+          status = Convert.to_boolean(UI.QueryWidget(Id(:auth_out), :Value))
         end
       end
       nil
     end
 
-    def validateDiscAuth(key, event)
+    def validateDiscAuth(_key, event)
       event = deep_copy(event)
       checkAuthEntry
     end
     # *******************Server Location ***********************
 
-    def initServerLocation(key)
-      isns_info = IscsiClientLib.useISNS()
+    def initServerLocation(_key)
+      isns_info = IscsiClientLib.useISNS
       Builtins.y2milestone("is iSNS %1", isns_info["use"])
       if isns_info["use"]
         UI.ChangeWidget(:hostname, :Enabled, false)
@@ -559,7 +549,7 @@ module Yast
     end
 
     # do discovery to selected portal
-    def validateServerLocation(key, event)
+    def validateServerLocation(_key, _event)
       ip = Builtins.tostring(UI.QueryWidget(:hostname, :Value))
       ip.strip!
 
@@ -575,13 +565,13 @@ module Yast
         end
         if !IP.Check(ip)
           # check for valid host name
-          result =  SCR.Execute( path(".target.bash_output"),
-                                 "LC_ALL=POSIX host #{ip}")
+          result = SCR.Execute(path(".target.bash_output"),
+            "LC_ALL=POSIX host #{ip}")
           Builtins.y2milestone("Cmd: host %1, result: %2", ip, result)
           output = result["stdout"] || ""
 
-          if (result["exit"] != 0)
-            Popup.Error(_("Please check IP address resp. host name.\n") + "#{output}" + "#{result["stderr"]}")
+          if result["exit"] != 0
+            Popup.Error(_("Please check IP address resp. host name.\n") + output.to_s + (result["stderr"]).to_s)
             UI.SetFocus(:hostname)
             return false
           elsif !output.empty?
@@ -604,7 +594,7 @@ module Yast
       end
 
       if IP.Check6(ip)
-       ip = "[#{ip}]" # brackets needed around IPv6
+        ip = "[#{ip}]" # brackets needed around IPv6
       end
 
       # store /etc/iscsi/iscsi.conf
@@ -647,18 +637,18 @@ module Yast
       option_new = (@current_tab == "client")
 
       command = IscsiClientLib.GetDiscoveryCmd(ip, port,
-                                               use_fw: false,
-                                               only_new: option_new)
+        use_fw:   false,
+        only_new: option_new)
       trg_list = runInBg(command)
-      while !@bg_finish
+      until @bg_finish
 
       end
       if Builtins.size(trg_list) == 0
         command = IscsiClientLib.GetDiscoveryCmd(ip, port,
-                                                 use_fw: true,
-                                                 only_new: option_new)
+          use_fw:   true,
+          only_new: option_new)
         trg_list = runInBg(command)
-        while !@bg_finish
+        until @bg_finish
 
         end
       end
@@ -668,7 +658,6 @@ module Yast
 
       @stat
     end
-
 
     # ********************* discovered table *******************
 
@@ -701,7 +690,7 @@ module Yast
     end
 
     # initialize widget with discovered targets
-    def initDiscoveredTable(key)
+    def initDiscoveredTable(_key)
       items = []
       row = 0
       Builtins.foreach(IscsiClientLib.getDiscovered) do |s|
@@ -727,7 +716,7 @@ module Yast
     end
 
     # handling widget with discovered targets
-    def handleDiscoveredTable(key, event)
+    def handleDiscoveredTable(_key, event)
       event = deep_copy(event)
       params = []
       selected = UI.QueryWidget(:discovered, :CurrentItem)
@@ -751,14 +740,14 @@ module Yast
           # check if not already connected
           if IscsiClientLib.connected(false) == true
             if !Popup.AnyQuestion(
-                Label.WarningMsg,
-                _(
-                  "The target with this TargetName is already connected. Make sure that multipathing is enabled to prevent data corruption."
-                ),
-                _("Continue"),
-                _("Cancel"),
-                :focus_yes
-              )
+              Label.WarningMsg,
+              _(
+                "The target with this TargetName is already connected. Make sure that multipathing is enabled to prevent data corruption."
+              ),
+              _("Continue"),
+              _("Cancel"),
+              :focus_yes
+            )
               return nil
             end
           end
@@ -804,10 +793,10 @@ module Yast
       nil
     end
 
-    #******************* target table *************************
+    # ******************* target table *************************
 
     # initialize dialog for all targets from portal (connected/disconnected)
-    def initTargetTable(key)
+    def initTargetTable(_key)
       items = []
       row = 0
       Builtins.foreach(IscsiClientLib.targets) do |s|
@@ -831,28 +820,27 @@ module Yast
     end
 
     # handle dialog for all targets from portal (connected/disconnected) - only connect button ;)
-    def handleTargetTable(key, event)
+    def handleTargetTable(_key, event)
       event = deep_copy(event)
-      #enable/disable connect button according target is or not already connected
+      # enable/disable connect button according target is or not already connected
       items = Convert.convert(
         UI.QueryWidget(:targets, :Items),
         :from => "any",
         :to   => "list <term>"
       )
       if Ops.get_string(
-          Ops.get(
-            items,
-            Convert.to_integer(UI.QueryWidget(:targets, :CurrentItem))
-          ),
-          3,
-          ""
-        ) ==
+        Ops.get(
+          items,
+          Convert.to_integer(UI.QueryWidget(:targets, :CurrentItem))
+        ),
+        3,
+        ""
+      ) ==
           _("True")
         UI.ChangeWidget(:connect, :Enabled, false)
       else
         UI.ChangeWidget(:connect, :Enabled, true)
       end
-
 
       if Ops.get_string(event, "EventReason", "") == "Activated"
         if Ops.get(event, "ID") == :connect
@@ -871,14 +859,14 @@ module Yast
             # check if not already connected
             if IscsiClientLib.connected(false) == true
               if !Popup.AnyQuestion(
-                  Label.WarningMsg,
-                  _(
-                    "The target with this TargetName is already connected. Make sure that multipathing is enabled to prevent data corruption."
-                  ),
-                  _("Continue"),
-                  _("Cancel"),
-                  :focus_yes
-                )
+                Label.WarningMsg,
+                _(
+                  "The target with this TargetName is already connected. Make sure that multipathing is enabled to prevent data corruption."
+                ),
+                _("Continue"),
+                _("Cancel"),
+                :focus_yes
+              )
                 return nil
               end
             end
@@ -891,10 +879,10 @@ module Yast
       nil
     end
 
-    #***************** connection autentication *******************
+    # ***************** connection autentication *******************
 
     # login to target with authentication
-    def validateConnAuth(key, event)
+    def validateConnAuth(_key, event)
       event = deep_copy(event)
       auth_none = Convert.to_boolean(UI.QueryWidget(Id(:auth_none), :Value))
       user_in = Builtins.tostring(UI.QueryWidget(Id(:user_in), :Value))

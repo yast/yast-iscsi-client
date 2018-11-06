@@ -97,7 +97,6 @@ module Yast
       @modified
     end
 
-
     # check if package open-iscsi is installed
     def installed_packages
       # don't check interactively for packages (bnc#367300)
@@ -106,20 +105,18 @@ module Yast
       Builtins.y2milestone("Check if open-iscsi package installed")
       ret = false
       if !Package.InstallMsg(
-          "open-iscsi",
-          _(
-            "<p>To configure the iSCSI initiator, the <b>%1</b> package must be installed.</p>"
-          ) +
-            _("<p>Install it now?</p>")
-        )
+        "open-iscsi",
+        _(
+          "<p>To configure the iSCSI initiator, the <b>%1</b> package must be installed.</p>"
+        ) +
+          _("<p>Install it now?</p>")
+      )
         Popup.Error(Message.CannotContinueWithoutPackagesInstalled)
       else
         ret = true
       end
       ret
     end
-
-
 
     # Dump the iscsi-client settings to a single map
     # (For use by autoinstallation.)
@@ -165,13 +162,13 @@ module Yast
       # IscsiClient read dialog caption
       caption = _("Initializing iSCSI Initiator Configuration")
 
-      # TODO FIXME Set the right number of stages
+      # TODO: FIXME Set the right number of stages
       steps = 4
 
       sl = 500
       Builtins.sleep(sl)
 
-      # TODO FIXME Names of real stages
+      # TODO: FIXME Names of real stages
       # We do not set help text here, because it was set outside
       Progress.New(
         caption,
@@ -244,14 +241,13 @@ module Yast
       true
     end
 
-
     # Write all iscsi-client settings
     # @return true on success
     def Write
       # IscsiClient read dialog caption
       caption = _("Saving iSCSI Initiator Configuration")
 
-      # TODO FIXME And set the right number of stages
+      # TODO: FIXME And set the right number of stages
 
       sl = 500
       Builtins.sleep(sl)
@@ -263,7 +259,7 @@ module Yast
         _("Set up service status")
       ]
       descr = Builtins.remove(descr, 0) if !(Mode.autoinst || Mode.autoupgrade)
-      # TODO FIXME Names of real stages
+      # TODO: FIXME Names of real stages
       # We do not set help text here, because it was set outside
       Progress.New(caption, " ", Builtins.size(descr), descr, [], "")
 
@@ -316,11 +312,10 @@ module Yast
       true
     end
 
-
     # Create a textual summary and a list of unconfigured cards
     # @return summary of the current configuration
     def Summary
-      # TODO FIXME: your code here...
+      # TODO: FIXME: your code here...
       # Configuration summary text for autoyast
       [IscsiClientLib.Overview, []]
     end
@@ -328,7 +323,7 @@ module Yast
     # Create an overview table with all configured cards
     # @return table items
     def Overview
-      # TODO FIXME: your code here...
+      # TODO: FIXME: your code here...
       []
     end
 

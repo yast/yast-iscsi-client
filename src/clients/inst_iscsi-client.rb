@@ -34,7 +34,7 @@ module Yast
     def main
       Yast.import "UI"
 
-      #**
+      # **
       # <h3>Configuration of iscsi-client</h3>
 
       textdomain "iscsi-client"
@@ -68,7 +68,7 @@ module Yast
         "mkdir -p /etc/iscsi; touch /etc/iscsi/initiatorname.iscsi; ln -s /etc/iscsi/initiatorname.iscsi /etc/initiatorname.iscsi"
       )
       # check initiator name, create if not exists
-      #WFM::Execute (.local.bash,"test -d /etc/iscsi/ && /bin/cp -a /etc/iscsi/* " + String::Quote(Installation::destdir) + "/etc/iscsi/");
+      # WFM::Execute (.local.bash,"test -d /etc/iscsi/ && /bin/cp -a /etc/iscsi/* " + String::Quote(Installation::destdir) + "/etc/iscsi/");
       IscsiClientLib.checkInitiatorName
 
       IscsiClientLib.getiBFT
@@ -80,12 +80,12 @@ module Yast
       # add package open-iscsi and iscsiuio to installed system
       iscsi_packages = ["open-iscsi", "iscsiuio"]
       Builtins.y2milestone("Additional packages to be installed: %1",
-                            iscsi_packages)
+        iscsi_packages)
       PackagesProposal.AddResolvables(
-          "iscsi-client",
-          :package,
-          iscsi_packages
-        )
+        "iscsi-client",
+        :package,
+        iscsi_packages
+      )
 
       if Mode.autoinst && auto_login
         Builtins.y2milestone("Autoinstallation - IscsiClient module finished")
@@ -100,7 +100,7 @@ module Yast
       Builtins.y2milestone("IscsiClient module finished")
       Builtins.y2milestone("----------------------------------------")
 
-      deep_copy(@ret) 
+      deep_copy(@ret)
 
       # EOF
     end

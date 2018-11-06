@@ -27,7 +27,6 @@ require "ipaddr"
 
 module Yast
   class IscsiClientLibClass < Module
-
     include Yast::Logger
 
     def main
@@ -110,7 +109,7 @@ module Yast
     def socketStop(socket)
       if socket
         socket.stop
-     else
+      else
         log.error "socket not available"
         false
       end
@@ -173,7 +172,7 @@ module Yast
     # @param  [Boolean] do_log  write command to y2log?
     # @return [String] complete command
     #
-    def GetAdmCmd(params, do_log=true)
+    def GetAdmCmd(params, do_log = true)
       ret = "LC_ALL=POSIX iscsiadm"
       ret = Ops.add(Ops.add(ret, " "), params)
       Builtins.y2milestone("GetAdmCmd: #{ret}") if do_log
@@ -209,7 +208,7 @@ module Yast
     #  @param [String]   stdout (where info is seperated by '=') of iscsiadm command
     #  @return [Hash]    command output converted to hash
     #
-    def nodeInfoToMap (stdout)
+    def nodeInfoToMap(stdout)
       retval = {}
       return retval if stdout.empty?
 
@@ -217,9 +216,7 @@ module Yast
         key, val = row.split("=")
 
         key = key.to_s.strip
-        if !key.empty?
-          retval[key] = val.to_s.strip
-        end
+        retval[key] = val.to_s.strip if !key.empty?
       end
 
       retval
@@ -238,7 +235,7 @@ module Yast
           return @ibft
         end
         ret = SCR.Execute(path(".target.bash_output"),
-                          "lsmod |grep -q iscsi_ibft || modprobe iscsi_ibft")
+          "lsmod |grep -q iscsi_ibft || modprobe iscsi_ibft")
         log.info "check and modprobe iscsi_ibft: #{ret}"
 
         @ibft = nodeInfoToMap(getFirmwareInfo)
@@ -247,7 +244,6 @@ module Yast
       log.info "iBFT: #{hidePassword(@ibft)}"
       @ibft
     end
-
 
     # get accessor for service status
     def GetStartService
@@ -274,7 +270,6 @@ module Yast
       nil
     end
 
-
     # read configuration file
     def getConfig
       # use cache if available
@@ -298,7 +293,7 @@ module Yast
 
     # do we use iSNS for targets?
     def useISNS
-      isns_info = {"use" => false, "address" => "", "port" => "3205"}
+      isns_info = { "use" => false, "address" => "", "port" => "3205" }
       # validateISNS checks for not empty address and port,
       # storeISNS adds values to config
       Builtins.foreach(getConfig) do |row|
@@ -312,7 +307,6 @@ module Yast
       isns_info
     end
 
-
     # write temporary changed old config
     def oldConfig
       Builtins.y2milestone("Store temporary config %1", @config)
@@ -321,7 +315,6 @@ module Yast
 
       nil
     end
-
 
     def getNode
       cmdline = GetAdmCmd(
@@ -346,16 +339,16 @@ module Yast
         val = Ops.get(Builtins.splitstring(row, " = "), 3, "")
         val = "" if val == "<empty>"
         case key
-          when "node.session.auth.authmethod"
-            Ops.set(auth, "authmethod", val)
-          when "node.session.auth.username"
-            Ops.set(auth, "username", val)
-          when "node.session.auth.password"
-            Ops.set(auth, "password", val)
-          when "node.session.auth.username_in"
-            Ops.set(auth, "username_in", val)
-          when "node.session.auth.password_in"
-            Ops.set(auth, "password_in", val)
+        when "node.session.auth.authmethod"
+          Ops.set(auth, "authmethod", val)
+        when "node.session.auth.username"
+          Ops.set(auth, "username", val)
+        when "node.session.auth.password"
+          Ops.set(auth, "password", val)
+        when "node.session.auth.username_in"
+          Ops.set(auth, "username_in", val)
+        when "node.session.auth.password_in"
+          Ops.set(auth, "password_in", val)
         end
       end
       deep_copy(auth)
@@ -535,9 +528,7 @@ module Yast
 
     def restart_iscsid_initial
       retcode = Convert.to_integer(SCR.Execute(path(".target.bash"), "pgrep iscsid"))
-      if retcode == 0
-        Service.Stop("iscsid")
-      end
+      Service.Stop("iscsid") if retcode == 0
       start_iscsid_initial
     end
 
@@ -595,17 +586,17 @@ module Yast
         )
       end
       if Ops.greater_than(
-          Ops.get_integer(
-            Convert.convert(
-              SCR.Read(path(".target.lstat"), file),
-              :from => "any",
-              :to   => "map <string, any>"
-            ),
-            "size",
-            0
+        Ops.get_integer(
+          Convert.convert(
+            SCR.Read(path(".target.lstat"), file),
+            :from => "any",
+            :to   => "map <string, any>"
           ),
+          "size",
           0
-        )
+        ),
+        0
+      )
         Builtins.y2milestone("%1 file exists, create backup", file)
         SCR.Execute(
           path(".target.bash"),
@@ -728,9 +719,9 @@ module Yast
             name_from_bios != @initiatorname
           Popup.Warning(
             _(
-              "InitiatorName from iBFT and from <tt>/etc/iscsi/initiatorname.iscsi</tt>\n" +
-                "differ. The old initiator name will be replaced by the value of iBFT and a \n" +
-                "backup created. If you want to use a different initiator name, change it \n" +
+              "InitiatorName from iBFT and from <tt>/etc/iscsi/initiatorname.iscsi</tt>\n" \
+                "differ. The old initiator name will be replaced by the value of iBFT and a \n" \
+                "backup created. If you want to use a different initiator name, change it \n" \
                 "in the BIOS.\n"
             )
           )
@@ -745,7 +736,6 @@ module Yast
       end
       ret
     end
-
 
     # delete deiscovered target from database
     def deleteRecord
@@ -768,9 +758,9 @@ module Yast
         :to   => "map <string, any>"
       )
       if Ops.greater_than(
-          Builtins.size(Ops.get_string(retcode, "stderr", "")),
-          0
-        )
+        Builtins.size(Ops.get_string(retcode, "stderr", "")),
+        0
+      )
         return false
       end
 
@@ -784,7 +774,7 @@ module Yast
     #                   converted to a hash
     def getCurrentNodeValues
       ret = SCR.Execute(path(".target.bash_output"),
-                        GetAdmCmd("-m node -I #{@currentRecord[2]||"default"} -T #{@currentRecord[1]||""} -p #{@currentRecord[0]||""}"))
+        GetAdmCmd("-m node -I #{@currentRecord[2] || "default"} -T #{@currentRecord[1] || ""} -p #{@currentRecord[0] || ""}"))
       return {} if ret["exit"] != 0
 
       nodeInfoToMap(ret["stdout"] || "")
@@ -801,11 +791,11 @@ module Yast
       return false if n1.empty?
 
       keys = [
-              "iface.transport_name",
-              "iface.initiatorname",
-              "node.name",
-              "node.conn[0].address"
-             ]
+        "iface.transport_name",
+        "iface.initiatorname",
+        "node.name",
+        "node.conn[0].address"
+      ]
 
       keys.all? { |key| n1[key] == n2[key] }
     end
@@ -827,10 +817,10 @@ module Yast
       log.info "Getting status of record #{@currentRecord}"
       curr_node = getCurrentNodeValues
 
-      if (iBFT?(curr_node))
-          # always show status "onboot" for iBFT (startup value from node doesn't matter)
-          log.info "Startup status for iBFT is always onboot"
-          return "onboot"
+      if iBFT?(curr_node)
+        # always show status "onboot" for iBFT (startup value from node doesn't matter)
+        log.info "Startup status for iBFT is always onboot"
+        return "onboot"
       end
       status = curr_node["node.conn[0].startup"] || ""
       log.info "Startup status for #{@currentRecord} is #{status}"
@@ -843,8 +833,8 @@ module Yast
       rec = @currentRecord
       Builtins.y2milestone("set %1  for record %2", name, rec)
 
-      log = !name.include?("password");
-      cmd = "-m node -I #{rec[2]||"default"} -T #{rec[1]||""} -p #{rec[0]||""} --op=update --name=#{name}"
+      log = !name.include?("password")
+      cmd = "-m node -I #{rec[2] || "default"} -T #{rec[1] || ""} -p #{rec[0] || ""} --op=update --name=#{name}"
 
       command = GetAdmCmd("#{cmd} --value=#{value}", log)
       if !log
@@ -859,9 +849,9 @@ module Yast
         :to   => "map <string, any>"
       )
       if Ops.greater_than(
-          Builtins.size(Ops.get_string(retcode, "stderr", "")),
-          0
-        )
+        Builtins.size(Ops.get_string(retcode, "stderr", "")),
+        0
+      )
         Builtins.y2error("%1", Ops.get_string(retcode, "stderr", ""))
         ret = false
       end
@@ -871,12 +861,8 @@ module Yast
 
     # check whether two given IP addresses (including ports) are equal
     def ipEqual?(session_ip, current_ip)
-      if !session_ip || !current_ip
-        return false
-      end
-      if session_ip.empty? || current_ip.empty?
-        return false
-      end
+      return false if !session_ip || !current_ip
+      return false if session_ip.empty? || current_ip.empty?
 
       if !session_ip.start_with?("[") && !current_ip.start_with?("[")
         # both IPv4 - compare directly
@@ -906,7 +892,7 @@ module Yast
       end
 
     rescue ArgumentError => e
-      Builtins.y2error("Invalid IP address, error: %1", "#{e}")
+      Builtins.y2error("Invalid IP address, error: %1", e.to_s)
       false
     end
 
@@ -924,11 +910,13 @@ module Yast
         Builtins.y2milestone("Session row: %1", list_row)
         if check_ip
           session_ip = Ops.get(
-                               Builtins.splitstring(Ops.get(list_row, 0, ""), ","),
-                               0, "" )
+            Builtins.splitstring(Ops.get(list_row, 0, ""), ","),
+            0, ""
+          )
           current_ip = Ops.get(
-                               Builtins.splitstring(Ops.get(@currentRecord, 0, ""), ","),
-                               0, "" )
+            Builtins.splitstring(Ops.get(@currentRecord, 0, ""), ","),
+            0, ""
+          )
           ip_ok = ipEqual?(session_ip, current_ip)
         end
 
@@ -967,9 +955,9 @@ module Yast
         :to   => "map <string, any>"
       )
       if Ops.greater_than(
-          Builtins.size(Ops.get_string(retcode, "stderr", "")),
-          0
-        )
+        Builtins.size(Ops.get_string(retcode, "stderr", "")),
+        0
+      )
         return false
       else
         retcode = Convert.convert(
@@ -999,15 +987,12 @@ module Yast
       log.info "begin of autoLogOn function"
       if !getiBFT.empty?
         result = Convert.to_map(SCR.Execute(path(".target.bash_output"),
-                                            GetAdmCmd("-m fw -l")))
-        if result["exit"] != 0
-          ret = false
-        end
+          GetAdmCmd("-m fw -l")))
+        ret = false if result["exit"] != 0
         log.info "Autologin into iBFT : #{result}"
       end
       ret
     end
-
 
     def loginIntoTarget(target)
       target = deep_copy(target)
@@ -1067,14 +1052,13 @@ module Yast
       # Report a warning (not an error) if login failed for other reasons
       # (also related to bsc#981693, warning popups usually are skipped)
       elsif output["exit"] != 0
-        Report.Warning( _("Target connection failed.\n") +
-                        output["stderr"] || "" )
+        Report.Warning(_("Target connection failed.\n") +
+                        output["stderr"] || "")
       end
 
       setStartupStatus("onboot") if !Mode.autoinst
-      true 
+      true
     end
-
 
     # FIXME: this method has too much responsibility and it is doing
     # "unexpected" things according to its name. Ideally, it only must return
@@ -1102,7 +1086,7 @@ module Yast
 
         # if not running, start iscsi.service, iscsid.socket and iscsiuio.socket
         if !@iscsid_socket_stat
-          Service.Stop("iscsid") if Service.active?("iscsid") 
+          Service.Stop("iscsid") if Service.active?("iscsid")
           log.error "Cannot start iscsid.socket" if !socketStart(@iscsid_socket)
         end
         if !@iscsiuio_socket_stat
@@ -1127,7 +1111,7 @@ module Yast
           readSessions
           if Builtins.size(@sessions) == 0
             log.info "No active sessions - stopping iscsi service and iscsid/iscsiuio service and socket"
-            # stop iscsid.socket and iscsid.service 
+            # stop iscsid.socket and iscsid.service
             socketStop(@iscsid_socket)
             Service.Stop("iscsid")
             # stop iscsiuio.socket and iscsiuio.service
@@ -1141,7 +1125,6 @@ module Yast
       log.info "Status service for iscsid: #{ret}"
       ret
     end
-
 
     def autoyastPrepare
       @initiatorname = Ops.get_string(@ay_settings, "initiatorname", "")
@@ -1177,8 +1160,8 @@ module Yast
         end
       end
       if Ops.greater_than(Builtins.size(Builtins.filter(ifaces) do |s|
-          s != "default"
-        end), 0)
+                                          s != "default"
+                                        end), 0)
         CallConfigScript()
       end
       Builtins.foreach(Ops.get_list(@ay_settings, "targets", [])) do |target|
@@ -1214,9 +1197,9 @@ module Yast
       if Ops.greater_than(Builtins.size(@ay_settings), 0)
         overview = ""
         if Ops.greater_than(
-            Builtins.size(Ops.get_string(@ay_settings, "initiatorname", "")),
-            0
-          )
+          Builtins.size(Ops.get_string(@ay_settings, "initiatorname", "")),
+          0
+        )
           overview = Ops.add(
             Ops.add(
               Ops.add(overview, "<p><b>Initiatorname: </b>"),
@@ -1226,9 +1209,9 @@ module Yast
           )
         end
         if Ops.greater_than(
-            Builtins.size(Ops.get_list(@ay_settings, "targets", [])),
-            0
-          )
+          Builtins.size(Ops.get_list(@ay_settings, "targets", [])),
+          0
+        )
           Builtins.foreach(Ops.get_list(@ay_settings, "targets", [])) do |target|
             overview = Ops.add(
               Ops.add(
@@ -1379,7 +1362,7 @@ module Yast
           }
           Builtins.y2milestone("GetOffloadItems cinf:%1", r)
           deep_copy(r)
-        end    # maplist(cards)
+        end # maplist(cards)
 
         idx = 0
         Builtins.foreach(@offload) do |l|
@@ -1393,18 +1376,18 @@ module Yast
             i = 0
             Builtins.foreach(hw_mods) do |hw|
               if Ops.greater_than(
-                  Builtins.size(
-                    Builtins::Multiset.intersection(
-                      mod,
-                      Convert.convert(
-                        Builtins.sort(Ops.get_list(hw, "modules", [])),
-                        :from => "list",
-                        :to   => "list <string>"
-                      )
+                Builtins.size(
+                  Builtins::Multiset.intersection(
+                    mod,
+                    Convert.convert(
+                      Builtins.sort(Ops.get_list(hw, "modules", [])),
+                      :from => "list",
+                      :to   => "list <string>"
                     )
-                  ),
-                  0
-                )
+                  )
+                ),
+                0
+              )
                 Builtins.y2milestone("GetOffloadItems l:%1", l)
                 Builtins.y2milestone("GetOffloadItems valid:%1", hw)
                 Ops.set(
@@ -1441,7 +1424,7 @@ module Yast
                   Ops.add(@offboard_script, " "),
                   Ops.get_string(l, 0, "")
                 ),
-                " | grep ..:..:..:.."     # grep for lines containing MAC address
+                " | grep ..:..:..:.." # grep for lines containing MAC address
               )
               Builtins.y2milestone("GetOffloadItems cmd:%1", cmd)
               out = Convert.to_map(
@@ -1574,7 +1557,7 @@ module Yast
         end
       end
       Builtins.y2milestone("GetOffloadItems entries:%1", entries)
-      @iface_eth = Builtins.sort(Builtins.maplist(entries) { |e, val| e })
+      @iface_eth = Builtins.sort(Builtins.maplist(entries) { |e, _val| e })
       Builtins.y2milestone("GetOffloadItems eth:%1", @iface_eth)
       if init
         @offload_card = InitOffloadCard()
@@ -1612,7 +1595,7 @@ module Yast
       it = nil
       it = GetOffloadItems() if @offload_valid == nil
       modules = []
-      Builtins.foreach(@offload_valid) do |i, l|
+      Builtins.foreach(@offload_valid) do |i, _l|
         modules = Convert.convert(
           Builtins.union(modules, Ops.get_list(@offload, [i, 3], [])),
           :from => "list",
@@ -1646,19 +1629,20 @@ module Yast
       Builtins.y2milestone("GetDiscIfaces:%1", ret)
       deep_copy(ret)
     end
+
     def CallConfigScript
       sl = Builtins.filter(GetDiscIfaces()) { |s| s != "default" }
       Builtins.y2milestone("CallConfigScript list:%1", sl)
       Builtins.foreach(sl) do |s|
         hw = []
-        hw = Ops.get(Builtins.maplist(Builtins.filter(@offload_valid) do |i, eth|
+        hw = Ops.get(Builtins.maplist(Builtins.filter(@offload_valid) do |_i, eth|
           Builtins.contains(
             Builtins.flatten(
               Convert.convert(eth, :from => "list", :to => "list <list>")
             ),
             s
           )
-        end) { |i, e| e }, 0, [])
+        end) { |_i, e| e }, 0, [])
         Builtins.y2milestone("CallConfigScript hw:%1", hw)
         hw = Builtins.find(
           Convert.convert(hw, :from => "list", :to => "list <list>")
@@ -1680,9 +1664,9 @@ module Yast
 
     def GetDiscoveryCmd(ip, port, use_fw: false, only_new: false)
       Builtins.y2milestone("GetDiscoveryCmd ip:%1 port:%2 fw:%3 only new:%4",
-                           ip, port, use_fw, only_new)
+        ip, port, use_fw, only_new)
       command = "-m discovery -P 1"
-      isns_info = useISNS()
+      isns_info = useISNS
       if isns_info["use"]
         command << " -t isns -p #{ip}:#{port}"
       else

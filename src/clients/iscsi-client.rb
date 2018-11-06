@@ -34,7 +34,7 @@ module Yast
     def main
       Yast.import "UI"
 
-      #**
+      # **
       # <h3>Configuration of iscsi-client</h3>
 
       textdomain "iscsi-client"
@@ -59,15 +59,15 @@ module Yast
         "guihandler" => fun_ref(method(:IscsiClientSequence), "any ()"),
         "initialize" => fun_ref(IscsiClient.method(:Read), "boolean ()"),
         "finish"     => fun_ref(IscsiClient.method(:Write), "boolean ()"),
-        "actions" =>
-          # FIXME TODO: fill the functionality description here
-          {},
-        "options" =>
-          # FIXME TODO: fill the option descriptions here
-          {},
-        "mappings" =>
-          # FIXME TODO: fill the mappings of actions and options here
-          {}
+        "actions"    =>
+                        # FIXME: TODO: fill the functionality description here
+                        {},
+        "options"    =>
+                        # FIXME: TODO: fill the option descriptions here
+                        {},
+        "mappings"   =>
+                        # FIXME: TODO: fill the mappings of actions and options here
+                        {}
       }
 
       # is this proposal or not?
@@ -94,7 +94,7 @@ module Yast
       Builtins.y2milestone("IscsiClient module finished")
       Builtins.y2milestone("----------------------------------------")
 
-      deep_copy(@ret) 
+      deep_copy(@ret)
 
       # EOF
     end

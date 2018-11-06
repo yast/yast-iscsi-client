@@ -33,7 +33,6 @@
 module Yast
   class IscsiClientProposalClient < Client
     def main
-
       textdomain "iscsi-client"
 
       Yast.import "IscsiClient"
@@ -102,7 +101,7 @@ module Yast
       Builtins.y2debug("ret=%1", @ret)
       Builtins.y2milestone("IscsiClient proposal finished")
       Builtins.y2milestone("----------------------------------------")
-      deep_copy(@ret) 
+      deep_copy(@ret)
 
       # EOF
     end

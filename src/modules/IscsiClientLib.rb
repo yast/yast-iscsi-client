@@ -827,7 +827,7 @@ module Yast
       log.info "Getting status of record #{@currentRecord}"
       curr_node = getCurrentNodeValues
 
-      if (iBFT?(curr_node))
+      if iBFT?(curr_node)
           # always show status "onboot" for iBFT (startup value from node doesn't matter)
           log.info "Startup status for iBFT is always onboot"
           return "onboot"

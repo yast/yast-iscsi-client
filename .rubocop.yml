@@ -406,13 +406,6 @@ Style/ParenthesesAroundCondition:
 
 # Offense count: 2
 # Cop supports --auto-correct.
-Style/RedundantParentheses:
-  Exclude:
-    - 'src/include/iscsi-client/dialogs.rb'
-    - 'src/modules/IscsiClientLib.rb'
-
-# Offense count: 2
-# Cop supports --auto-correct.
 # Configuration parameters: AllowMultipleReturnValues.
 Style/RedundantReturn:
   Exclude:

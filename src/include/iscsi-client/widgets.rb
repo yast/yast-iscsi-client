@@ -81,13 +81,13 @@ module Yast
         if return_code != 0
           @stat = false
           error = Ops.get(
-                          Convert.convert(
-                                          SCR.Read(path(".background.newerr")),
-                                          :from => "any",
-                                          :to   => "list <string>"
-                                          ),
-                          0,
-                          ""
+            Convert.convert(
+              SCR.Read(path(".background.newerr")),
+              :from => "any",
+              :to   => "list <string>"
+                            ),
+            0,
+            ""
                           )
           Builtins.y2error("Error: %1", error)
           Popup.Error(error)
@@ -348,10 +348,10 @@ module Yast
       UI.ChangeWidget(:offload_card, :Value, IscsiClientLib.GetOffloadCard)
       Builtins.y2milestone("OffloadCard %1", IscsiClientLib.GetOffloadCard)
       if Ops.greater_than(
-          Builtins.size(
-            Ops.get_string(IscsiClientLib.getiBFT, "iSCSI_INITIATOR_NAME", "")
-          ),
-          0
+        Builtins.size(
+          Ops.get_string(IscsiClientLib.getiBFT, "iSCSI_INITIATOR_NAME", "")
+        ),
+        0
         )
         UI.ChangeWidget(:initiator_name, :Enabled, false)
         UI.ChangeWidget(:write, :Enabled, false)
@@ -576,7 +576,7 @@ module Yast
         if !IP.Check(ip)
           # check for valid host name
           result = SCR.Execute(path(".target.bash_output"),
-                                 "LC_ALL=POSIX host #{ip}")
+            "LC_ALL=POSIX host #{ip}")
           Builtins.y2milestone("Cmd: host %1, result: %2", ip, result)
           output = result["stdout"] || ""
 
@@ -647,16 +647,16 @@ module Yast
       option_new = (@current_tab == "client")
 
       command = IscsiClientLib.GetDiscoveryCmd(ip, port,
-                                               use_fw:   false,
-                                               only_new: option_new)
+        use_fw:   false,
+        only_new: option_new)
       trg_list = runInBg(command)
       while !@bg_finish
 
       end
       if Builtins.size(trg_list) == 0
         command = IscsiClientLib.GetDiscoveryCmd(ip, port,
-                                                 use_fw:   true,
-                                                 only_new: option_new)
+          use_fw:   true,
+          only_new: option_new)
         trg_list = runInBg(command)
         while !@bg_finish
 
@@ -751,13 +751,13 @@ module Yast
           # check if not already connected
           if IscsiClientLib.connected(false) == true
             if !Popup.AnyQuestion(
-                Label.WarningMsg,
-                _(
-                  "The target with this TargetName is already connected. Make sure that multipathing is enabled to prevent data corruption."
-                ),
-                _("Continue"),
-                _("Cancel"),
-                :focus_yes
+              Label.WarningMsg,
+              _(
+                "The target with this TargetName is already connected. Make sure that multipathing is enabled to prevent data corruption."
+              ),
+              _("Continue"),
+              _("Cancel"),
+              :focus_yes
               )
               return nil
             end
@@ -840,12 +840,12 @@ module Yast
         :to   => "list <term>"
       )
       if Ops.get_string(
-          Ops.get(
-            items,
-            Convert.to_integer(UI.QueryWidget(:targets, :CurrentItem))
-          ),
-          3,
-          ""
+        Ops.get(
+          items,
+          Convert.to_integer(UI.QueryWidget(:targets, :CurrentItem))
+        ),
+        3,
+        ""
         ) ==
           _("True")
         UI.ChangeWidget(:connect, :Enabled, false)
@@ -871,13 +871,13 @@ module Yast
             # check if not already connected
             if IscsiClientLib.connected(false) == true
               if !Popup.AnyQuestion(
-                  Label.WarningMsg,
-                  _(
-                    "The target with this TargetName is already connected. Make sure that multipathing is enabled to prevent data corruption."
-                  ),
-                  _("Continue"),
-                  _("Cancel"),
-                  :focus_yes
+                Label.WarningMsg,
+                _(
+                  "The target with this TargetName is already connected. Make sure that multipathing is enabled to prevent data corruption."
+                ),
+                _("Continue"),
+                _("Cancel"),
+                :focus_yes
                 )
                 return nil
               end

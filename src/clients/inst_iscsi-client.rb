@@ -80,11 +80,11 @@ module Yast
       # add package open-iscsi and iscsiuio to installed system
       iscsi_packages = ["open-iscsi", "iscsiuio"]
       Builtins.y2milestone("Additional packages to be installed: %1",
-                            iscsi_packages)
+        iscsi_packages)
       PackagesProposal.AddResolvables(
-          "iscsi-client",
-          :package,
-          iscsi_packages
+        "iscsi-client",
+        :package,
+        iscsi_packages
         )
 
       if Mode.autoinst && auto_login

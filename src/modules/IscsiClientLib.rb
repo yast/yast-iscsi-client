@@ -237,7 +237,7 @@ module Yast
           return @ibft
         end
         ret = SCR.Execute(path(".target.bash_output"),
-                          "lsmod |grep -q iscsi_ibft || modprobe iscsi_ibft")
+          "lsmod |grep -q iscsi_ibft || modprobe iscsi_ibft")
         log.info "check and modprobe iscsi_ibft: #{ret}"
 
         @ibft = nodeInfoToMap(getFirmwareInfo)
@@ -594,16 +594,16 @@ module Yast
         )
       end
       if Ops.greater_than(
-          Ops.get_integer(
-            Convert.convert(
-              SCR.Read(path(".target.lstat"), file),
-              :from => "any",
-              :to   => "map <string, any>"
-            ),
-            "size",
-            0
+        Ops.get_integer(
+          Convert.convert(
+            SCR.Read(path(".target.lstat"), file),
+            :from => "any",
+            :to   => "map <string, any>"
           ),
+          "size",
           0
+        ),
+        0
         )
         Builtins.y2milestone("%1 file exists, create backup", file)
         SCR.Execute(
@@ -767,8 +767,8 @@ module Yast
         :to   => "map <string, any>"
       )
       if Ops.greater_than(
-          Builtins.size(Ops.get_string(retcode, "stderr", "")),
-          0
+        Builtins.size(Ops.get_string(retcode, "stderr", "")),
+        0
         )
         return false
       end
@@ -783,7 +783,7 @@ module Yast
     #                   converted to a hash
     def getCurrentNodeValues
       ret = SCR.Execute(path(".target.bash_output"),
-                        GetAdmCmd("-m node -I #{@currentRecord[2] || "default"} -T #{@currentRecord[1] || ""} -p #{@currentRecord[0] || ""}"))
+        GetAdmCmd("-m node -I #{@currentRecord[2] || "default"} -T #{@currentRecord[1] || ""} -p #{@currentRecord[0] || ""}"))
       return {} if ret["exit"] != 0
 
       nodeInfoToMap(ret["stdout"] || "")
@@ -858,8 +858,8 @@ module Yast
         :to   => "map <string, any>"
       )
       if Ops.greater_than(
-          Builtins.size(Ops.get_string(retcode, "stderr", "")),
-          0
+        Builtins.size(Ops.get_string(retcode, "stderr", "")),
+        0
         )
         Builtins.y2error("%1", Ops.get_string(retcode, "stderr", ""))
         ret = false
@@ -923,11 +923,11 @@ module Yast
         Builtins.y2milestone("Session row: %1", list_row)
         if check_ip
           session_ip = Ops.get(
-                               Builtins.splitstring(Ops.get(list_row, 0, ""), ","),
-                               0, "")
+            Builtins.splitstring(Ops.get(list_row, 0, ""), ","),
+            0, "")
           current_ip = Ops.get(
-                               Builtins.splitstring(Ops.get(@currentRecord, 0, ""), ","),
-                               0, "")
+            Builtins.splitstring(Ops.get(@currentRecord, 0, ""), ","),
+            0, "")
           ip_ok = ipEqual?(session_ip, current_ip)
         end
 
@@ -966,8 +966,8 @@ module Yast
         :to   => "map <string, any>"
       )
       if Ops.greater_than(
-          Builtins.size(Ops.get_string(retcode, "stderr", "")),
-          0
+        Builtins.size(Ops.get_string(retcode, "stderr", "")),
+        0
         )
         return false
       else
@@ -998,7 +998,7 @@ module Yast
       log.info "begin of autoLogOn function"
       if !getiBFT.empty?
         result = Convert.to_map(SCR.Execute(path(".target.bash_output"),
-                                            GetAdmCmd("-m fw -l")))
+          GetAdmCmd("-m fw -l")))
         if result["exit"] != 0
           ret = false
         end
@@ -1213,8 +1213,8 @@ module Yast
       if Ops.greater_than(Builtins.size(@ay_settings), 0)
         overview = ""
         if Ops.greater_than(
-            Builtins.size(Ops.get_string(@ay_settings, "initiatorname", "")),
-            0
+          Builtins.size(Ops.get_string(@ay_settings, "initiatorname", "")),
+          0
           )
           overview = Ops.add(
             Ops.add(
@@ -1225,8 +1225,8 @@ module Yast
           )
         end
         if Ops.greater_than(
-            Builtins.size(Ops.get_list(@ay_settings, "targets", [])),
-            0
+          Builtins.size(Ops.get_list(@ay_settings, "targets", [])),
+          0
           )
           Builtins.foreach(Ops.get_list(@ay_settings, "targets", [])) do |target|
             overview = Ops.add(
@@ -1392,17 +1392,17 @@ module Yast
             i = 0
             Builtins.foreach(hw_mods) do |hw|
               if Ops.greater_than(
-                  Builtins.size(
-                    Builtins::Multiset.intersection(
-                      mod,
-                      Convert.convert(
-                        Builtins.sort(Ops.get_list(hw, "modules", [])),
-                        :from => "list",
-                        :to   => "list <string>"
-                      )
+                Builtins.size(
+                  Builtins::Multiset.intersection(
+                    mod,
+                    Convert.convert(
+                      Builtins.sort(Ops.get_list(hw, "modules", [])),
+                      :from => "list",
+                      :to   => "list <string>"
                     )
-                  ),
-                  0
+                  )
+                ),
+                0
                 )
                 Builtins.y2milestone("GetOffloadItems l:%1", l)
                 Builtins.y2milestone("GetOffloadItems valid:%1", hw)
@@ -1679,7 +1679,7 @@ module Yast
 
     def GetDiscoveryCmd(ip, port, use_fw: false, only_new: false)
       Builtins.y2milestone("GetDiscoveryCmd ip:%1 port:%2 fw:%3 only new:%4",
-                           ip, port, use_fw, only_new)
+        ip, port, use_fw, only_new)
       command = "-m discovery -P 1"
       isns_info = useISNS()
       if isns_info["use"]

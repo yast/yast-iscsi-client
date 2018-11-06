@@ -106,11 +106,11 @@ module Yast
       Builtins.y2milestone("Check if open-iscsi package installed")
       ret = false
       if !Package.InstallMsg(
-          "open-iscsi",
-          _(
-            "<p>To configure the iSCSI initiator, the <b>%1</b> package must be installed.</p>"
-          ) +
-            _("<p>Install it now?</p>")
+        "open-iscsi",
+        _(
+          "<p>To configure the iSCSI initiator, the <b>%1</b> package must be installed.</p>"
+        ) +
+          _("<p>Install it now?</p>")
         )
         Popup.Error(Message.CannotContinueWithoutPackagesInstalled)
       else

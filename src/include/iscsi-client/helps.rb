@@ -139,11 +139,11 @@ module Yast
               "<p><b>automatic</b> is for iSCSI targets to be connected when the iSCSI service\n" \
               "starts up.</p>\n"
           ) +
-        _("<h1>Authentication</h1>") +
-        _(
-          "<p>The default setting here is <i>No Authentication</i>. Uncheck the checkbox if " \
-          "authentication is needed for security reasons." \
-        ) + use_bidirectional_auth + "</p>",
+          _("<h1>Authentication</h1>") +
+          _(
+            "<p>The default setting here is <i>No Authentication</i>. Uncheck the checkbox if " \
+            "authentication is needed for security reasons." \
+          ) + use_bidirectional_auth + "</p>",
         # list of discovered targets
         "discovered"     => _(
           "<p>This screen shows the list of discovered targets.</p>" \

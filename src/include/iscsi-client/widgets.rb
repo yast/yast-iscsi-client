@@ -299,9 +299,9 @@ module Yast
         if (Ops.get_string(row, "name", "") == "isns.address" ||
             Ops.get_string(row, "name", "") == "isns.port") &&
             Ops.greater_than(Builtins.size(address), 0) &&
-              Ops.greater_than(Builtins.size(port), 0) ||
+            Ops.greater_than(Builtins.size(port), 0) ||
             Ops.get_string(row, "name", "") != "isns.address" &&
-              Ops.get_string(row, "name", "") != "isns.port"
+                Ops.get_string(row, "name", "") != "isns.port"
           tmp_config = Builtins.add(tmp_config, row)
         end
       end

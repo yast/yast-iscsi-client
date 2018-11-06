@@ -160,15 +160,6 @@ Style/IndentArray:
     - 'src/modules/IscsiClientLib.rb'
     - 'test/ScanDiscovered_spec.rb'
 
-# Offense count: 4
-# Cop supports --auto-correct.
-# Configuration parameters: Width.
-Style/IndentationWidth:
-  Exclude:
-    - 'src/include/iscsi-client/widgets.rb'
-    - 'src/modules/IscsiClientLib.rb'
-    - 'test/getiBFT_spec.rb'
-
 # Offense count: 10
 # Cop supports --auto-correct.
 # Configuration parameters: EnforcedStyle, SupportedStyles.

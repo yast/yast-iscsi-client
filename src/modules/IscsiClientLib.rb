@@ -342,15 +342,15 @@ module Yast
         val = "" if val == "<empty>"
         case key
         when "node.session.auth.authmethod"
-            Ops.set(auth, "authmethod", val)
+          Ops.set(auth, "authmethod", val)
         when "node.session.auth.username"
-            Ops.set(auth, "username", val)
+          Ops.set(auth, "username", val)
         when "node.session.auth.password"
-            Ops.set(auth, "password", val)
+          Ops.set(auth, "password", val)
         when "node.session.auth.username_in"
-            Ops.set(auth, "username_in", val)
+          Ops.set(auth, "username_in", val)
         when "node.session.auth.password_in"
-            Ops.set(auth, "password_in", val)
+          Ops.set(auth, "password_in", val)
         end
       end
       deep_copy(auth)
@@ -822,9 +822,9 @@ module Yast
       curr_node = getCurrentNodeValues
 
       if iBFT?(curr_node)
-          # always show status "onboot" for iBFT (startup value from node doesn't matter)
-          log.info "Startup status for iBFT is always onboot"
-          return "onboot"
+        # always show status "onboot" for iBFT (startup value from node doesn't matter)
+        log.info "Startup status for iBFT is always onboot"
+        return "onboot"
       end
       status = curr_node["node.conn[0].startup"] || ""
       log.info "Startup status for #{@currentRecord} is #{status}"
@@ -1170,7 +1170,7 @@ module Yast
         end
       end
       if Ops.greater_than(Builtins.size(Builtins.filter(ifaces) do |s|
-          s != "default"
+                                          s != "default"
                                         end), 0)
         CallConfigScript()
       end

@@ -202,34 +202,34 @@ module Yast
         record = []
         case Ops.get_symbol(event, "ID")
         when :add
-            # add a new target, discovery
-            # goto DiscAuthDialog("client")) ()
-            Builtins.y2milestone("Goto dicovered authentication dialog")
-            return :add
+          # add a new target, discovery
+          # goto DiscAuthDialog("client")) ()
+          Builtins.y2milestone("Goto dicovered authentication dialog")
+          return :add
         when :del
-            # delete (logout from) connected target
-            record = setRecord
-            if Ops.greater_than(Builtins.size(record), 0)
-              if Popup.ContinueCancel(
-                  _("Really log out from the selected target?")
-              )
-                if !IscsiClientLib.deleteRecord
-                  Popup.Error(
-                    _(
-                      "Error occurred while logging out from the selected target."
-                    )
+          # delete (logout from) connected target
+          record = setRecord
+          if Ops.greater_than(Builtins.size(record), 0)
+            if Popup.ContinueCancel(
+                _("Really log out from the selected target?")
+            )
+              if !IscsiClientLib.deleteRecord
+                Popup.Error(
+                  _(
+                    "Error occurred while logging out from the selected target."
                   )
-                else
-                  Builtins.y2milestone("Delete record %1", record)
-                  initConnectedTable("")
-                end
+                )
+              else
+                Builtins.y2milestone("Delete record %1", record)
+                initConnectedTable("")
               end
-            else
-              Popup.Error(_("No record found."))
             end
+          else
+            Popup.Error(_("No record found."))
+          end
         when :edit
-            record = setRecord
-            return :edit
+          record = setRecord
+          return :edit
         end
       end
       # if nothing selected - disable some buttons, otherwise enable them
@@ -523,11 +523,11 @@ module Yast
         status = false
         case Ops.get_symbol(event, "ID")
         when :auth_none
-            status = Convert.to_boolean(UI.QueryWidget(Id(:auth_none), :Value))
+          status = Convert.to_boolean(UI.QueryWidget(Id(:auth_none), :Value))
         when :auth_in
-            status = Convert.to_boolean(UI.QueryWidget(Id(:auth_in), :Value))
+          status = Convert.to_boolean(UI.QueryWidget(Id(:auth_in), :Value))
         when :auth_out
-            status = Convert.to_boolean(UI.QueryWidget(Id(:auth_out), :Value))
+          status = Convert.to_boolean(UI.QueryWidget(Id(:auth_out), :Value))
         end
       end
       nil
@@ -596,7 +596,7 @@ module Yast
       end
 
       if IP.Check6(ip)
-       ip = "[#{ip}]" # brackets needed around IPv6
+        ip = "[#{ip}]" # brackets needed around IPv6
       end
 
       # store /etc/iscsi/iscsi.conf

@@ -154,12 +154,6 @@ Style/MultilineTernaryOperator:
   Exclude:
     - 'src/modules/IscsiClientLib.rb'
 
-# Offense count: 2
-# Cop supports --auto-correct.
-Style/NegatedWhile:
-  Exclude:
-    - 'src/include/iscsi-client/widgets.rb'
-
 # Offense count: 5
 # Cop supports --auto-correct.
 Style/NilComparison:

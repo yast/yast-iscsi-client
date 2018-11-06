@@ -640,7 +640,7 @@ module Yast
         use_fw:   false,
         only_new: option_new)
       trg_list = runInBg(command)
-      while !@bg_finish
+      until @bg_finish
 
       end
       if Builtins.size(trg_list) == 0
@@ -648,7 +648,7 @@ module Yast
           use_fw:   true,
           only_new: option_new)
         trg_list = runInBg(command)
-        while !@bg_finish
+        until @bg_finish
 
         end
       end

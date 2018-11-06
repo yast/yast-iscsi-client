@@ -80,18 +80,6 @@ Metrics/ModuleLength:
 Metrics/PerceivedComplexity:
   Max: 23
 
-# Offense count: 101
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedHashRocketStyle, EnforcedColonStyle, EnforcedLastArgumentHashStyle, SupportedLastArgumentHashStyles.
-# SupportedLastArgumentHashStyles: always_inspect, always_ignore, ignore_implicit, ignore_explicit
-Style/AlignHash:
-  Exclude:
-    - 'src/clients/iscsi-client.rb'
-    - 'src/include/iscsi-client/dialogs.rb'
-    - 'src/include/iscsi-client/widgets.rb'
-    - 'test/getiBFT_spec.rb'
-    - 'test/saveConfig_spec.rb'
-
 # Offense count: 56
 # Cop supports --auto-correct.
 # Configuration parameters: EnforcedStyle, SupportedStyles, IndentationWidth.

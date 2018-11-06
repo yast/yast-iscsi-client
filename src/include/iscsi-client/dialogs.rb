@@ -53,8 +53,8 @@ module Yast
       Yast.include include_target, "iscsi-client/widgets.rb"
 
       @widgets = {
-        "auto_start_up"       => service_widget.cwm_definition,
-        "isns"                => {
+        "auto_start_up"    => service_widget.cwm_definition,
+        "isns"             => {
           "widget"            => :custom,
           "custom_widget"     => HBox(
             MinWidth(

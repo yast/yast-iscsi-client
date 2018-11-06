@@ -647,7 +647,7 @@ module Yast
       option_new = (@current_tab == "client")
 
       command = IscsiClientLib.GetDiscoveryCmd(ip, port,
-                                               use_fw: false,
+                                               use_fw:   false,
                                                only_new: option_new)
       trg_list = runInBg(command)
       while !@bg_finish
@@ -655,7 +655,7 @@ module Yast
       end
       if Builtins.size(trg_list) == 0
         command = IscsiClientLib.GetDiscoveryCmd(ip, port,
-                                                 use_fw: true,
+                                                 use_fw:   true,
                                                  only_new: option_new)
         trg_list = runInBg(command)
         while !@bg_finish

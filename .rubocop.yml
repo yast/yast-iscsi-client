@@ -93,12 +93,6 @@ Style/Documentation:
     - 'src/modules/IscsiClient.rb'
     - 'src/modules/IscsiClientLib.rb'
 
-# Offense count: 1
-# Cop supports --auto-correct.
-Style/ElseAlignment:
-  Exclude:
-    - 'src/modules/IscsiClientLib.rb'
-
 # Offense count: 2
 # Cop supports --auto-correct.
 # Configuration parameters: AllowAdjacentOneLineDefs.

@@ -109,7 +109,7 @@ module Yast
     def socketStop(socket)
       if socket
         socket.stop
-     else
+      else
         log.error "socket not available"
         false
       end

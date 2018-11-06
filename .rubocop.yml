@@ -21,14 +21,6 @@ Lint/LiteralInCondition:
   Exclude:
     - 'src/modules/IscsiClient.rb'
 
-# Offense count: 24
-# Cop supports --auto-correct.
-# Configuration parameters: AllowUnusedKeywordArguments, IgnoreEmptyMethods.
-Lint/UnusedMethodArgument:
-  Exclude:
-    - 'src/include/iscsi-client/helps.rb'
-    - 'src/include/iscsi-client/widgets.rb'
-
 # Offense count: 26
 Lint/UselessAssignment:
   Exclude:

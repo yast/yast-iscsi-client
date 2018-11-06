@@ -29,7 +29,7 @@
 # $Id$
 module Yast
   module IscsiClientHelpsInclude
-    def initialize_iscsi_client_helps(include_target)
+    def initialize_iscsi_client_helps(_include_target)
       textdomain "iscsi-client"
 
       use_bidirectional_auth = _("If authentication is needed for secure access, please use <b>Authentication by Initiator</b> and <b>Authentication by Targets</b> " \

@@ -31,7 +31,7 @@
 # Main file for iscsi-client configuration. Uses all other files.
 module Yast
   module IscsiClientWidgetsInclude
-    def initialize_iscsi_client_widgets(include_target)
+    def initialize_iscsi_client_widgets(_include_target)
       textdomain "iscsi-client"
       Yast.import "IP"
 
@@ -147,7 +147,7 @@ module Yast
     end
 
     # init table of connected sessions
-    def initConnectedTable(key)
+    def initConnectedTable(_key)
       if IscsiClientLib.readSessions == false
         Popup.Error(_("Error While Connecting iscsid"))
       end
@@ -196,7 +196,7 @@ module Yast
     end
 
     # handle for table of connected sessions
-    def handleConnectedTable(key, event)
+    def handleConnectedTable(_key, event)
       event = deep_copy(event)
       if Ops.get_string(event, "EventReason", "") == "Activated"
         record = []
@@ -243,7 +243,7 @@ module Yast
       nil
     end
 
-    def initISNS(key)
+    def initISNS(_key)
       Builtins.foreach(IscsiClientLib.getConfig) do |row|
         if Ops.get_string(row, "name", "") == "isns.address"
           UI.ChangeWidget(
@@ -261,7 +261,7 @@ module Yast
       nil
     end
 
-    def validateISNS(key, event)
+    def validateISNS(_key, event)
       event = deep_copy(event)
       address = Convert.to_string(UI.QueryWidget(:isns_address, :Value))
       port = Convert.to_string(UI.QueryWidget(:isns_port, :Value))
@@ -280,7 +280,7 @@ module Yast
     end
 
 
-    def storeISNS(key, event)
+    def storeISNS(_key, event)
       event = deep_copy(event)
       address = Convert.to_string(UI.QueryWidget(:isns_address, :Value))
       port = Convert.to_string(UI.QueryWidget(:isns_port, :Value))
@@ -337,7 +337,7 @@ module Yast
 
 
 
-    def initInitName(key)
+    def initInitName(_key)
       Builtins.y2milestone("initiatorname %1", IscsiClientLib.initiatorname)
       UI.ChangeWidget(:initiator_name, :Value, IscsiClientLib.initiatorname)
       UI.ChangeWidget(:offload_card, :Items, IscsiClientLib.GetOffloadItems)
@@ -356,7 +356,7 @@ module Yast
       nil
     end
 
-    def validateInitName(key, event)
+    def validateInitName(_key, event)
       event = deep_copy(event)
       #  Targets definitions start with "Target" and the target name.
       #  The target name must be a globally unique name, the iSCSI
@@ -406,7 +406,7 @@ module Yast
     end
 
 
-    def storeInitName(key, event)
+    def storeInitName(_key, event)
       event = deep_copy(event)
       if Convert.to_string(UI.QueryWidget(:initiator_name, :Value)) !=
           IscsiClientLib.initiatorname
@@ -434,7 +434,7 @@ module Yast
       nil
     end
 
-    def handleOffload(key, event)
+    def handleOffload(_key, event)
       event = deep_copy(event)
       if event["EventReason"] || "" == "ValueChanged" &&
           event["ID"] || :none == :offload_card
@@ -453,7 +453,7 @@ module Yast
     end
 
     # ***************** iBFT table **************************
-    def initiBFT(key)
+    def initiBFT(_key)
       items = []
       Builtins.foreach(IscsiClientLib.hidePassword(IscsiClientLib.getiBFT)) do |key2, value|
         items = Builtins.add(items, Item(Id(Builtins.size(items)), key2, value))
@@ -481,11 +481,11 @@ module Yast
     # }
 
     # disable both incoming and outgoing
-    def initDiscAuth(key)
+    def initDiscAuth(_key)
       nil
     end
 
-    def initConnAuth(key)
+    def initConnAuth(_key)
       # setAuthIn(false);
       # setAuthOut(false);
       auth = IscsiClientLib.getNode
@@ -521,7 +521,7 @@ module Yast
       nil
     end
     # handle for enable/disable widgets in authentication dialog
-    def handleDiscAuth(key, event)
+    def handleDiscAuth(_key, event)
       event = deep_copy(event)
       if Ops.get_string(event, "EventReason", "") == "ValueChanged"
         status = false
@@ -537,13 +537,13 @@ module Yast
       nil
     end
 
-    def validateDiscAuth(key, event)
+    def validateDiscAuth(_key, event)
       event = deep_copy(event)
       checkAuthEntry
     end
     # *******************Server Location ***********************
 
-    def initServerLocation(key)
+    def initServerLocation(_key)
       isns_info = IscsiClientLib.useISNS
       Builtins.y2milestone("is iSNS %1", isns_info["use"])
       if isns_info["use"]
@@ -555,7 +555,7 @@ module Yast
     end
 
     # do discovery to selected portal
-    def validateServerLocation(key, event)
+    def validateServerLocation(_key, _event)
       ip = Builtins.tostring(UI.QueryWidget(:hostname, :Value))
       ip.strip!
 
@@ -697,7 +697,7 @@ module Yast
     end
 
     # initialize widget with discovered targets
-    def initDiscoveredTable(key)
+    def initDiscoveredTable(_key)
       items = []
       row = 0
       Builtins.foreach(IscsiClientLib.getDiscovered) do |s|
@@ -723,7 +723,7 @@ module Yast
     end
 
     # handling widget with discovered targets
-    def handleDiscoveredTable(key, event)
+    def handleDiscoveredTable(_key, event)
       event = deep_copy(event)
       params = []
       selected = UI.QueryWidget(:discovered, :CurrentItem)
@@ -803,7 +803,7 @@ module Yast
     # ******************* target table *************************
 
     # initialize dialog for all targets from portal (connected/disconnected)
-    def initTargetTable(key)
+    def initTargetTable(_key)
       items = []
       row = 0
       Builtins.foreach(IscsiClientLib.targets) do |s|
@@ -827,7 +827,7 @@ module Yast
     end
 
     # handle dialog for all targets from portal (connected/disconnected) - only connect button ;)
-    def handleTargetTable(key, event)
+    def handleTargetTable(_key, event)
       event = deep_copy(event)
       # enable/disable connect button according target is or not already connected
       items = Convert.convert(
@@ -890,7 +890,7 @@ module Yast
     # ***************** connection autentication *******************
 
     # login to target with authentication
-    def validateConnAuth(key, event)
+    def validateConnAuth(_key, event)
       event = deep_copy(event)
       auth_none = Convert.to_boolean(UI.QueryWidget(Id(:auth_none), :Value))
       user_in = Builtins.tostring(UI.QueryWidget(Id(:user_in), :Value))

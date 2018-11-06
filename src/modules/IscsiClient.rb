@@ -97,7 +97,6 @@ module Yast
       @modified
     end
 
-
     # check if package open-iscsi is installed
     def installed_packages
       # don't check interactively for packages (bnc#367300)
@@ -118,8 +117,6 @@ module Yast
       end
       ret
     end
-
-
 
     # Dump the iscsi-client settings to a single map
     # (For use by autoinstallation.)
@@ -244,7 +241,6 @@ module Yast
       true
     end
 
-
     # Write all iscsi-client settings
     # @return true on success
     def Write
@@ -315,7 +311,6 @@ module Yast
       IscsiClientLib.ay_settings = deep_copy(settings)
       true
     end
-
 
     # Create a textual summary and a list of unconfigured cards
     # @return summary of the current configuration

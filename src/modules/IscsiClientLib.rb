@@ -247,7 +247,6 @@ module Yast
       @ibft
     end
 
-
     # get accessor for service status
     def GetStartService
       status_d = socketEnabled?(@iscsid_socket)
@@ -272,7 +271,6 @@ module Yast
 
       nil
     end
-
 
     # read configuration file
     def getConfig
@@ -311,7 +309,6 @@ module Yast
       isns_info
     end
 
-
     # write temporary changed old config
     def oldConfig
       Builtins.y2milestone("Store temporary config %1", @config)
@@ -320,7 +317,6 @@ module Yast
 
       nil
     end
-
 
     def getNode
       cmdline = GetAdmCmd(
@@ -745,7 +741,6 @@ module Yast
       ret
     end
 
-
     # delete deiscovered target from database
     def deleteRecord
       ret = true
@@ -1007,7 +1002,6 @@ module Yast
       ret
     end
 
-
     def loginIntoTarget(target)
       target = deep_copy(target)
       @currentRecord = [
@@ -1074,7 +1068,6 @@ module Yast
       true
     end
 
-
     # FIXME: this method has too much responsibility and it is doing
     # "unexpected" things according to its name. Ideally, it only must return
     # the service status without changing the status of related services and
@@ -1140,7 +1133,6 @@ module Yast
       log.info "Status service for iscsid: #{ret}"
       ret
     end
-
 
     def autoyastPrepare
       @initiatorname = Ops.get_string(@ay_settings, "initiatorname", "")

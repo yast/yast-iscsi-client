@@ -101,15 +101,6 @@ Style/EmptyLineBetweenDefs:
     - 'src/include/iscsi-client/widgets.rb'
     - 'src/modules/IscsiClientLib.rb'
 
-# Offense count: 20
-# Cop supports --auto-correct.
-Style/EmptyLines:
-  Exclude:
-    - 'src/include/iscsi-client/dialogs.rb'
-    - 'src/include/iscsi-client/widgets.rb'
-    - 'src/modules/IscsiClient.rb'
-    - 'src/modules/IscsiClientLib.rb'
-
 # Offense count: 7
 # Configuration parameters: ExpectMatchingDefinition, Regex, IgnoreExecutableScripts.
 Style/FileName:

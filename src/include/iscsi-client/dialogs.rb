@@ -312,7 +312,6 @@ module Yast
         }
       }
 
-
       @tabs_descr = {
         # service status dialog
         "general"    => {

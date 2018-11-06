@@ -279,7 +279,6 @@ module Yast
       true
     end
 
-
     def storeISNS(_key, event)
       event = deep_copy(event)
       address = Convert.to_string(UI.QueryWidget(:isns_address, :Value))
@@ -334,8 +333,6 @@ module Yast
       IscsiClientLib.oldConfig
       nil
     end
-
-
 
     def initInitName(_key)
       Builtins.y2milestone("initiatorname %1", IscsiClientLib.initiatorname)
@@ -404,7 +401,6 @@ module Yast
         return true
       end
     end
-
 
     def storeInitName(_key, event)
       event = deep_copy(event)
@@ -665,7 +661,6 @@ module Yast
       @stat
     end
 
-
     # ********************* discovered table *******************
 
     # enable [ connect, delete ] buttons only for not connected items
@@ -848,7 +843,6 @@ module Yast
       else
         UI.ChangeWidget(:connect, :Enabled, true)
       end
-
 
       if Ops.get_string(event, "EventReason", "") == "Activated"
         if Ops.get(event, "ID") == :connect

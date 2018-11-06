@@ -27,7 +27,6 @@ require "ipaddr"
 
 module Yast
   class IscsiClientLibClass < Module
-
     include Yast::Logger
 
     def main

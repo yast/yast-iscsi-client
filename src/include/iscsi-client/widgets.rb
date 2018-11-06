@@ -201,12 +201,12 @@ module Yast
       if Ops.get_string(event, "EventReason", "") == "Activated"
         record = []
         case Ops.get_symbol(event, "ID")
-          when :add
+        when :add
             # add a new target, discovery
             # goto DiscAuthDialog("client")) ()
             Builtins.y2milestone("Goto dicovered authentication dialog")
             return :add
-          when :del
+        when :del
             # delete (logout from) connected target
             record = setRecord
             if Ops.greater_than(Builtins.size(record), 0)
@@ -227,7 +227,7 @@ module Yast
             else
               Popup.Error(_("No record found."))
             end
-          when :edit
+        when :edit
             record = setRecord
             return :edit
         end
@@ -526,11 +526,11 @@ module Yast
       if Ops.get_string(event, "EventReason", "") == "ValueChanged"
         status = false
         case Ops.get_symbol(event, "ID")
-          when :auth_none
+        when :auth_none
             status = Convert.to_boolean(UI.QueryWidget(Id(:auth_none), :Value))
-          when :auth_in
+        when :auth_in
             status = Convert.to_boolean(UI.QueryWidget(Id(:auth_in), :Value))
-          when :auth_out
+        when :auth_out
             status = Convert.to_boolean(UI.QueryWidget(Id(:auth_out), :Value))
         end
       end

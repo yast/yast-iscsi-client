@@ -345,15 +345,15 @@ module Yast
         val = Ops.get(Builtins.splitstring(row, " = "), 3, "")
         val = "" if val == "<empty>"
         case key
-          when "node.session.auth.authmethod"
+        when "node.session.auth.authmethod"
             Ops.set(auth, "authmethod", val)
-          when "node.session.auth.username"
+        when "node.session.auth.username"
             Ops.set(auth, "username", val)
-          when "node.session.auth.password"
+        when "node.session.auth.password"
             Ops.set(auth, "password", val)
-          when "node.session.auth.username_in"
+        when "node.session.auth.username_in"
             Ops.set(auth, "username_in", val)
-          when "node.session.auth.password_in"
+        when "node.session.auth.password_in"
             Ops.set(auth, "password_in", val)
         end
       end

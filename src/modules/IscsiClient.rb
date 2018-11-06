@@ -165,13 +165,13 @@ module Yast
       # IscsiClient read dialog caption
       caption = _("Initializing iSCSI Initiator Configuration")
 
-      # TODO FIXME Set the right number of stages
+      # TODO: FIXME Set the right number of stages
       steps = 4
 
       sl = 500
       Builtins.sleep(sl)
 
-      # TODO FIXME Names of real stages
+      # TODO: FIXME Names of real stages
       # We do not set help text here, because it was set outside
       Progress.New(
         caption,
@@ -251,7 +251,7 @@ module Yast
       # IscsiClient read dialog caption
       caption = _("Saving iSCSI Initiator Configuration")
 
-      # TODO FIXME And set the right number of stages
+      # TODO: FIXME And set the right number of stages
 
       sl = 500
       Builtins.sleep(sl)
@@ -263,7 +263,7 @@ module Yast
         _("Set up service status")
       ]
       descr = Builtins.remove(descr, 0) if !(Mode.autoinst || Mode.autoupgrade)
-      # TODO FIXME Names of real stages
+      # TODO: FIXME Names of real stages
       # We do not set help text here, because it was set outside
       Progress.New(caption, " ", Builtins.size(descr), descr, [], "")
 
@@ -320,7 +320,7 @@ module Yast
     # Create a textual summary and a list of unconfigured cards
     # @return summary of the current configuration
     def Summary
-      # TODO FIXME: your code here...
+      # TODO: FIXME: your code here...
       # Configuration summary text for autoyast
       [IscsiClientLib.Overview, []]
     end
@@ -328,7 +328,7 @@ module Yast
     # Create an overview table with all configured cards
     # @return table items
     def Overview
-      # TODO FIXME: your code here...
+      # TODO: FIXME: your code here...
       []
     end
 

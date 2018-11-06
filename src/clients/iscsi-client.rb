@@ -60,13 +60,13 @@ module Yast
         "initialize" => fun_ref(IscsiClient.method(:Read), "boolean ()"),
         "finish"     => fun_ref(IscsiClient.method(:Write), "boolean ()"),
         "actions"    =>
-                        # FIXME TODO: fill the functionality description here
+                        # FIXME: TODO: fill the functionality description here
                         {},
         "options"    =>
-                        # FIXME TODO: fill the option descriptions here
+                        # FIXME: TODO: fill the option descriptions here
                         {},
         "mappings"   =>
-                        # FIXME TODO: fill the mappings of actions and options here
+                        # FIXME: TODO: fill the mappings of actions and options here
                         {}
       }
 

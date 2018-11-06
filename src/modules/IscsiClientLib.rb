@@ -1573,7 +1573,7 @@ module Yast
         end
       end
       Builtins.y2milestone("GetOffloadItems entries:%1", entries)
-      @iface_eth = Builtins.sort(Builtins.maplist(entries) { |e, val| e })
+      @iface_eth = Builtins.sort(Builtins.maplist(entries) { |e, _val| e })
       Builtins.y2milestone("GetOffloadItems eth:%1", @iface_eth)
       if init
         @offload_card = InitOffloadCard()
@@ -1611,7 +1611,7 @@ module Yast
       it = nil
       it = GetOffloadItems() if @offload_valid == nil
       modules = []
-      Builtins.foreach(@offload_valid) do |i, l|
+      Builtins.foreach(@offload_valid) do |i, _l|
         modules = Convert.convert(
           Builtins.union(modules, Ops.get_list(@offload, [i, 3], [])),
           :from => "list",
@@ -1650,14 +1650,14 @@ module Yast
       Builtins.y2milestone("CallConfigScript list:%1", sl)
       Builtins.foreach(sl) do |s|
         hw = []
-        hw = Ops.get(Builtins.maplist(Builtins.filter(@offload_valid) do |i, eth|
+        hw = Ops.get(Builtins.maplist(Builtins.filter(@offload_valid) do |_i, eth|
           Builtins.contains(
             Builtins.flatten(
               Convert.convert(eth, :from => "list", :to => "list <list>")
             ),
             s
           )
-        end) { |i, e| e }, 0, [])
+        end) { |_i, e| e }, 0, [])
         Builtins.y2milestone("CallConfigScript hw:%1", hw)
         hw = Builtins.find(
           Convert.convert(hw, :from => "list", :to => "list <list>")

@@ -197,17 +197,6 @@ Style/RedundantReturn:
   Exclude:
     - 'src/modules/IscsiClientLib.rb'
 
-# Offense count: 4
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle, SupportedStyles, ConsistentQuotesInMultiline.
-# SupportedStyles: single_quotes, double_quotes
-Style/StringLiterals:
-  Exclude:
-    - 'test/ScanDiscovered_spec.rb'
-    - 'test/getiBFT_spec.rb'
-    - 'test/ipEqual_spec.rb'
-    - 'test/saveConfig_spec.rb'
-
 # Offense count: 5
 # Configuration parameters: EnforcedStyle, SupportedStyles.
 # SupportedStyles: snake_case, camelCase

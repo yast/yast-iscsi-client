@@ -1,5 +1,5 @@
 #!/usr/bin/env rspec
-require_relative '../src/modules/IscsiClientLib'
+require_relative "../src/modules/IscsiClientLib"
 
 describe Yast::IscsiClientLibClass do
   subject do

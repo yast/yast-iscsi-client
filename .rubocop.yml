@@ -216,15 +216,6 @@ Style/Lambda:
   Exclude:
     - 'src/include/iscsi-client/wizards.rb'
 
-# Offense count: 7
-# Cop supports --auto-correct.
-Style/LeadingCommentSpace:
-  Exclude:
-    - 'Rakefile'
-    - 'src/clients/inst_iscsi-client.rb'
-    - 'src/clients/iscsi-client.rb'
-    - 'src/include/iscsi-client/widgets.rb'
-
 # Offense count: 99
 # Configuration parameters: EnforcedStyle, SupportedStyles.
 # SupportedStyles: snake_case, camelCase

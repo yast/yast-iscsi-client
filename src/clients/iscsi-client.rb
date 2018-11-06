@@ -34,7 +34,7 @@ module Yast
     def main
       Yast.import "UI"
 
-      #**
+      # **
       # <h3>Configuration of iscsi-client</h3>
 
       textdomain "iscsi-client"

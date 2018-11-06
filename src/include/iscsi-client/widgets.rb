@@ -800,7 +800,7 @@ module Yast
       nil
     end
 
-    #******************* target table *************************
+    # ******************* target table *************************
 
     # initialize dialog for all targets from portal (connected/disconnected)
     def initTargetTable(key)
@@ -829,7 +829,7 @@ module Yast
     # handle dialog for all targets from portal (connected/disconnected) - only connect button ;)
     def handleTargetTable(key, event)
       event = deep_copy(event)
-      #enable/disable connect button according target is or not already connected
+      # enable/disable connect button according target is or not already connected
       items = Convert.convert(
         UI.QueryWidget(:targets, :Items),
         :from => "any",
@@ -887,7 +887,7 @@ module Yast
       nil
     end
 
-    #***************** connection autentication *******************
+    # ***************** connection autentication *******************
 
     # login to target with authentication
     def validateConnAuth(key, event)

@@ -390,7 +390,7 @@ module Yast
         Builtins.regexpmatch(i_name, Builtins.sformat("^eui.%1%2$", reg1, reg2))
 
       if !correct
-        go_on = Popup.YesNoHeadline( _("Incorrect Initiator Name"),
+        go_on = Popup.YesNoHeadline(_("Incorrect Initiator Name"),
           _(
             "\n" +
             "The correct syntax is\n" +
@@ -575,7 +575,7 @@ module Yast
         end
         if !IP.Check(ip)
           # check for valid host name
-          result =  SCR.Execute( path(".target.bash_output"),
+          result = SCR.Execute(path(".target.bash_output"),
                                  "LC_ALL=POSIX host #{ip}")
           Builtins.y2milestone("Cmd: host %1, result: %2", ip, result)
           output = result["stdout"] || ""

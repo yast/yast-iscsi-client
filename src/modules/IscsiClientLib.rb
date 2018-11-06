@@ -173,7 +173,7 @@ module Yast
     # @param  [Boolean] do_log  write command to y2log?
     # @return [String] complete command
     #
-    def GetAdmCmd(params, do_log=true)
+    def GetAdmCmd(params, do_log = true)
       ret = "LC_ALL=POSIX iscsiadm"
       ret = Ops.add(Ops.add(ret, " "), params)
       Builtins.y2milestone("GetAdmCmd: #{ret}") if do_log
@@ -209,7 +209,7 @@ module Yast
     #  @param [String]   stdout (where info is seperated by '=') of iscsiadm command
     #  @return [Hash]    command output converted to hash
     #
-    def nodeInfoToMap (stdout)
+    def nodeInfoToMap(stdout)
       retval = {}
       return retval if stdout.empty?
 
@@ -298,7 +298,7 @@ module Yast
 
     # do we use iSNS for targets?
     def useISNS
-      isns_info = {"use" => false, "address" => "", "port" => "3205"}
+      isns_info = { "use" => false, "address" => "", "port" => "3205" }
       # validateISNS checks for not empty address and port,
       # storeISNS adds values to config
       Builtins.foreach(getConfig) do |row|
@@ -784,7 +784,7 @@ module Yast
     #                   converted to a hash
     def getCurrentNodeValues
       ret = SCR.Execute(path(".target.bash_output"),
-                        GetAdmCmd("-m node -I #{@currentRecord[2]||"default"} -T #{@currentRecord[1]||""} -p #{@currentRecord[0]||""}"))
+                        GetAdmCmd("-m node -I #{@currentRecord[2] || "default"} -T #{@currentRecord[1] || ""} -p #{@currentRecord[0] || ""}"))
       return {} if ret["exit"] != 0
 
       nodeInfoToMap(ret["stdout"] || "")
@@ -844,7 +844,7 @@ module Yast
       Builtins.y2milestone("set %1  for record %2", name, rec)
 
       log = !name.include?("password");
-      cmd = "-m node -I #{rec[2]||"default"} -T #{rec[1]||""} -p #{rec[0]||""} --op=update --name=#{name}"
+      cmd = "-m node -I #{rec[2] || "default"} -T #{rec[1] || ""} -p #{rec[0] || ""} --op=update --name=#{name}"
 
       command = GetAdmCmd("#{cmd} --value=#{value}", log)
       if !log
@@ -925,10 +925,10 @@ module Yast
         if check_ip
           session_ip = Ops.get(
                                Builtins.splitstring(Ops.get(list_row, 0, ""), ","),
-                               0, "" )
+                               0, "")
           current_ip = Ops.get(
                                Builtins.splitstring(Ops.get(@currentRecord, 0, ""), ","),
-                               0, "" )
+                               0, "")
           ip_ok = ipEqual?(session_ip, current_ip)
         end
 
@@ -1067,8 +1067,8 @@ module Yast
       # Report a warning (not an error) if login failed for other reasons
       # (also related to bsc#981693, warning popups usually are skipped)
       elsif output["exit"] != 0
-        Report.Warning( _("Target connection failed.\n") +
-                        output["stderr"] || "" )
+        Report.Warning(_("Target connection failed.\n") +
+                        output["stderr"] || "")
       end
 
       setStartupStatus("onboot") if !Mode.autoinst

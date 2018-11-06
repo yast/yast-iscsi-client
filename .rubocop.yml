@@ -197,18 +197,6 @@ Style/MultilineArrayBraceLayout:
   Exclude:
     - 'test/ScanDiscovered_spec.rb'
 
-# Offense count: 8
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle, SupportedStyles.
-# SupportedStyles: symmetrical, new_line, same_line
-Style/MultilineMethodCallBraceLayout:
-  Exclude:
-    - 'src/include/iscsi-client/helps.rb'
-    - 'src/include/iscsi-client/widgets.rb'
-    - 'src/modules/IscsiClientLib.rb'
-    - 'test/ScanDiscovered_spec.rb'
-    - 'test/getiBFT_spec.rb'
-
 # Offense count: 1
 Style/MultilineTernaryOperator:
   Exclude:

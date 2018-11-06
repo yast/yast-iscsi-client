@@ -113,7 +113,8 @@ module Yast
           _(
             "Enter the <b>IP Address</b> of the iSCSI target server.\n" \
               "Only change <b>Port</b>. If you do not need authentication,\n" \
-              "select <b>No Discovery Authentication</b>. ") + use_bidirectional_auth +
+              "select <b>No Discovery Authentication</b>. "
+          ) + use_bidirectional_auth +
           # Warning
           _("<h1>Warning</h1>") +
           _(

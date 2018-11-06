@@ -919,10 +919,12 @@ module Yast
         if check_ip
           session_ip = Ops.get(
             Builtins.splitstring(Ops.get(list_row, 0, ""), ","),
-            0, "")
+            0, ""
+          )
           current_ip = Ops.get(
             Builtins.splitstring(Ops.get(@currentRecord, 0, ""), ","),
-            0, "")
+            0, ""
+          )
           ip_ok = ipEqual?(session_ip, current_ip)
         end
 

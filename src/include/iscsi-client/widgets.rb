@@ -394,8 +394,7 @@ module Yast
             "iqn.2007-04.cz.server:storage.disk.sdb\n" \
             "\n" \
             "Do you want to use the name?\n"
-          )
-        )
+          ))
         return go_on
       else
         return true

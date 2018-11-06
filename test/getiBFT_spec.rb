@@ -62,5 +62,5 @@ describe Yast::IscsiClientLibClass do
       end
     end
 
- end
+  end
 end

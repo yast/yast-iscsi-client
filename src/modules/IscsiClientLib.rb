@@ -1178,7 +1178,7 @@ module Yast
       end
       if Ops.greater_than(Builtins.size(Builtins.filter(ifaces) do |s|
           s != "default"
-        end), 0)
+                                        end), 0)
         CallConfigScript()
       end
       Builtins.foreach(Ops.get_list(@ay_settings, "targets", [])) do |target|

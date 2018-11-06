@@ -16,15 +16,6 @@ Lint/AssignmentInCondition:
   Exclude:
     - 'src/modules/IscsiClientLib.rb'
 
-# Offense count: 2
-# Cop supports --auto-correct.
-# Configuration parameters: AlignWith, SupportedStyles.
-# SupportedStyles: either, start_of_block, start_of_line
-Lint/BlockAlignment:
-  Exclude:
-    - 'src/modules/IscsiClientLib.rb'
-    - 'test/getiBFT_spec.rb'
-
 # Offense count: 1
 Lint/LiteralInCondition:
   Exclude:

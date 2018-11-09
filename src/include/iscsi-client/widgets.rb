@@ -26,14 +26,13 @@
 # Summary:	Main file
 # Authors:	Michal Zugec <mzugec@suse.cz>
 #
-# $Id$
-#
 # Main file for iscsi-client configuration. Uses all other files.
 module Yast
   module IscsiClientWidgetsInclude
     def initialize_iscsi_client_widgets(include_target)
       textdomain "iscsi-client"
       Yast.import "IP"
+      Yast.import "Arch"
 
       @stat = false
       @curr_rec = []
@@ -923,6 +922,16 @@ module Yast
       else
         return false
       end
+    end
+
+    # get the possible startup modes as item list, architecture dependent
+    def startup_items
+      # iSCSI target has to be connected manually
+      values = [["manual", _("manual")]]
+      # iSCSI target available at boot (respected by 'dracut')
+      values << ["onboot", _("onboot")] if !Arch.s390
+      # iSCSI target enabled automatically (by 'systemd')
+      values << ["automatic", _("automatic")]
     end
   end
 end

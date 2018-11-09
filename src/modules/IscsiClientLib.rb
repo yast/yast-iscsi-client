@@ -29,6 +29,8 @@ module Yast
 
     include Yast::Logger
 
+    Yast.import "Arch"
+
     def main
       textdomain "iscsi-client"
 
@@ -833,6 +835,12 @@ module Yast
           return "onboot"
       end
       status = curr_node["node.conn[0].startup"] || ""
+
+      if Arch.s390 && status == "onboot"
+        log.info "Startup status on S/390 changed from onboot to automatic"
+        return "automatic"
+      end
+
       log.info "Startup status for #{@currentRecord} is #{status}"
 
       status

@@ -26,14 +26,27 @@
 # Summary:	Help texts of all the dialogs
 # Authors:	Michal Zugec <mzugec@suse.cz>
 #
-# $Id$
 module Yast
   module IscsiClientHelpsInclude
     def initialize_iscsi_client_helps(include_target)
       textdomain "iscsi-client"
 
+      Yast.import "Arch"
+
       use_bidirectional_auth = _("If authentication is needed for secure access, please use <b>Authentication by Initiator</b> and <b>Authentication by Targets</b> " \
       "together. Please do not only use one of them for security reasons.\n")
+
+      # the help text for the startup modes, architecture dependent
+      startup_help = lambda do
+        x = _("<p><b>manual</b> is for iSCSI targets which are not to be connected by\n" \
+              "default, the user needs to connect them manually</p>\n")
+        x += _("<p><b>onboot</b> is for iSCSI targets to be connected during boot, i.e. when\n" \
+               "root is on iSCSI. As such it will be evaluated by the initrd.</p>\n") if !Arch.s390
+        x += _("<p><b>automatic</b> is for iSCSI targets to be connected when the iSCSI service\n" \
+               "starts up.</p>\n")
+        x
+      end
+
       # All helps are here
       @HELPS = {
         # Read dialog help 1/2
@@ -131,14 +144,7 @@ module Yast
           "<h1>iSCSI Initiator</h1>"
         ) +
           _("<h1>Startup</h1>") +
-          _(
-            "<p><b>manual</b> is for iSCSI targets which are not to be connected by\n" +
-              "default, the user needs to connect them manually</p>\n" +
-              "<p><b>onboot</b> is for iSCSI targets to be connected during boot, i.e. when\n" +
-              "root is on iSCSI. As such it will be evaluated by the initrd.</p>\n" +
-              "<p><b>automatic</b> is for iSCSI targets to be connected when the iSCSI service\n" +
-              "starts up.</p>\n"
-          ) +
+          startup_help.call +
         _("<h1>Authentication</h1>") +
         _(
           "<p>The default setting here is <i>No Authentication</i>. Uncheck the checkbox if " \

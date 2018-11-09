@@ -924,7 +924,7 @@ module Yast
       end
     end
 
-    # get the possible startup modes as item list
+    # get the possible startup modes as item list, architecture dependent
     def startup_items
       # iSCSI target has to be connected manually
       values = [["manual", _("manual")]]

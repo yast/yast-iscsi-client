@@ -36,6 +36,7 @@ module Yast
       use_bidirectional_auth = _("If authentication is needed for secure access, please use <b>Authentication by Initiator</b> and <b>Authentication by Targets</b> " \
       "together. Please do not only use one of them for security reasons.\n")
 
+      # the help text for the startup modes, architecture dependent
       startup_help = lambda do
         x = _("<p><b>manual</b> is for iSCSI targets which are not to be connected by\n" \
               "default, the user needs to connect them manually</p>\n")

@@ -299,14 +299,7 @@ module Yast
           "widget" => :combobox,
           "opt"    => [:hstretch, :notify],
           "label"  => _("Startup"),
-          "items"  => [
-            # iSCSI target has to be connected manually
-            ["manual", _("manual")],
-            # iSCSI target available at boot (respected by 'dracut')
-            ["onboot", _("onboot")],
-            # iSCSI target enabled automatically (by 'systemd')
-            ["automatic", _("automatic")]
-          ]
+          "items"  => startup_items
         },
         # widget for portal address
         "server_location"  => {

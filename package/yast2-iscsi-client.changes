@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Nov 09 12:34:19 CET 2018 - aschnell@suse.com
+
+- removed onboot startup mode for LUNs on S/390 (bsc#1045139)
+- 3.1.31
+
+-------------------------------------------------------------------
 Thu Feb 22 17:25:23 CEST 2017 - lszhu@suse.com
 
 - Fate#318832, redesign authentication UI and online help.

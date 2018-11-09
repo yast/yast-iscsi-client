@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Nov 09 12:34:19 CET 2018 - aschnell@suse.com
+
+- removed onboot startup mode for LUNs on S/390 (bsc#1045139)
+- 4.1.2
+
+-------------------------------------------------------------------
 Tue Nov 06 10:00:14 CET 2018 - aschnell@suse.com
 
 - enable rubocop

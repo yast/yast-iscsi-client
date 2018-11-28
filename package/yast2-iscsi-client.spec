@@ -73,5 +73,5 @@ client.
 %{yast_scrconfdir}/iscsid.scr
 %doc %{yast_docdir}
 %{yast_schemadir}/autoyast/rnc/iscsi-client.rnc
-%{_datadir}/icons/*
+%{yast_icondir}
 %license COPYING

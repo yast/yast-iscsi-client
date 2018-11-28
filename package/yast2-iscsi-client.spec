@@ -17,7 +17,7 @@
 
 
 Name:           yast2-iscsi-client
-Version:        4.1.2
+Version:        4.1.3
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -73,4 +73,5 @@ client.
 %{yast_scrconfdir}/iscsid.scr
 %doc %{yast_docdir}
 %{yast_schemadir}/autoyast/rnc/iscsi-client.rnc
+%{yast_icondir}
 %license COPYING

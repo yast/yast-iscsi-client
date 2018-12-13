@@ -65,10 +65,9 @@ module Yast
 
       SCR.Execute(
         path(".target.bash"),
-        "mkdir -p /etc/iscsi; touch /etc/iscsi/initiatorname.iscsi; ln -s /etc/iscsi/initiatorname.iscsi /etc/initiatorname.iscsi"
+        "/usr/bin/mkdir -p /etc/iscsi; /usr/bin/touch /etc/iscsi/initiatorname.iscsi; /usr/bin/ln -s /etc/iscsi/initiatorname.iscsi /etc/initiatorname.iscsi"
       )
       # check initiator name, create if not exists
-      # WFM::Execute (.local.bash,"test -d /etc/iscsi/ && /bin/cp -a /etc/iscsi/* " + String::Quote(Installation::destdir) + "/etc/iscsi/");
       IscsiClientLib.checkInitiatorName
 
       IscsiClientLib.getiBFT

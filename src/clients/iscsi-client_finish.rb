@@ -32,6 +32,8 @@
 #
 require "yast2/systemd/socket"
 
+require "shellwords"
+
 module Yast
   class IscsiClientFinishClient < Client
     def main
@@ -74,19 +76,9 @@ module Yast
         # write open-iscsi database of automatic connected targets
         WFM.Execute(
           path(".local.bash"),
-          Ops.add(
-            Ops.add(
-              Ops.add(
-                Ops.add(
-                  "test -d /etc/iscsi/ && mkdir -p '",
-                  String.Quote(Installation.destdir)
-                ),
-                "/etc/iscsi' && cp -a /etc/iscsi/* '"
-              ),
-              String.Quote(Installation.destdir)
-            ),
-            "/etc/iscsi/'"
-          )
+          "/usr/bin/test -d /etc/iscsi/ && " \
+            "mkdir -p #{Installation.destdir.shellescape}/etc/iscsi && " \
+            "cp -a /etc/iscsi/* #{Installation.destdir.shellescape}/etc/iscsi/"
         )
         if Ops.greater_than(Builtins.size(IscsiClientLib.sessions), 0)
           Builtins.y2milestone("enabling iscsi and iscsid service/socket")

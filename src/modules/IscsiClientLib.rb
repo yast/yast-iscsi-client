@@ -329,7 +329,7 @@ module Yast
           Ops.get(@currentRecord, 2, "default").shellescape
         )
       )
-      cmd = SCR.Execute(path(".target.bash_output"), cmdline),
+      cmd = SCR.Execute(path(".target.bash_output"), cmdline)
       return {} if Ops.get_integer(cmd, "exit", 0) != 0
       auth = {}
       Builtins.foreach(
@@ -1275,7 +1275,6 @@ module Yast
     end
 
     def GetOffloadItems
-      i = 0
       init = false
       if @offload_valid == nil
         init = true
@@ -1307,14 +1306,12 @@ module Yast
 
         idx = 0
         Builtins.foreach(@offload) do |l|
-          valid = false
           mod = Convert.convert(
             Builtins.sort(Ops.get_list(l, 2, [])),
             :from => "list",
             :to   => "list <string>"
           )
           if Ops.greater_than(Builtins.size(mod), 0)
-            i = 0
             Builtins.foreach(hw_mods) do |hw|
               if Ops.greater_than(
                 Builtins.size(
@@ -1521,8 +1518,7 @@ module Yast
     end
 
     def GetOffloadModules
-      it = nil
-      it = GetOffloadItems() if @offload_valid == nil
+      GetOffloadItems() if @offload_valid == nil
       modules = []
       Builtins.foreach(@offload_valid) do |i, _l|
         modules = Convert.convert(

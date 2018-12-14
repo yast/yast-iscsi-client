@@ -529,6 +529,7 @@ module Yast
         when :auth_out
           status = Convert.to_boolean(UI.QueryWidget(Id(:auth_out), :Value))
         end
+        # FIXME: status unused, so this method do nothing
       end
       nil
     end
@@ -568,7 +569,7 @@ module Yast
         if !IP.Check(ip)
           # check for valid host name
           result = SCR.Execute(path(".target.bash_output"),
-            "LC_ALL=POSIX host #{ip.shellescape"}")
+            "LC_ALL=POSIX host #{ip.shellescape}")
           Builtins.y2milestone("Cmd: host %1, result: %2", ip, result)
           output = result["stdout"] || ""
 

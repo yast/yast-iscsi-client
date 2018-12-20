@@ -27,6 +27,9 @@
 # Authors:	Michal Zugec <mzugec@suse.cz>
 #
 # Main file for iscsi-client configuration. Uses all other files.
+
+require "shellwords"
+
 module Yast
   module IscsiClientWidgetsInclude
     def initialize_iscsi_client_widgets(_include_target)
@@ -526,6 +529,7 @@ module Yast
         when :auth_out
           status = Convert.to_boolean(UI.QueryWidget(Id(:auth_out), :Value))
         end
+        # FIXME: status unused, so this method do nothing
       end
       nil
     end
@@ -565,7 +569,7 @@ module Yast
         if !IP.Check(ip)
           # check for valid host name
           result = SCR.Execute(path(".target.bash_output"),
-            "LC_ALL=POSIX host #{ip}")
+            "LC_ALL=POSIX host #{ip.shellescape}")
           Builtins.y2milestone("Cmd: host %1, result: %2", ip, result)
           output = result["stdout"] || ""
 
@@ -762,15 +766,13 @@ module Yast
             cmd = IscsiClientLib.GetAdmCmd(
               Builtins.sformat(
                 "-m node -T %1 -p %2 -I %3 --op=delete",
-                Ops.get(params, 1, ""),
-                Ops.get(params, 0, ""),
-                Ops.get(params, 2, "")
+                Ops.get(params, 1, "").shellescape,
+                Ops.get(params, 0, "").shellescape,
+                Ops.get(params, 2, "").shellescape
               )
             )
-            Builtins.y2milestone(
-              "%1",
-              SCR.Execute(path(".target.bash_output"), cmd, {})
-            )
+            result = SCR.Execute(path(".target.bash_output"), cmd, {})
+            Builtins.y2milestone(result.inspect)
             IscsiClientLib.readSessions
             initDiscoveredTable("")
             if selected != nil

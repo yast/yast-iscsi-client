@@ -25,11 +25,15 @@ require "yast"
 require "yast2/systemd/socket"
 require "ipaddr"
 
+require "shellwords"
+
 module Yast
   class IscsiClientLibClass < Module
     include Yast::Logger
 
     Yast.import "Arch"
+
+    OFFLOAD_SCRIPT = "/sbin/iscsi_offload".freeze
 
     def main
       textdomain "iscsi-client"
@@ -66,8 +70,6 @@ module Yast
       @ay_settings = nil
       # interface type for hardware offloading
       @offload_card = "default"
-
-      @offboard_script = "iscsi_offload"
 
       @offload = [
         ["default", _("default (Software)"), [], []],
@@ -175,7 +177,7 @@ module Yast
     # @return [String] complete command
     #
     def GetAdmCmd(params, do_log = true)
-      ret = "LC_ALL=POSIX iscsiadm"
+      ret = "LC_ALL=POSIX /sbin/iscsiadm"
       ret = Ops.add(Ops.add(ret, " "), params)
       Builtins.y2milestone("GetAdmCmd: #{ret}") if do_log
       ret
@@ -237,7 +239,7 @@ module Yast
           return @ibft
         end
         ret = SCR.Execute(path(".target.bash_output"),
-          "lsmod |grep -q iscsi_ibft || modprobe iscsi_ibft")
+          "/usr/bin/lsmod | /usr/bin/grep -q iscsi_ibft || /usr/sbin/modprobe iscsi_ibft")
         log.info "check and modprobe iscsi_ibft: #{ret}"
 
         @ibft = nodeInfoToMap(getFirmwareInfo)
@@ -322,16 +324,12 @@ module Yast
       cmdline = GetAdmCmd(
         Builtins.sformat(
           "-S -m node -I %3 -T %1 -p %2",
-          Ops.get(@currentRecord, 1, ""),
-          Ops.get(@currentRecord, 0, ""),
-          Ops.get(@currentRecord, 2, "default")
+          Ops.get(@currentRecord, 1, "").shellescape,
+          Ops.get(@currentRecord, 0, "").shellescape,
+          Ops.get(@currentRecord, 2, "default").shellescape
         )
       )
-      cmd = Convert.convert(
-        SCR.Execute(path(".target.bash_output"), cmdline),
-        :from => "any",
-        :to   => "map <string, any>"
-      )
+      cmd = SCR.Execute(path(".target.bash_output"), cmdline)
       return {} if Ops.get_integer(cmd, "exit", 0) != 0
       auth = {}
       Builtins.foreach(
@@ -509,11 +507,7 @@ module Yast
     # get all discovered targets
     def getDiscovered
       @discovered = []
-      retcode = Convert.convert(
-        SCR.Execute(path(".target.bash_output"), GetAdmCmd("-m node -P 1")),
-        :from => "any",
-        :to   => "map <string, any>"
-      )
+      retcode = SCR.Execute(path(".target.bash_output"), GetAdmCmd("-m node -P 1"))
       if Builtins.size(Ops.get_string(retcode, "stderr", "")) == 0
         @discovered = ScanDiscovered(
           Builtins.splitstring(Ops.get_string(retcode, "stdout", ""), "\n")
@@ -529,20 +523,16 @@ module Yast
     end
 
     def restart_iscsid_initial
-      retcode = Convert.to_integer(SCR.Execute(path(".target.bash"), "pgrep iscsid"))
+      retcode = SCR.Execute(path(".target.bash"), "/usr/bin/pgrep iscsid")
       Service.Stop("iscsid") if retcode == 0
       start_iscsid_initial
     end
 
     def start_iscsid_initial
-      SCR.Execute(path(".target.bash"), "pgrep iscsid || /sbin/iscsid")
-      Builtins.foreach([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]) do |i|
+      SCR.Execute(path(".target.bash"), "/usr/bin/pgrep iscsid || /sbin/iscsid")
+      10.times do |i|
         Builtins.sleep(1 * 1000)
-        cmd = Convert.convert(
-          SCR.Execute(path(".target.bash_output"), GetAdmCmd("-m session")),
-          :from => "any",
-          :to   => "map <string, any>"
-        )
+        cmd = SCR.Execute(path(".target.bash_output"), GetAdmCmd("-m session"))
         Builtins.y2internal(
           "iteration %1, retcode %2",
           i,
@@ -550,7 +540,7 @@ module Yast
         )
         if Ops.get_integer(cmd, "exit", -1) == 0
           Builtins.y2internal("Good response from daemon, exit.")
-          raise Break
+          break
         end
       end
 
@@ -560,11 +550,7 @@ module Yast
     # get all connected targets
     def readSessions
       Builtins.y2milestone("reading current settings")
-      retcode = Convert.convert(
-        SCR.Execute(path(".target.bash_output"), GetAdmCmd("-m session -P 1")),
-        :from => "any",
-        :to   => "map <string, any>"
-      )
+      retcode = SCR.Execute(path(".target.bash_output"), GetAdmCmd("-m session -P 1"))
       @sessions = ScanDiscovered(
         Builtins.splitstring(Ops.get_string(retcode, "stdout", ""), "\n")
       )
@@ -602,7 +588,7 @@ module Yast
         Builtins.y2milestone("%1 file exists, create backup", file)
         SCR.Execute(
           path(".target.bash"),
-          Builtins.sformat("mv %1 /etc/iscsi/initiatorname.yastbackup", file)
+          Builtins.sformat("/usr/bin/mv %1 /etc/iscsi/initiatorname.yastbackup", file.shellescape)
         )
       end
       ret = SCR.Write(
@@ -627,11 +613,7 @@ module Yast
     def getReverseDomainName
       host_fq = Hostname.SplitFQ(
         Ops.get_string(
-          Convert.convert(
-            SCR.Execute(path(".target.bash_output"), "hostname -f|tr -d '\n'"),
-            :from => "any",
-            :to   => "map <string, any>"
-          ),
+          SCR.Execute(path(".target.bash_output"), "/usr/bin/hostname -f | /usr/bin/tr -d '\n'"),
           "stdout",
           ""
         )
@@ -659,16 +641,12 @@ module Yast
       name_from_bios = getiBFT["iface.initiatorname"] || ""
       # if (size((map<string, any>)SCR::Read (.target.lstat, file)) == 0 || ((map<string, any>)SCR::Read (.target.lstat, file))["size"]:0==0){
       @initiatorname = Ops.get_string(
-        Convert.convert(
-          SCR.Execute(
-            path(".target.bash_output"),
-            Builtins.sformat(
-              "grep -v '^#' %1 | grep InitiatorName | cut -d'=' -f2 | tr -d '\n'",
-              file
-            )
-          ),
-          :from => "any",
-          :to   => "map <string, any>"
+        SCR.Execute(
+          path(".target.bash_output"),
+          Builtins.sformat(
+            "/usr/bin/grep -v '^#' %1 | /usr/bin/grep InitiatorName | /usr/bin/cut -d'=' -f2 | /usr/bin/tr -d '\n'",
+            file.shellescape
+          )
         ),
         "stdout",
         ""
@@ -683,27 +661,14 @@ module Yast
           @initiatorname = name_from_bios
         else
           Builtins.y2milestone("InitiatorName does not exist - generate it")
-          domain = Ops.get_string(
-            Convert.convert(
-              SCR.Execute(path(".target.bash_output"), ""),
-              :from => "any",
-              :to   => "map <string, any>"
+          output = SCR.Execute(
+            path(".target.bash_output"),
+            Builtins.sformat(
+              "/sbin/iscsi-iname -p iqn.%1.%2:01 | tr -d '\n'",
+              "`date +%Y-%m`",
+              getReverseDomainName.shellescape
             ),
-            "stdout",
-            "com.example"
-          )
-          output = Convert.convert(
-            SCR.Execute(
-              path(".target.bash_output"),
-              Builtins.sformat(
-                "/sbin/iscsi-iname -p iqn.%1.%2:01 | tr -d '\n'",
-                "`date +%Y-%m`",
-                getReverseDomainName
-              ),
-              {}
-            ),
-            :from => "any",
-            :to   => "map <string, any>"
+            {}
           )
           if Builtins.size(Ops.get_string(output, "stderr", "")) == 0
             @initiatorname = Ops.get_string(output, "stdout", "")
@@ -744,20 +709,16 @@ module Yast
       ret = true
       Builtins.y2milestone("Delete record %1", @currentRecord)
 
-      retcode = Convert.convert(
-        SCR.Execute(
-          path(".target.bash_output"),
-          GetAdmCmd(
-            Builtins.sformat(
-              "-m node -I %3 -T %1 -p %2 --logout",
-              Ops.get(@currentRecord, 1, ""),
-              Ops.get(@currentRecord, 0, ""),
-              Ops.get(@currentRecord, 2, "default")
-            )
+      retcode = SCR.Execute(
+        path(".target.bash_output"),
+        GetAdmCmd(
+          Builtins.sformat(
+            "-m node -I %3 -T %1 -p %2 --logout",
+            Ops.get(@currentRecord, 1, "").shellescape,
+            Ops.get(@currentRecord, 0, "").shellescape,
+            Ops.get(@currentRecord, 2, "default").shellescape
           )
-        ),
-        :from => "any",
-        :to   => "map <string, any>"
+        )
       )
       if Ops.greater_than(
         Builtins.size(Ops.get_string(retcode, "stderr", "")),
@@ -776,7 +737,7 @@ module Yast
     #                   converted to a hash
     def getCurrentNodeValues
       ret = SCR.Execute(path(".target.bash_output"),
-        GetAdmCmd("-m node -I #{@currentRecord[2] || "default"} -T #{@currentRecord[1] || ""} -p #{@currentRecord[0] || ""}"))
+        GetAdmCmd("-m node -I #{(@currentRecord[2] || "default").shellescape} -T #{(@currentRecord[1] || "").shellescape} -p #{(@currentRecord[0] || "").shellescape}"))
       return {} if ret["exit"] != 0
 
       nodeInfoToMap(ret["stdout"] || "")
@@ -842,20 +803,16 @@ module Yast
       Builtins.y2milestone("set %1  for record %2", name, rec)
 
       log = !name.include?("password")
-      cmd = "-m node -I #{rec[2] || "default"} -T #{rec[1] || ""} -p #{rec[0] || ""} --op=update --name=#{name}"
+      cmd = "-m node -I #{(rec[2] || "default").shellescape} -T #{(rec[1] || "").shellescape} -p #{(rec[0] || "").shellescape} --op=update --name=#{name.shellescape}"
 
-      command = GetAdmCmd("#{cmd} --value=#{value}", log)
+      command = GetAdmCmd("#{cmd} --value=#{value.shellescape}", log)
       if !log
         value = "*****" if !value.empty?
         Builtins.y2milestone("AdmCmd:LC_ALL=POSIX iscsiadm #{cmd} --value=#{value}")
       end
 
       ret = true
-      retcode = Convert.convert(
-        SCR.Execute(path(".target.bash_output"), command),
-        :from => "any",
-        :to   => "map <string, any>"
-      )
+      retcode = SCR.Execute(path(".target.bash_output"), command)
       if Ops.greater_than(
         Builtins.size(Ops.get_string(retcode, "stderr", "")),
         0
@@ -946,21 +903,17 @@ module Yast
         status
       )
       ret = true
-      retcode = Convert.convert(
-        SCR.Execute(
-          path(".target.bash_output"),
-          GetAdmCmd(
-            Builtins.sformat(
-              "-m node -I%3 -T %1 -p %2 --op=update --name=node.conn[0].startup --value=%4",
-              Ops.get(@currentRecord, 1, ""),
-              Ops.get(@currentRecord, 0, ""),
-              Ops.get(@currentRecord, 2, "default"),
-              status
-            )
+      retcode = SCR.Execute(
+        path(".target.bash_output"),
+        GetAdmCmd(
+          Builtins.sformat(
+            "-m node -I%3 -T %1 -p %2 --op=update --name=node.conn[0].startup --value=%4",
+            Ops.get(@currentRecord, 1, "").shellescape,
+            Ops.get(@currentRecord, 0, "").shellescape,
+            Ops.get(@currentRecord, 2, "default").shellescape,
+            status.shellescape
           )
-        ),
-        :from => "any",
-        :to   => "map <string, any>"
+        )
       )
       if Ops.greater_than(
         Builtins.size(Ops.get_string(retcode, "stderr", "")),
@@ -968,21 +921,17 @@ module Yast
       )
         return false
       else
-        retcode = Convert.convert(
-          SCR.Execute(
-            path(".target.bash_output"),
-            GetAdmCmd(
-              Builtins.sformat(
-                "-m node -I %3 -T %1 -p %2 --op=update --name=node.startup --value=%4",
-                Ops.get(@currentRecord, 1, ""),
-                Ops.get(@currentRecord, 0, ""),
-                Ops.get(@currentRecord, 2, "default"),
-                status
-              )
+        retcode = SCR.Execute(
+          path(".target.bash_output"),
+          GetAdmCmd(
+            Builtins.sformat(
+              "-m node -I %3 -T %1 -p %2 --op=update --name=node.startup --value=%4",
+              Ops.get(@currentRecord, 1, "").shellescape,
+              Ops.get(@currentRecord, 0, "").shellescape,
+              Ops.get(@currentRecord, 2, "default").shellescape,
+              status.shellescape
             )
-          ),
-          :from => "any",
-          :to   => "map <string, any>"
+          )
         )
       end
 
@@ -994,8 +943,7 @@ module Yast
       ret = true
       log.info "begin of autoLogOn function"
       if !getiBFT.empty?
-        result = Convert.to_map(SCR.Execute(path(".target.bash_output"),
-          GetAdmCmd("-m fw -l")))
+        result = SCR.Execute(path(".target.bash_output"), GetAdmCmd("-m fw -l"))
         ret = false if result["exit"] != 0
         log.info "Autologin into iBFT : #{result}"
       end
@@ -1036,20 +984,16 @@ module Yast
         setValue("node.session.auth.authmethod", "None")
       end
 
-      output = Convert.convert(
-        SCR.Execute(
-          path(".target.bash_output"),
-          GetAdmCmd(
-            Builtins.sformat(
-              "-m node -I %3 -T %1 -p %2 --login",
-              Ops.get_string(target, "target", ""),
-              Ops.get_string(target, "portal", ""),
-              Ops.get_string(target, "iface", "")
-            )
+      output = SCR.Execute(
+        path(".target.bash_output"),
+        GetAdmCmd(
+          Builtins.sformat(
+            "-m node -I %3 -T %1 -p %2 --login",
+            Ops.get_string(target, "target", "").shellescape,
+            Ops.get_string(target, "portal", "").shellescape,
+            Ops.get_string(target, "iface", "").shellescape
           )
-        ),
-        :from => "any",
-        :to   => "map <string, any>"
+        )
       )
       Builtins.y2internal("output %1", output)
 
@@ -1179,8 +1123,8 @@ module Yast
             GetAdmCmd(
               Builtins.sformat(
                 "-m discovery %1 -t st -p %2",
-                ifacepar,
-                Ops.get_string(target, "portal", "")
+                ifacepar.shellescape,
+                Ops.get_string(target, "portal", "").shellescape
               )
             )
           )
@@ -1254,11 +1198,7 @@ module Yast
 
     def InitOffloadCard
       ret = "default"
-      retcode = Convert.convert(
-        SCR.Execute(path(".target.bash_output"), GetAdmCmd("-m node -P 1")),
-        :from => "any",
-        :to   => "map <string, any>"
-      )
+      retcode = SCR.Execute(path(".target.bash_output"), GetAdmCmd("-m node -P 1"))
       ifaces = []
       if Builtins.size(Ops.get_string(retcode, "stderr", "")) == 0
         Builtins.foreach(
@@ -1293,16 +1233,9 @@ module Yast
       Builtins.y2milestone("InitIfaceFile files:%1", files)
       if files == nil || Builtins.size(files) == 0
         cmd = GetAdmCmd("-m iface")
-        Builtins.y2milestone("InitIfaceFile cmd:%1", cmd)
-        Builtins.y2milestone(
-          "InitIfaceFile ret:%1",
-          SCR.Execute(path(".target.bash_output"), cmd)
-        )
-        files = Convert.convert(
-          SCR.Read(path(".target.dir"), "/etc/iscsi/ifaces"),
-          :from => "any",
-          :to   => "list <string>"
-        )
+        res = SCR.Execute(path(".target.bash_output"), cmd)
+        Builtins.y2milestone("InitIfaceFile cmd:#{cmd}\nres:#{res.inspect}", cmd)
+        files = SCR.Read(path(".target.dir"), "/etc/iscsi/ifaces")
         Builtins.y2milestone("InitIfaceFile files:%1", files)
       end
       Builtins.foreach(files) do |file|
@@ -1342,7 +1275,6 @@ module Yast
     end
 
     def GetOffloadItems
-      i = 0
       init = false
       if @offload_valid == nil
         init = true
@@ -1374,14 +1306,12 @@ module Yast
 
         idx = 0
         Builtins.foreach(@offload) do |l|
-          valid = false
           mod = Convert.convert(
             Builtins.sort(Ops.get_list(l, 2, [])),
             :from => "list",
             :to   => "list <string>"
           )
           if Ops.greater_than(Builtins.size(mod), 0)
-            i = 0
             Builtins.foreach(hw_mods) do |hw|
               if Ops.greater_than(
                 Builtins.size(
@@ -1427,13 +1357,7 @@ module Yast
             Builtins.filter(
               Convert.convert(eth, :from => "list", :to => "list <list>")
             ) do |l|
-              cmd = Ops.add(
-                Ops.add(
-                  Ops.add(@offboard_script, " "),
-                  Ops.get_string(l, 0, "")
-                ),
-                " | grep ..:..:..:.." # grep for lines containing MAC address
-              )
+              cmd = "#{OFFLOAD_SCRIPT} #{Ops.get_string(l, 0, "").shellescape} | grep ..:..:..:.." # grep for lines containing MAC address
               Builtins.y2milestone("GetOffloadItems cmd:%1", cmd)
               out = Convert.to_map(
                 SCR.Execute(path(".target.bash_output"), cmd)
@@ -1441,15 +1365,13 @@ module Yast
               # Example for output if offload is supported on interface:
               # cmd: iscsi_offload eth2
               # out: $["exit":0, "stderr":"", "stdout":"00:00:c9:b1:bc:7f ip \n"]
+              result = SCR.Execute(
+                path(".target.bash_output"),
+                "#{OFFLOAD_SCRIPT} #{Ops.get_string(l, 0, "").shellescape}"
+              )
               Builtins.y2milestone(
                 "GetOffloadItems iscsi_offload out:%1",
-                SCR.Execute(
-                  path(".target.bash_output"),
-                  Ops.add(
-                    Ops.add(@offboard_script, " "),
-                    Ops.get_string(l, 0, "")
-                  )
-                )
+                result
               )
               Ops.set(offload_res, Ops.get_string(l, 0, ""), {})
               Ops.set(
@@ -1506,14 +1428,10 @@ module Yast
           Ops.set(
             @offload_valid,
             i2,
-            Builtins.maplist(
-              Convert.convert(eth, :from => "list", :to => "list <list>")
-            ) do |l|
-              cmd = Ops.add("LC_ALL=POSIX ifconfig ", Ops.get_string(l, 0, ""))
+            Builtins.maplist(eth) do |l|
+              cmd = "LC_ALL=POSIX /usr/bin/ifconfig " + Ops.get_string(l, 0, "").shellescape # FIXME: ifconfig is deprecated
               Builtins.y2milestone("GetOffloadItems cmd:%1", cmd)
-              out = Convert.to_map(
-                SCR.Execute(path(".target.bash_output"), cmd)
-              )
+              out = SCR.Execute(path(".target.bash_output"), cmd)
               Builtins.y2milestone("GetOffloadItems out:%1", out)
               # Search for lines containing "init addr", means IPv4 address.
               # Regarding the IPv6 support there are no changes needed here because
@@ -1600,8 +1518,7 @@ module Yast
     end
 
     def GetOffloadModules
-      it = nil
-      it = GetOffloadItems() if @offload_valid == nil
+      GetOffloadItems() if @offload_valid == nil
       modules = []
       Builtins.foreach(@offload_valid) do |i, _l|
         modules = Convert.convert(
@@ -1657,12 +1574,9 @@ module Yast
         ) { |l| Ops.get_string(l, 2, "") == s }
         Builtins.y2milestone("CallConfigScript hw:%1", hw)
         if hw != nil
-          cmd = Ops.add(
-            Ops.add(@offboard_script, " "),
-            Ops.get_string(hw, 0, "")
-          )
+          cmd = "#{OFFLOAD_SCRIPT} #{Ops.get_string(hw, 0, "").shellescape}"
           Builtins.y2milestone("CallConfigScript cmd:%1", cmd)
-          output = Convert.to_map(SCR.Execute(path(".target.bash_output"), cmd))
+          output = SCR.Execute(path(".target.bash_output"), cmd)
           Builtins.y2milestone("CallConfigScript %1", output)
         end
       end

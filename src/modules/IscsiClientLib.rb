@@ -220,7 +220,7 @@ module Yast
         key, val = row.split("=")
 
         key = key.to_s.strip
-        retval[key] = val.to_s.strip if !key.empty?
+        retval[key] = val.to_s.strip if !key.empty? && !key.match?(/^#/)
       end
 
       retval

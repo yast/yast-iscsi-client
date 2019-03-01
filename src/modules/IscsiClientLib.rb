@@ -954,6 +954,8 @@ module Yast
         result = SCR.Execute(path(".target.bash_output"), GetAdmCmd("-m fw -l"))
         ret = false if result["exit"] != 0
         log.info "Autologin into iBFT : #{result}"
+        result = SCR.Execute(path(".target.bash_output"), GetAdmCmd("-m discovery -t fw"))
+        log.info "iBFT discovery: #{result}"
       end
       ret
     end

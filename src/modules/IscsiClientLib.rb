@@ -751,7 +751,15 @@ module Yast
     # @return  [Bool]    nodes are equal?
     #
     def equalNodes?(n1, n2)
-      return false if n1.empty?
+      return false if n1.empty? || n2.empty?
+
+      # we're going to modify one key...
+      n1 = n1.dup
+      n2 = n2.dup
+
+      # if unset, use default from /etc/iscsi/initiatorname.iscsi
+      n1["iface.initiatorname"] = @initiatorname if n1["iface.initiatorname"] == "<empty>"
+      n2["iface.initiatorname"] = @initiatorname if n2["iface.initiatorname"] == "<empty>"
 
       keys = [
         "iface.transport_name",

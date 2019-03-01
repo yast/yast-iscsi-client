@@ -220,7 +220,7 @@ module Yast
         key, val = row.split("=")
 
         key = key.to_s.strip
-        retval[key] = val.to_s.strip if !key.empty?
+        retval[key] = val.to_s.strip if !key.empty? && !key.match?(/^#/)
       end
 
       retval
@@ -751,7 +751,15 @@ module Yast
     # @return  [Bool]    nodes are equal?
     #
     def equalNodes?(n1, n2)
-      return false if n1.empty?
+      return false if n1.empty? || n2.empty?
+
+      # we're going to modify one key...
+      n1 = n1.dup
+      n2 = n2.dup
+
+      # if unset, use default from /etc/iscsi/initiatorname.iscsi
+      n1["iface.initiatorname"] = @initiatorname if n1["iface.initiatorname"] == "<empty>"
+      n2["iface.initiatorname"] = @initiatorname if n2["iface.initiatorname"] == "<empty>"
 
       keys = [
         "iface.transport_name",
@@ -946,6 +954,8 @@ module Yast
         result = SCR.Execute(path(".target.bash_output"), GetAdmCmd("-m fw -l"))
         ret = false if result["exit"] != 0
         log.info "Autologin into iBFT : #{result}"
+        result = SCR.Execute(path(".target.bash_output"), GetAdmCmd("-m discovery -t fw"))
+        log.info "iBFT discovery: #{result}"
       end
       ret
     end

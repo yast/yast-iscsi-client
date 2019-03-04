@@ -479,14 +479,14 @@ module Yast
       Builtins.foreach(data) do |row|
         row = Builtins.substring(row, Builtins.findfirstnotof(row, "\t "), 999)
         if Builtins.search(row, "Target:") != nil
-	  if (! dumped)
+          if !dumped
             # don't add Scope:Link IPv6 address
             if !portal.start_with?("[fe80:")
               ret = ret << "#{portal} #{target} #{iface}"
             end
-	  end
+          end
           target = Ops.get(Builtins.splitstring(row, " "), 1, "")
-	  dumped = false
+          dumped = false
         elsif Builtins.search(row, "Portal:") != nil
           if Builtins.search(row, "Current Portal:") != nil
             portal = Ops.get(Builtins.splitstring(row, " "), 2, "")
@@ -504,7 +504,7 @@ module Yast
           iface = Ops.get(@iface_file, iface, iface)
         end
       end
-      if (! dumped)
+      if !dumped
         # don't add Scope:Link IPv6 address
         if !portal.start_with?("[fe80:")
           ret = ret << "#{portal} #{target} #{iface}"

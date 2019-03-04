@@ -486,9 +486,7 @@ module Yast
         if Builtins.search(row, "Target:") != nil
           if !dumped
             # don't add Scope:Link IPv6 address
-            if !portal.start_with?("[fe80:")
-              ret << "#{portal} #{target} #{iface}"
-            end
+            ret << "#{portal} #{target} #{iface}" if !portal.start_with?("[fe80:")
           end
           target = Ops.get(Builtins.splitstring(row, " "), 1, "")
           dumped = false
@@ -511,9 +509,7 @@ module Yast
       end
       if !dumped
         # don't add Scope:Link IPv6 address
-        if !portal.start_with?("[fe80:")
-          ret << "#{portal} #{target} #{iface}"
-        end
+        ret << "#{portal} #{target} #{iface}" if !portal.start_with?("[fe80:")
       end
 
       Builtins.y2milestone("ScanDiscovered ret:%1", ret)

@@ -476,13 +476,18 @@ module Yast
       dumped = true
       Builtins.y2milestone("Got data: %1", data)
 
+      # Each entry starts with Target:, the other two values are optional
+      # (except the first entry) and, if missing, are inherited from previous
+      # entry. Therefore: Dump whatever is cached on Target: entry and once
+      # again at the end. Example input in the test case.
+
       Builtins.foreach(data) do |row|
         row = Builtins.substring(row, Builtins.findfirstnotof(row, "\t "), 999)
         if Builtins.search(row, "Target:") != nil
           if !dumped
             # don't add Scope:Link IPv6 address
             if !portal.start_with?("[fe80:")
-              ret = ret << "#{portal} #{target} #{iface}"
+              ret << "#{portal} #{target} #{iface}"
             end
           end
           target = Ops.get(Builtins.splitstring(row, " "), 1, "")
@@ -507,7 +512,7 @@ module Yast
       if !dumped
         # don't add Scope:Link IPv6 address
         if !portal.start_with?("[fe80:")
-          ret = ret << "#{portal} #{target} #{iface}"
+          ret << "#{portal} #{target} #{iface}"
         end
       end
 

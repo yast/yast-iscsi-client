@@ -473,12 +473,20 @@ module Yast
       target = ""
       portal = ""
       iface = ""
+      dumped = true
       Builtins.y2milestone("Got data: %1", data)
 
       Builtins.foreach(data) do |row|
         row = Builtins.substring(row, Builtins.findfirstnotof(row, "\t "), 999)
         if Builtins.search(row, "Target:") != nil
+	  if (! dumped)
+            # don't add Scope:Link IPv6 address
+            if !portal.start_with?("[fe80:")
+              ret = ret << "#{portal} #{target} #{iface}"
+            end
+	  end
           target = Ops.get(Builtins.splitstring(row, " "), 1, "")
+	  dumped = false
         elsif Builtins.search(row, "Portal:") != nil
           if Builtins.search(row, "Current Portal:") != nil
             portal = Ops.get(Builtins.splitstring(row, " "), 2, "")
@@ -494,12 +502,15 @@ module Yast
         elsif Builtins.search(row, "Iface Name:") != nil
           iface = Ops.get(Builtins.splitstring(row, " "), 2, "")
           iface = Ops.get(@iface_file, iface, iface)
-          # don't add Scope:Link IPv6 address
-          if !portal.start_with?("[fe80:")
-            ret = ret << "#{portal} #{target} #{iface}"
-          end
         end
       end
+      if (! dumped)
+        # don't add Scope:Link IPv6 address
+        if !portal.start_with?("[fe80:")
+          ret = ret << "#{portal} #{target} #{iface}"
+        end
+      end
+
       Builtins.y2milestone("ScanDiscovered ret:%1", ret)
       deep_copy(ret)
     end

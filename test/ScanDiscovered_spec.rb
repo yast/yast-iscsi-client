@@ -76,7 +76,7 @@ describe Yast::IscsiClientLibClass do
             "10.120.66.182:3260 iqn.2013-10.de.suse:test_file2 default",
             "[2620:113:80c0:8080:a00:27ff:fe1b:a7fe]:3260 iqn.2013-10.de.suse:test_file2 default",
             "192.168.20.20:3260 iqn.2018-06.de.suse.zeus:01 default",
-            "192.168.10.20:3260 iqn.2018-06.de.suse.zeus:01 default",
+            "192.168.10.20:3260 iqn.2018-06.de.suse.zeus:01 default"
           ]
         )
       end

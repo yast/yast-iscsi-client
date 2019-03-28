@@ -1,7 +1,7 @@
 -------------------------------------------------------------------
 Wed Mar 27 11:44:33 UTC 2019 - jsrain@suse.cz
 
-- further fixes of iscsiadm output parsint (bsc#1129946)
+- further fixes of iscsiadm output parsing (bsc#1129946)
 - 4.1.7
 
 -------------------------------------------------------------------

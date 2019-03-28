@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Mar 27 11:44:33 UTC 2019 - jsrain@suse.cz
+
+- further fixes of iscsiadm output parsing (bsc#1129946)
+- 4.1.7
+
+-------------------------------------------------------------------
 Mon Mar  4 13:36:13 UTC 2019 - jsrain@suse.cz
 
 - fixed parsing of iscsiadm -m node -P 1 (bsc#1121806)

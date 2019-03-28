@@ -505,6 +505,9 @@ module Yast
         elsif Builtins.search(row, "Iface Name:") != nil
           iface = Ops.get(Builtins.splitstring(row, " "), 2, "")
           iface = Ops.get(@iface_file, iface, iface)
+          # don't add Scope:Link IPv6 address
+          ret << "#{portal} #{target} #{iface}" if !portal.start_with?("[fe80:")
+          dumped = true
         end
       end
       if !dumped

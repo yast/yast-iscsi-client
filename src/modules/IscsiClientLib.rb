@@ -553,7 +553,7 @@ module Yast
           i,
           Ops.get_integer(cmd, "exit", -1)
         )
-        if Ops.get_integer(cmd, "exit", -1) == 0
+        if Ops.get_integer(cmd, "exit", -1) == 0 || Ops.get_integer(cmd, "exit", -1) == 21
           Builtins.y2internal("Good response from daemon, exit.")
           break
         end

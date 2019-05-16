@@ -548,12 +548,10 @@ module Yast
       10.times do |i|
         Builtins.sleep(1 * 1000)
         cmd = SCR.Execute(path(".target.bash_output"), GetAdmCmd("-m session"))
-        Builtins.y2internal(
-          "iteration %1, retcode %2",
-          i,
-          Ops.get_integer(cmd, "exit", -1)
-        )
-        if Ops.get_integer(cmd, "exit", -1) == 0
+        Builtins.y2internal("iteration %1, retcode %2", i, cmd["exit"])
+        # Both exit codes 0 and 21 may indicate success.
+        # See discussion in bsc#1131049.
+        if [0, 21].include?(cmd["exit"])
           Builtins.y2internal("Good response from daemon, exit.")
           break
         end

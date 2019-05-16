@@ -17,7 +17,7 @@
 
 
 Name:           yast2-iscsi-client
-Version:        4.1.7
+Version:        4.2.0
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build

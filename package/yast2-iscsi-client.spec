@@ -12,66 +12,60 @@
 # license that conforms to the Open Source Definition (Version 1.9)
 # published by the Open Source Initiative.
 
-# Please submit bugfixes or comments via http://bugs.opensuse.org/
+# Please submit bugfixes or comments via https://bugs.opensuse.org/
 #
 
 
 Name:           yast2-iscsi-client
 Version:        4.2.0
 Release:        0
+Summary:        YaST2 - iSCSI Client Configuration
+Group:          System/YaST
+License:        GPL-2.0
+Url:            https://github.com/yast/yast-iscsi-client
 
-BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 Source0:        %{name}-%{version}.tar.bz2
 
-Group:	        System/YaST
-License:        GPL-2.0
-
 # Yast2::Systemd::Socket
-BuildRequires:	yast2 >= 4.1.3
-BuildRequires:	yast2 >= 2.23.15
-BuildRequires:	docbook-xsl-stylesheets libxslt update-desktop-files
+BuildRequires:  yast2 >= 4.1.3
+BuildRequires:  yast2 >= 2.23.15
+BuildRequires:  docbook-xsl-stylesheets
+BuildRequires:  libxslt
+BuildRequires:  update-desktop-files
 BuildRequires:  yast2-devtools >= 3.1.10
 BuildRequires:  rubygem(rspec)
 
-Requires:	yast2-packager
-
+Requires:       yast2-packager
 # Yast2::Systemd::Socket
-Requires:	    yast2 >= 4.1.3
-
-BuildArchitectures:	noarch
-
+Requires:       yast2 >= 4.1.3
 Requires:       yast2-ruby-bindings >= 3.1.7
 Requires:       open-iscsi
 Requires:       iscsiuio
 
-Summary:	YaST2 - iSCSI Client Configuration
+BuildArch:      noarch
 
 %description
 This package contains the YaST2 component for configuration of an iSCSI
 client.
 
 %prep
-%setup -n %{name}-%{version}
+%setup -q
 
 %build
 %yast_build
 
 %install
 %yast_install
-
+%yast_metainfo
 
 %files
-%defattr(-,root,root)
-%dir %{yast_yncludedir}/iscsi-client
-%{yast_yncludedir}/iscsi-client/*
-%{yast_clientdir}/iscsi-client.rb
-%{yast_clientdir}/iscsi-client_*.rb
-%{yast_clientdir}/inst_iscsi-client.rb
-%{yast_moduledir}/IscsiClient.*
-%{yast_moduledir}/IscsiClientLib.*
-%{yast_desktopdir}/iscsi-client.desktop
-%{yast_scrconfdir}/iscsid.scr
+%{yast_yncludedir}
+%{yast_clientdir}
+%{yast_moduledir}
+%{yast_desktopdir}
+%{yast_metainfodir}
+%{yast_scrconfdir}
 %doc %{yast_docdir}
-%{yast_schemadir}/autoyast/rnc/iscsi-client.rnc
+%{yast_schemadir}
 %{yast_icondir}
 %license COPYING

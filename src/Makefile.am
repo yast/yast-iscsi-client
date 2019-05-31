@@ -24,7 +24,7 @@ schemafiles_DATA = \
   autoyast-rnc/iscsi-client.rnc
 
 desktop_DATA = \
-  desktop/iscsi-client.desktop
+  desktop/org.openSUSE.YaST.iSCSIClient.desktop
 
 symbolicdir = @icondir@/hicolor/symbolic/apps
 symbolic_DATA = \

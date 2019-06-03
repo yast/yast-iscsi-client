@@ -32,7 +32,7 @@ BuildRequires:  yast2 >= 2.23.15
 BuildRequires:  docbook-xsl-stylesheets
 BuildRequires:  libxslt
 BuildRequires:  update-desktop-files
-BuildRequires:  yast2-devtools >= 3.1.10
+BuildRequires:  yast2-devtools >= 4.2.2
 BuildRequires:  rubygem(rspec)
 
 Requires:       yast2-packager

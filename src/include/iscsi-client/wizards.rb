@@ -80,7 +80,7 @@ module Yast
       }
 
       Wizard.OpenNextBackDialog
-      Wizard.SetDesktopTitleAndIcon("iscsi-client") if Mode.normal
+      Wizard.SetDesktopTitleAndIcon("org.opensuse.yast.iSCSIClient") if Mode.normal
 
       ret = Sequencer.Run(aliases, sequence)
 
@@ -105,7 +105,7 @@ module Yast
       }
 
       Wizard.OpenCancelOKDialog
-      Wizard.SetDesktopTitleAndIcon("iscsi-client") if Mode.normal
+      Wizard.SetDesktopTitleAndIcon("org.opensuse.yast.iSCSIClient") if Mode.normal
 
       ret = Sequencer.Run(aliases, sequence)
 

@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri May 31 12:31:43 UTC 2019 - Stasiek Michalski <hellcp@mailbox.org>
+
+- Add metainfo (fate#319035)
+- Revamp spec
+- Replace GenericName with Comment
+- 4.2.1
+
+-------------------------------------------------------------------
 Thu May 16 11:17:12 UTC 2019 - Steffen Winterfeldt <snwint@suse.com>
 
 - iscsiadm may have exit code 21 on success (bsc#1131049)

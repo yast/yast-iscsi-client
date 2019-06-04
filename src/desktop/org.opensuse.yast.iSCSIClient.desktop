@@ -20,6 +20,7 @@ SuSE-YaST-Keywords=network,system
 Icon=yast-iscsi-client
 Exec=xdg-su -c "/sbin/yast2 iscsi-client"
 
-Name=iSCSI Initiator
-GenericName=Configure an iSCSI initiator
+Name=YaST iSCSI Initiator
+GenericName=iSCSI Initiator
+Comment=Configure an iSCSI initiator
 StartupNotify=true

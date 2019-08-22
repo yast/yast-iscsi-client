@@ -17,7 +17,7 @@
 
 
 Name:           yast2-iscsi-client
-Version:        4.2.1
+Version:        4.2.2
 Release:        0
 Summary:        YaST2 - iSCSI Client Configuration
 Group:          System/YaST
@@ -33,7 +33,7 @@ BuildRequires:  docbook-xsl-stylesheets
 BuildRequires:  libxslt
 BuildRequires:  update-desktop-files
 BuildRequires:  yast2-devtools >= 4.2.2
-BuildRequires:  rubygem(rspec)
+BuildRequires:  rubygem(%{rb_default_ruby_abi}:rspec)
 
 Requires:       yast2-packager
 # Yast2::Systemd::Socket

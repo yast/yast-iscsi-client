@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Dec 13 14:46:40 UTC 2019 - David Diaz <dgonzalez@suse.com>
+
+- Fix detection of service current status (bsc#1157349).
+- 3.1.32
+
+-------------------------------------------------------------------
 Fri Nov 09 12:34:19 CET 2018 - aschnell@suse.com
 
 - removed onboot startup mode for LUNs on S/390 (bsc#1045139)

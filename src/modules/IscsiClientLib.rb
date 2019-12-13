@@ -1084,6 +1084,11 @@ module Yast
     end
 
 
+    # FIXME: this method has too much responsibility and it is doing
+    # "unexpected" things according to its name. Ideally, only must to return
+    # the service status without change the status of related services and
+    # sockets.
+    #
     # get status of iscsid
     def getServiceStatus
       ret = true
@@ -1104,7 +1109,7 @@ module Yast
         log.info "Status of iscsi.service: #{@iscsi_service_stat}, iscsid.socket: #{@iscsid_socket_stat}, iscsiuio.socket: #{@iscsiuio_socket_stat}"
 
         # if not running, start iscsi.service, iscsid.socket and iscsiuio.socket
-        if !@iscid_socket_stat
+        if !@iscsid_socket_stat
           Service.Stop("iscsid") if Service.active?("iscsid") 
           log.error "Cannot start iscsid.socket" if !socketStart(@iscsid_socket)
         end

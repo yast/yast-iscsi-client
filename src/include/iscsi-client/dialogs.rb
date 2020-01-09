@@ -357,7 +357,12 @@ module Yast
     #
     # @return [::CWM::ServiceWidget]
     def service_widget
-      @service_widget ||= ::CWM::ServiceWidget.new(IscsiClient.services)
+      return @service_widget if @service_widget
+
+      @service_widget = ::CWM::ServiceWidget.new(IscsiClient.services)
+      # Do not touch the service after writing the config (bsc#1160374).
+      @service_widget.default_action = :nothing
+      @service_widget
     end
 
     # main tabbed dialog

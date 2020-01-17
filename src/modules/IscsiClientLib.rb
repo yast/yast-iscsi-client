@@ -930,7 +930,7 @@ module Yast
         path(".target.bash_output"),
         GetAdmCmd(
           Builtins.sformat(
-            "-m node -I%3 -T %1 -p %2 --op=update --name=node.conn[0].startup --value=%4",
+            "-m node -I %3 -T %1 -p %2 --op=update --name=node.conn[0].startup --value=%4",
             Ops.get(@currentRecord, 1, "").shellescape,
             Ops.get(@currentRecord, 0, "").shellescape,
             Ops.get(@currentRecord, 2, "default").shellescape,
@@ -1132,7 +1132,7 @@ module Yast
           if Ops.greater_than(Builtins.size(ifacepar), 0)
             ifacepar = Ops.add(ifacepar, " ")
           end
-          ifacepar = Ops.add(Ops.add(ifacepar, "-I "), iface)
+          ifacepar = Ops.add(Ops.add(ifacepar, "-I "), iface.shellescape)
           ifaces = Builtins.add(ifaces, iface)
         end
       end
@@ -1148,7 +1148,7 @@ module Yast
             GetAdmCmd(
               Builtins.sformat(
                 "-m discovery %1 -t st -p %2",
-                ifacepar.shellescape,
+                ifacepar,
                 Ops.get_string(target, "portal", "").shellescape
               )
             )

@@ -73,4 +73,29 @@ describe Yast::IscsiClientLibClass do
       end
     end
   end
+
+  describe ".autoyastWrite" do
+    it "calls iscsiadm discovery" do
+      subject.ay_settings = {
+        "targets" => [
+          { "iface" => "eth0", "portal" => "magic" },
+          { "iface" => "eth1", "portal" => "portal 1" }
+        ]
+      }
+
+      allow(Yast::SCR).to receive(:Execute).with(Yast::Path.new(".target.bash_output"), anything)
+        .and_return("exit" => 0, "stdout" => "", "stderr" => "")
+
+      expect(Yast::SCR).to receive(:Execute).with(
+        Yast::Path.new(".target.bash"),
+        "LC_ALL=POSIX /sbin/iscsiadm -m discovery -I eth0 -I eth1 -t st -p magic"
+      )
+      expect(Yast::SCR).to receive(:Execute).with(
+        Yast::Path.new(".target.bash"),
+        "LC_ALL=POSIX /sbin/iscsiadm -m discovery -I eth0 -I eth1 -t st -p portal\\ 1"
+      )
+
+      subject.autoyastWrite
+    end
+  end
 end

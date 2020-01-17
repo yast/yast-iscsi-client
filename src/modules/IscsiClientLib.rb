@@ -1126,13 +1126,11 @@ module Yast
       ifacepar = ""
       Builtins.foreach(Ops.get_list(@ay_settings, "targets", [])) do |target|
         iface = Ops.get_string(target, "iface", "default")
-        if !Builtins.contains(ifaces, iface)
-          if Ops.greater_than(Builtins.size(ifacepar), 0)
-            ifacepar = Ops.add(ifacepar, " ")
-          end
-          ifacepar = Ops.add(Ops.add(ifacepar, "-I "), iface.shellescape)
-          ifaces = Builtins.add(ifaces, iface)
-        end
+        next if ifaces.include?(iface) # already added
+
+        ifacepar << " " unless ifacepar.empty?
+        ifacepar << "-I " << iface.shellescape
+        ifaces << iface
       end
       if Ops.greater_than(Builtins.size(Builtins.filter(ifaces) do |s|
                                           s != "default"

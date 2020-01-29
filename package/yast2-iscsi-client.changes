@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Wed Jan 29 14:26:18 UTC 2020 - Ancor Gonzalez Sosa <ancor@suse.com>
+
+- Fixed bsc#1162078 by backporting Knut's fix for bsc#1160374 from
+  version 4.2.3: keep the current state after writing the
+  configuration by default.
+- 4.1.9
+
+-------------------------------------------------------------------
 Fri Jan 17 10:17:29 UTC 2020 - Josef Reidinger <jreidinger@suse.com>
 
 - fix calling iscsiadm on interface (bsc#1158443)

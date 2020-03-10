@@ -84,7 +84,7 @@ module Yast
         Yast2::SystemService.find("iscsid"),
         Yast2::SystemService.find("iscsiuio"),
         # It seems that moving it to the end help when iscsid socket is active
-        # and need to be restarted.
+        # and need to be restarted. (bsc#853300, bsc#1160606)
         Yast2::SystemService.find("iscsi")
       )
     end

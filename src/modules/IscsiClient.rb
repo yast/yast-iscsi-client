@@ -76,10 +76,16 @@ module Yast
     #
     # @return [Yast2::CompundService]
     def services
+      # TODO: Having a combination of services and sockets in a compoud service
+      #   do not smell very well and the user might be very carefull on the
+      #   'after reboot' selection having to choose correctly for enabling the
+      #   desired option (bsc#1160606).
       @services ||= Yast2::CompoundService.new(
-        Yast2::SystemService.find("iscsi"),
         Yast2::SystemService.find("iscsid"),
-        Yast2::SystemService.find("iscsiuio")
+        Yast2::SystemService.find("iscsiuio"),
+        # It seems that moving it to the end help when iscsid socket is active
+        # and need to be restarted.
+        Yast2::SystemService.find("iscsi")
       )
     end
 

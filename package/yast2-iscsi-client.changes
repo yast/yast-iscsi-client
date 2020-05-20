@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed May 20 13:55:46 UTC 2020 - Ancor Gonzalez Sosa <ancor@suse.com>
+
+- Help text to clarify the behavior of the Startup widget when
+  iBFT is detected (bsc#1170317).
+- 4.2.6
+
+-------------------------------------------------------------------
 Tue Mar 10 09:29:52 UTC 2020 - Knut Anderssen <kanderssen@suse.com>
 
 - Handle the iscsi service status (restart, start...) change after

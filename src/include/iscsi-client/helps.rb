@@ -44,6 +44,9 @@ module Yast
                "root is on iSCSI. As such it will be evaluated by the initrd.</p>\n") if !Arch.s390
         x += _("<p><b>automatic</b> is for iSCSI targets to be connected when the iSCSI service\n" \
                "starts up.</p>\n")
+        x += _("<p>When iBFT (iSCSI Boot Firmware Table) is used, the startup mode of the\n" \
+               "node is irrelevant. For that reason, the widget is disabled if iBFT is\n" \
+               "detected by YaST.</p>\n")
         x
       end
 

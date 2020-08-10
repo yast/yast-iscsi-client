@@ -17,7 +17,7 @@
 
 
 Name:           yast2-iscsi-client
-Version:        4.3.1
+Version:        4.3.2
 Release:        0
 Summary:        YaST2 - iSCSI Client Configuration
 Group:          System/YaST
@@ -41,6 +41,8 @@ Requires:       yast2 >= 4.1.3
 Requires:       yast2-ruby-bindings >= 3.1.7
 Requires:       open-iscsi
 Requires:       iscsiuio
+
+Supplements:    autoyast(iscsi-client)
 
 BuildArch:      noarch
 

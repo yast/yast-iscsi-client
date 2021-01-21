@@ -297,9 +297,9 @@ module Yast
     # Saves service status (start mode and starts/stops the service)
     #
     # @note For AutoYaST and for command line actions, it uses the old way for
-    # backward compatibility, see {IscsiClientLib#setServiceStatus}. When the
+    # backward compatibility, see {IscsiClientLibClass#setServiceStatus}. When the
     # service is configured by using the UI, it directly saves the service, see
-    # {Yast2::SystemService#save}.
+    # Yast2::SystemService#save.
     def save_status
       if Mode.auto || Mode.commandline
         IscsiClientLib.setServiceStatus

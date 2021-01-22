@@ -758,8 +758,8 @@ module Yast
 
     # Check whether iSCSI nodes are equal
     #
-    # @param   [Hash]    iSCSI node values as hash
-    # @param   [Hash]    iSCSI node values as hash
+    # @param n1  [Hash]    iSCSI node values as hash
+    # @param n2  [Hash]    iSCSI node values as hash
     #
     # @return  [Bool]    nodes are equal?
     #
@@ -786,7 +786,7 @@ module Yast
 
     # Checks whether iSCSI session (values provided as hash) is iBFT session
     #
-    # @param  [Hash]      iSCSI node values as hash
+    # @param node_info [Hash]      iSCSI node values as hash
     # @return [Bool]      is iSCSI session booted from firmware?
     #
     def iBFT?(node_info)

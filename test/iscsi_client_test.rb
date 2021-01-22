@@ -36,14 +36,14 @@ describe Yast::IscsiClient do
       allow(Yast::Progress).to receive(:New)
       allow(Yast::Progress).to receive(:NextStage)
       allow(Yast::Confirm).to receive(:MustBeRoot).and_return(true)
-      allow(Yast::NetworkService).to receive(:RunnungNetworkPopup).and_return(true)
+      allow(Yast::NetworkService).to receive(:RunningNetworkPopup).and_return(true)
       allow(Yast::Builtins).to receive(:sleep)
       allow(Yast::Builtins).to receive(:y2milestone)
 
       allow(Yast::IscsiClientLib).to receive(:getiBFT).and_return(true)
       allow(Yast::IscsiClientLib).to receive(:checkInitiatorName).and_return(true)
       allow(Yast::IscsiClientLib).to receive(:autoLogOn)
-      allow(Yast::IscsiClientLib).to receive(:readSession).and_return(true)
+      allow(Yast::IscsiClientLib).to receive(:readSessions).and_return(true)
 
       allow(Yast::Mode).to receive(:auto) { auto }
       allow(Yast::Mode).to receive(:commandline) { commandline }

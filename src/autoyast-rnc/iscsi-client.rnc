@@ -13,14 +13,15 @@ iscsi-client = element iscsi-client {
           element listentry {
               MAP,
               (
-                element authmethod { STRING }? &
-                element password   { STRING }? &
+                element authmethod  { STRING }? &
+                element password    { STRING }? &
                 element password_in { STRING }? &
                 element portal      { STRING }? &
                 element startup     { STRING }? &
                 element target      { STRING }? &
                 element username    { STRING }? &
-                element username_in { STRING }?
+                element username_in { STRING }? &
+                element iface       { STRING }?
               )
           }*
       }? &

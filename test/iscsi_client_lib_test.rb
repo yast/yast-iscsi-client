@@ -3,8 +3,8 @@
 require_relative "test_helper"
 Yast.import "IscsiClientLib"
 
-describe Yast::IscsiClientLibClass do
-  subject { described_class.new }
+describe Yast::IscsiClientLib do
+  subject { described_class }
 
   before do
     subject.main

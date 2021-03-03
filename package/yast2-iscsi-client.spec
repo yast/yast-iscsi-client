@@ -26,6 +26,7 @@ Url:            https://github.com/yast/yast-iscsi-client
 
 Source0:        %{name}-%{version}.tar.bz2
 
+BuildRequires:  yast2-packager
 # Yast2::Systemd::Socket
 BuildRequires:  yast2 >= 4.1.3
 BuildRequires:  yast2 >= 2.23.15

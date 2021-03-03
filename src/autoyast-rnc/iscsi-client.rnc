@@ -15,7 +15,8 @@ iscsi-client = element iscsi-client {
             element startup     { text }? &
             element target      { text }? &
             element username    { text }? &
-            element username_in { text }?
+            element username_in { text }? &
+            element iface       { text }?
         }*
     }? &
     element version { text }?

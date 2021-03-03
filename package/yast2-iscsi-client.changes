@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Mar  3 09:32:29 UTC 2021 - Imobach Gonzalez Sosa <igonzalezsosa@suse.com>
+
+- Add the 'iface' element to the AutoYaST schema (bsc#1182193).
+- 4.2.7
+
+-------------------------------------------------------------------
 Wed May 20 13:55:46 UTC 2020 - Ancor Gonzalez Sosa <ancor@suse.com>
 
 - Help text to clarify the behavior of the Startup widget when

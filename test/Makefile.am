@@ -1,8 +1,6 @@
 TESTS = \
-  ipEqual_spec.rb       \
-  saveConfig_spec.rb    \
-  ScanDiscovered_spec.rb \
-  getiBFT_spec.rb      
+  iscsi_client_lib_test.rb       \
+  iscsi_client_test.rb
 
 TEST_EXTENSIONS = .rb
 RB_LOG_COMPILER = rspec

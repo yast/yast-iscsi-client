@@ -17,7 +17,7 @@
 
 
 Name:           yast2-iscsi-client
-Version:        4.3.3
+Version:        4.3.4
 Release:        0
 Summary:        YaST2 - iSCSI Client Configuration
 Group:          System/YaST

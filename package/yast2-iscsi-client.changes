@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Jul 22 08:30:10 UTC 2021 - David Diaz <dgonzalez@suse.com>
+
+- Add iscsi support for qedi/qede offload cards
+  (bsc#1188139, bsc#1187958).
+- 4.3.4
+
+-------------------------------------------------------------------
 Wed Mar  3 09:32:29 UTC 2021 - Imobach Gonzalez Sosa <igonzalezsosa@suse.com>
 
 - Add the 'iface' element to the AutoYaST schema (bsc#1182193).

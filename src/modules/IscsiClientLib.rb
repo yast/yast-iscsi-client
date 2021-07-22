@@ -83,7 +83,8 @@ module Yast
           ["qla4xxx", "qla3xxx", "qlcnic"],
           ["qla4xxx"]
         ],
-        ["be2net", "be2net/be2iscsi", ["be2net", "be2iscsi"], ["be2iscsi"]]
+        ["be2net", "be2net/be2iscsi", ["be2net", "be2iscsi"], ["be2iscsi"]],
+        ["qed", "qede/qedi", ["qede", "qedi"], ["qedi"]]
       ]
 
       @offload_valid = nil

@@ -93,11 +93,11 @@ describe Yast::IscsiClientLib do
 
       expect(Yast::SCR).to receive(:Execute).with(
         Yast::Path.new(".target.bash"),
-        "LC_ALL=POSIX /sbin/iscsiadm -m discovery -I eth0 -I eth1 -t st -p magic"
+        "LC_ALL=POSIX iscsiadm -m discovery -I eth0 -I eth1 -t st -p magic"
       )
       expect(Yast::SCR).to receive(:Execute).with(
         Yast::Path.new(".target.bash"),
-        "LC_ALL=POSIX /sbin/iscsiadm -m discovery -I eth0 -I eth1 -t st -p portal\\ 1"
+        "LC_ALL=POSIX iscsiadm -m discovery -I eth0 -I eth1 -t st -p portal\\ 1"
       )
 
       subject.autoyastWrite

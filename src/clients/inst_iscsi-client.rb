@@ -65,7 +65,7 @@ module Yast
 
       SCR.Execute(
         path(".target.bash"),
-        "/usr/bin/mkdir -p /etc/iscsi; /usr/bin/touch /etc/iscsi/initiatorname.iscsi; /usr/bin/ln -s /etc/iscsi/initiatorname.iscsi /etc/initiatorname.iscsi"
+        "mkdir -p /etc/iscsi; touch /etc/iscsi/initiatorname.iscsi; ln -s /etc/iscsi/initiatorname.iscsi /etc/initiatorname.iscsi"
       )
       # check initiator name, create if not exists
       IscsiClientLib.checkInitiatorName

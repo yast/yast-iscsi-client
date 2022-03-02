@@ -34,7 +34,11 @@ module Yast
     Yast.import "Arch"
 
     # Script to configure iSCSI offload engines for use with open-iscsi
-    OFFLOAD_SCRIPT = "/sbin/iscsi_offload".freeze
+    #
+    # Relying on our secure $PATH (set in y2start), not making assumptions
+    # if the binary is in /sbin or in /usr/sbin (usr-merge in openSUSE!)
+    # (bsc#1196086, bsc#1196086)
+    OFFLOAD_SCRIPT = "iscsi_offload".freeze
 
     def main
       textdomain "iscsi-client"
@@ -215,7 +219,7 @@ module Yast
     # @return [String] complete command
     #
     def GetAdmCmd(params, do_log = true)
-      ret = "LC_ALL=POSIX /sbin/iscsiadm #{params}"
+      ret = "LC_ALL=POSIX iscsiadm #{params}"
       Builtins.y2milestone("GetAdmCmd: #{ret}") if do_log
       ret
     end
@@ -275,7 +279,7 @@ module Yast
           return @ibft
         end
         ret = SCR.Execute(path(".target.bash_output"),
-          "/usr/bin/lsmod | /usr/bin/grep -q iscsi_ibft || /usr/sbin/modprobe iscsi_ibft")
+          "lsmod | grep -q iscsi_ibft || modprobe iscsi_ibft")
         log.info "check and modprobe iscsi_ibft: #{ret}"
 
         @ibft = nodeInfoToMap(getFirmwareInfo)
@@ -577,13 +581,13 @@ module Yast
     end
 
     def restart_iscsid_initial
-      retcode = SCR.Execute(path(".target.bash"), "/usr/bin/pgrep iscsid")
+      retcode = SCR.Execute(path(".target.bash"), "pgrep iscsid")
       Service.Stop("iscsid") if retcode == 0
       start_iscsid_initial
     end
 
     def start_iscsid_initial
-      SCR.Execute(path(".target.bash"), "/usr/bin/pgrep iscsid || /sbin/iscsid")
+      SCR.Execute(path(".target.bash"), "pgrep iscsid || iscsid")
       10.times do |i|
         Builtins.sleep(1 * 1000)
         cmd = SCR.Execute(path(".target.bash_output"), GetAdmCmd("-m session"))
@@ -640,7 +644,7 @@ module Yast
         Builtins.y2milestone("%1 file exists, create backup", file)
         SCR.Execute(
           path(".target.bash"),
-          Builtins.sformat("/usr/bin/mv %1 /etc/iscsi/initiatorname.yastbackup", file.shellescape)
+          Builtins.sformat("mv %1 /etc/iscsi/initiatorname.yastbackup", file.shellescape)
         )
       end
       ret = SCR.Write(
@@ -665,7 +669,7 @@ module Yast
     def getReverseDomainName
       host_fq = Hostname.SplitFQ(
         Ops.get_string(
-          SCR.Execute(path(".target.bash_output"), "/usr/bin/hostname -f | /usr/bin/tr -d '\n'"),
+          SCR.Execute(path(".target.bash_output"), "hostname -f | tr -d '\n'"),
           "stdout",
           ""
         )
@@ -696,7 +700,7 @@ module Yast
         SCR.Execute(
           path(".target.bash_output"),
           Builtins.sformat(
-            "/usr/bin/grep -v '^#' %1 | /usr/bin/grep InitiatorName | /usr/bin/cut -d'=' -f2 | /usr/bin/tr -d '\n'",
+            "grep -v '^#' %1 | grep InitiatorName | cut -d'=' -f2 | tr -d '\n'",
             file.shellescape
           )
         ),
@@ -716,7 +720,7 @@ module Yast
           output = SCR.Execute(
             path(".target.bash_output"),
             Builtins.sformat(
-              "/sbin/iscsi-iname -p iqn.%1.%2:01 | tr -d '\n'",
+              "iscsi-iname -p iqn.%1.%2:01 | tr -d '\n'",
               "`date +%Y-%m`",
               getReverseDomainName.shellescape
             ),
@@ -1640,7 +1644,7 @@ module Yast
 
     # Current IP address of the given network interface
     def ip_addr(dev_name)
-      cmd = "LC_ALL=POSIX /usr/bin/ifconfig #{dev_name.shellescape}" # FIXME: ifconfig is deprecated
+      cmd = "LC_ALL=POSIX ifconfig #{dev_name.shellescape}" # FIXME: ifconfig is deprecated
       Builtins.y2milestone("GetOffloadItems cmd:%1", cmd)
       out = SCR.Execute(path(".target.bash_output"), cmd)
       Builtins.y2milestone("GetOffloadItems out:%1", out)

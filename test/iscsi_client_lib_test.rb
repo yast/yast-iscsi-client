@@ -1,6 +1,7 @@
 #!/usr/bin/env rspec
 
 require_relative "test_helper"
+require_relative "mocking"
 Yast.import "IscsiClientLib"
 
 describe Yast::IscsiClientLib do
@@ -618,6 +619,184 @@ describe Yast::IscsiClientLib do
         expect(ibft_data).to eq({})
       end
     end
+  end
 
+  describe ".GetOffloadItems" do
+    around(:each) do |example|
+      # The directory /etc/iscsi/ifaces/ is always scanned to look for interface definitions,
+      # let's chroot the YaST agents so we can use an /etc directory with mocked content
+      root = File.join(File.dirname(__FILE__), "data", "chroot1")
+      change_scr_root(root, &example)
+    end
+
+    before do
+      # The agent .probe.netcard is used to inspect the network cards in the system, this
+      # intercepts that call and mocks the result based on the scenario we want to simulate
+      allow(Yast::SCR).to receive(:Read).and_call_original
+      allow(Yast::SCR).to receive(:Read).with(Yast::Path.new(".probe.netcard"))
+        .and_return probe_netcard
+
+      # iscsiadm is always called, mock it to find no active ISCSI interfaces by default
+      mock_iscsiadm_mode([])
+    end
+
+    # The structure of the YaST UI terms is quite tricky, so let's define a couple of functions
+    # to inspect their content in a readable way.
+
+    # Id for the given combo-box entry
+    #
+    # @param item [Yast::Term] term used to represent an Item for a ComboBox
+    def ui_item_id(item)
+      item.params.first.params.first
+    end
+
+    # @see #ui_term_id
+    def ui_item_label(item)
+      item.params[1]
+    end
+
+    # Define some simple checks to be reused in several scenarios
+
+    RSpec.shared_examples "returns UI items" do
+      it "returns an array of UI items" do
+        items = subject.GetOffloadItems
+        expect(items).to be_an(Array)
+        expect(items).to all be_a(Yast::Term)
+        expect(items.map(&:value)).to all eq(:item)
+      end
+    end
+
+    RSpec.shared_examples "only default" do
+      it "provides 'default' as the only item" do
+        items = subject.GetOffloadItems
+        expect(items.size).to eq 1
+        expect(ui_item_label(items.first)).to eq "default (Software)"
+        expect(ui_item_id(items.first)).to eq "default"
+      end
+    end
+
+    context "with no network cards in the system" do
+      let(:probe_netcard) { [] }
+
+      include_examples "returns UI items"
+      include_examples "only default"
+    end
+
+    context "with network cards not expected to support offloading" do
+      let(:probe_netcard) do
+        [
+          probed_card("enp0s1", "r8152", "12:34:56:78:90:ab"),
+          probed_card("enp5s6", "tg3", "23:45:67:89:0a:bc")
+        ]
+      end
+
+      include_examples "returns UI items"
+      include_examples "only default"
+    end
+
+    context "with several network cards that could support offloading" do
+      let(:probe_netcard) do
+        [
+          probed_card("p6p1_1", "qede",  "12:34:56:78:90:ab"),
+          probed_card("em1",    "bnx2x", "23:45:67:89:0a:bc"),
+          probed_card("p6p2_1", "qede",  "34:56:78:90:ab:cd"),
+          probed_card("em2",    "bnx2x", "45:67:89:0a:bc:de"),
+          probed_card("em3",    "bnx2x", "56:78:90:ab:cd:ef")
+        ]
+      end
+
+      context "if none of the cards support offloading" do
+        before do
+          mock_iscsi_offload("em1", false)
+          mock_iscsi_offload("em2", false)
+          mock_iscsi_offload("em3", false)
+          mock_iscsi_offload("p6p1_1", false)
+          mock_iscsi_offload("p6p2_1", false)
+        end
+
+        include_examples "returns UI items"
+
+        # NOTE: this is likely an unwanted behavior caused because
+        # @offload_valid == {2=>[], 7=>[]}
+        # which should be considered as an empty list but it's not
+        it "includes only 'default' and 'all'" do
+          labels = subject.GetOffloadItems.map { |i| ui_item_label(i) }
+          expect(labels).to contain_exactly("default (Software)", "all")
+        end
+      end
+
+      context "if some cards indeed support offloading" do
+        before do
+          mock_iscsi_offload("em1",    true, "23:45:67:89:0a:bc")
+          mock_iscsi_offload("em2",    false)
+          mock_iscsi_offload("em3",    true, "56:78:90:ab:cd:ef")
+          mock_iscsi_offload("p6p1_1", false)
+          mock_iscsi_offload("p6p2_1", true, "34:56:78:90:ab:cd")
+
+          mock_ifconfig("em1")
+          mock_ifconfig("em3")
+          mock_ifconfig("p6p2_1")
+        end
+
+        include_examples "returns UI items"
+
+        it "includes 'default', 'all' and an entry for each offload card" do
+          items = subject.GetOffloadItems
+
+          labels = items.map { |i| ui_item_label(i) }
+          expect(labels).to contain_exactly(
+            "default (Software)", "all", "em1 - 23:45:67:89:0a:bc - bnx2/bnx2i/bnx2x",
+            "em3 - 56:78:90:ab:cd:ef - bnx2/bnx2i/bnx2x", "p6p2_1 - 34:56:78:90:ab:cd - qede/qedi"
+          )
+
+          ids = items.map { |i| ui_item_id(i) }
+          expect(ids).to contain_exactly("default", "all", "em1-bnx2i", "em3-bnx2i", "p6p2_1-qedi")
+        end
+
+        context "and ifconfig is not found" do
+          # NOTE: testing the state of internal variables should be out of the scope of unit tests,
+          # but we want to prove a point here (see next context right below)
+          it "sets the IPs in @offload_valid to 'unknown'" do
+            subject.GetOffloadItems
+            cards = subject.instance_variable_get("@offload_valid").values.flatten(1)
+            expect(cards.map(&:last)).to eq ["unknown", "unknown", "unknown"]
+          end
+        end
+
+        context "and ifconfig is found" do
+          before do
+            mock_ifconfig("em1",    "192.10.9.8")
+            mock_ifconfig("em3",    "")
+            mock_ifconfig("p6p2_1", "10.11.12.13")
+          end
+
+          # NOTE: this is likely an unwanted behavior caused by the fact that the code expects the
+          # output of ifconfig version 1.X, not the one in recent versions of (open)SUSE.
+          it "sets the IPs in @offload_valid to 'unknown'" do
+            subject.GetOffloadItems
+            cards = subject.instance_variable_get("@offload_valid").values.flatten(1)
+            expect(cards.map(&:last)).to eq ["unknown", "unknown", "unknown"]
+          end
+        end
+
+        context "and no active card is reported by iscsiadm " do
+          before { mock_iscsiadm_mode([]) }
+
+          it "pre-selects the item 'default'" do
+            selected = subject.GetOffloadItems.find { |i| i.params[2] }
+            expect(ui_item_id(selected)).to eq "default"
+          end
+        end
+
+        context "and one card is already associated to the first target" do
+          before { mock_iscsiadm_mode(["em3-bnx2i"]) }
+
+          it "selects by default the current offload card" do
+            selected = subject.GetOffloadItems.find { |i| i.params[2] }
+            expect(ui_item_id(selected)).to eq "em3-bnx2i"
+          end
+        end
+      end
+    end
   end
 end

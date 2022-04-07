@@ -410,7 +410,7 @@ module Yast
       Wizard.HideBackButton
       ret = CWM.Run(
         w,
-        { :abort => fun_ref(method(:ReallyAbort), "boolean ()") }
+        abort: fun_ref(method(:ReallyAbort), "boolean ()")
       )
       ret
     end
@@ -448,7 +448,7 @@ module Yast
 
       ret = CWM.Run(
         w,
-        { :abort => fun_ref(method(:ReallyAbort), "boolean ()") }
+        abort: fun_ref(method(:ReallyAbort), "boolean ()")
       )
       deep_copy(ret)
     end
@@ -473,7 +473,7 @@ module Yast
       )
       ret = CWM.Run(
         w,
-        { :abort => fun_ref(method(:ReallyAbort), "boolean ()") }
+        abort: fun_ref(method(:ReallyAbort), "boolean ()")
       )
       deep_copy(ret)
     end
@@ -515,7 +515,7 @@ module Yast
 
       ret = CWM.Run(
         w,
-        { :abort => fun_ref(method(:ReallyAbort), "boolean ()") }
+        abort: fun_ref(method(:ReallyAbort), "boolean ()")
       )
       deep_copy(ret)
     end

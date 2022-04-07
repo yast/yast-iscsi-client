@@ -2,7 +2,7 @@
 
 # |***************************************************************************
 # |
-# | Copyright (c) [2012] Novell, Inc.
+# | Copyright (c) [2012-2022] SUSE LLC
 # | All Rights Reserved.
 # |
 # | This program is free software; you can redistribute it and/or
@@ -15,10 +15,10 @@
 # | GNU General Public License for more details.
 # |
 # | You should have received a copy of the GNU General Public License
-# | along with this program; if not, contact Novell, Inc.
+# | along with this program; if not, contact SUSE LLC
 # |
 # | To contact Novell about this file by physical or electronic mail,
-# | you may find current contact information at www.novell.com
+# | you may find current contact information at www.suse.com
 # |
 # |***************************************************************************
 require "yast"
@@ -33,6 +33,7 @@ module Yast
 
     Yast.import "Arch"
 
+    # Script to configure iSCSI offload engines for use with open-iscsi
     OFFLOAD_SCRIPT = "/sbin/iscsi_offload".freeze
 
     def main
@@ -60,8 +61,17 @@ module Yast
       @iscsid_socket_stat = false
       # status of iscsiuio.socket
       @iscsiuio_socket_stat = false
-      # main configuration file (/etc/iscsi/iscsid.conf)
+
+      # Content of the main configuration file (/etc/iscsi/iscsid.conf)
+      #
+      # Due to the way YaST ini-agent works, this variable follows the structure
+      # {"kind"=>"section", "type"=>-1, "value"=> Array<Hash> }
+      # in which that latter array of hashes represents the relevant entries in the
+      # configuration file.
+      #
+      # Use {#getConfig} and {#setConfig} to deal with its content in a convenient way.
       @config = {}
+
       # iBFT (iSCSI Boot Firmware Table)
       @ibft = nil
       # InitiatorName file (/etc/iscsi/initiatorname.iscsi)
@@ -71,6 +81,13 @@ module Yast
       # interface type for hardware offloading
       @offload_card = "default"
 
+      # Types of offload cards
+      # [<id>, <label>, <matching_modules>, <load_modules>]
+      #
+      # matching_modules => used to identify if a given netcard in the system belongs to this type.
+      # That's the case if any of the modules used by the card (according to hwinfo) matches with
+      # any module from this list
+      # load_modules => modules to load if the given type of card is used
       @offload = [
         ["default", _("default (Software)"), [], []],
         ["all", _("all"), [], []],
@@ -87,6 +104,26 @@ module Yast
         ["qed", "qede/qedi", ["qede", "qedi"], ["qedi"]]
       ]
 
+      # Network cards in the system that can be used as offload card, grouped by its type.
+      # This is a hash like this:
+      # { <idx> => [ <card1>, <card2>, ...], ...}
+      #
+      # idx => index of the type of card at @offload
+      # cardX => Array with 4 elements [ <iface>, <mac>, <iscsi>, <ipaddr> ]
+      #   iface => device name of the interface (eg. eth0)
+      #   mac => hardware address
+      #   iscsi => name of the open-iscsi interface definition in the style <iface>-<module>
+      #   ipaddr => IPv4 address
+      #
+      # Eg.
+      # {
+      #   2 => [ ["eth4", "00:11:22:33:44:55:66", "eth4-bnx2i", "191.212.2.2"] ],
+      #   6 => [
+      #          ["eth0", "00:...:33", "eth0-be2iscsi", "12.16.0.1"],
+      #          ["eth1", "00:...:11", "eth1-be2iscsi", "19.2.20.1"]
+      #        ]
+      # }
+      #
       @offload_valid = nil
 
       @iscsid_socket = nil
@@ -178,20 +215,18 @@ module Yast
     # @return [String] complete command
     #
     def GetAdmCmd(params, do_log = true)
-      ret = "LC_ALL=POSIX /sbin/iscsiadm"
-      ret = Ops.add(Ops.add(ret, " "), params)
+      ret = "LC_ALL=POSIX /sbin/iscsiadm #{params}"
       Builtins.y2milestone("GetAdmCmd: #{ret}") if do_log
       ret
     end
 
     def hidePassword(orig)
-      orig = deep_copy(orig)
-      hidden = {}
-      Builtins.foreach(orig) do |key, value|
-        value = "*****" if Builtins.issubstring(key, "PASS")
-        Ops.set(hidden, key, value)
+      hidden = deep_copy(orig)
+      hidden.each do |key, _value|
+        next unless key.include?("PASS")
+        hidden[key] = "*****"
       end
-      deep_copy(hidden)
+      hidden
     end
 
     # Look for iSCSI boot firmware table (available only on special hardware/netcards)
@@ -275,24 +310,30 @@ module Yast
       nil
     end
 
-    # read configuration file
+    # Current configuration
+    #
+    # Returns an array with all the entries of the configuration, each entry
+    # represented by hash that follows the structure of the YaST init-agent.
+    # See {#createMap}
+    #
+    # @return [Array<Hash>]
     def getConfig
       # use cache if available
-      if Builtins.size(@config) == 0
-        @config = Convert.convert(
-          SCR.Read(path(".etc.iscsid.all")),
-          :from => "any",
-          :to   => "map <string, any>"
-        )
+      if @config.empty?
+        @config = SCR.Read(path(".etc.iscsid.all"))
         Builtins.y2debug("read config %1", @config)
       end
-      Ops.get_list(@config, "value", [])
+
+      @config.fetch("value", [])
     end
 
+    # Updates the in-memory representation of the configuration
+    #
+    # @see #getConfig
+    #
+    # @param new_config [Array<Hash>]
     def setConfig(new_config)
-      new_config = deep_copy(new_config)
-      Ops.set(@config, "value", new_config)
-
+      @config["value"] = deep_copy(new_config)
       nil
     end
 
@@ -301,7 +342,7 @@ module Yast
       isns_info = { "use" => false, "address" => "", "port" => "3205" }
       # validateISNS checks for not empty address and port,
       # storeISNS adds values to config
-      Builtins.foreach(getConfig) do |row|
+      getConfig.each do |row|
         if row["name"] == "isns.address"
           isns_info["address"] = row["value"]
           isns_info["use"] = true
@@ -372,45 +413,40 @@ module Yast
       }
     end
 
-    # add or modify given map
+    # Modifies the value of the entry with the given name, creating a new entry if none exists
+    #
+    # @param old_list [Array<Hash>] list of maps in the format used by ini-agent (see {#createMap})
+    # @param key [String] name of the entry
+    # @param value [Object] new value for the entry
+    # @return [Array<Hash>] modified list of maps
     def setOrAdd(old_list, key, value)
-      old_list = deep_copy(old_list)
-      new_list = []
-      found = false
-      Builtins.foreach(old_list) do |row|
-        if Ops.get_string(row, "name", "") == key
-          found = true
-          Ops.set(row, "value", value)
-        end
-        new_list = Builtins.add(new_list, row)
+      new_list = deep_copy(old_list)
+
+      element = new_list.find { |row| row["name"] == key }
+      if element
+        element["value"] = value
+      else
+        new_list << createMap({ "KEY" => key, "VALUE" => value }, [])
       end
-      if !found
-        new_list = Builtins.add(
-          new_list,
-          createMap({ "KEY" => key, "VALUE" => value }, [])
-        )
-      end
-      deep_copy(new_list)
+
+      new_list
     end
 
-    # delete record with given key
+    # Deletes the entry with the given key
+    #
+    # @param old_list [Array<Hash>] list of maps in the format used by ini-agent (see {#createMap})
+    # @param key [String] name of the entry to be deleted
+    # @return [Array<Hash>] modified list of maps
     def delete(old_list, key)
-      old_list = deep_copy(old_list)
       Builtins.y2milestone("Delete record for %1", key)
-      new_list = []
-      Builtins.foreach(old_list) do |row|
-        if Ops.get_string(row, "name", "") != key
-          new_list = Builtins.add(new_list, row)
-        end
-      end
-      deep_copy(new_list)
+      deep_copy(old_list).reject { |row| row["name"] == key }
     end
 
     # temporary change config for discovery authentication
     def saveConfig(user_in, pass_in, user_out, pass_out)
       Builtins.y2milestone("Save config")
       tmp_conf = deep_copy(@config)
-      tmp_val = Ops.get_list(tmp_conf, "value", [])
+      tmp_val = tmp_conf["value"] || []
 
       if (specified = !user_in.empty? && !pass_in.empty?)
         tmp_val = setOrAdd(
@@ -468,6 +504,8 @@ module Yast
     # Called for data (output) of commands:
     #  iscsiadm -m node -P 1
     #  iscsiadm -m session -P 1
+    #
+    # @param data [Array<String>] output of the executed command, one array entry per line
     def ScanDiscovered(data)
       data = deep_copy(data)
       ret = []
@@ -1222,24 +1260,20 @@ module Yast
       ret = "default"
       retcode = SCR.Execute(path(".target.bash_output"), GetAdmCmd("-m node -P 1"))
       ifaces = []
-      if Builtins.size(Ops.get_string(retcode, "stderr", "")) == 0
-        Builtins.foreach(
-          ScanDiscovered(
-            Builtins.splitstring(Ops.get_string(retcode, "stdout", ""), "\n")
-          )
-        ) do |s|
+      if retcode["stderr"].empty?
+        ScanDiscovered(retcode["stdout"].split("\n")).each do |s|
           sl = Builtins.splitstring(s, "  ")
-          if Ops.greater_than(Builtins.size(Ops.get(sl, 2, "")), 0) &&
-              !Builtins.contains(ifaces, Ops.get(sl, 2, ""))
-            ifaces = Builtins.add(ifaces, Ops.get(sl, 2, ""))
-          end
+          iface_name = sl[2] || ""
+          next if iface_name.empty? || ifaces.include?(iface_name)
+
+          ifaces << iface_name
         end
       end
       Builtins.y2milestone("InitOffloadCard ifaces:%1", ifaces)
-      if Ops.greater_than(Builtins.size(ifaces), 1)
+      if ifaces.size > 1
         ret = "all"
-      elsif Builtins.contains(@iface_eth, Ops.get(ifaces, 0, ""))
-        ret = Ops.get(ifaces, 0, "default")
+      elsif @iface_eth.include?(ifaces.first)
+        ret = ifaces.first || "default"
       end
       Builtins.y2milestone("InitOffloadCard ret:%1", ret)
       ret
@@ -1298,213 +1332,22 @@ module Yast
 
     def GetOffloadItems
       init = false
-      if @offload_valid == nil
+      if @offload_valid.nil?
         init = true
         InitIfaceFile()
-        @offload_valid = {}
-        cards = Convert.convert(
-          SCR.Read(path(".probe.netcard")),
-          :from => "any",
-          :to   => "list <map>"
-        )
-
-        hw_mods = Builtins.maplist(cards) do |c|
-          Builtins.y2milestone("GetOffloadItems card:%1", c)
-          tmp = Builtins.maplist(Ops.get_list(c, "drivers", [])) do |m|
-            Builtins.flatten(Ops.get_list(m, "modules", []))
-          end
-          r = {
-            "modules" => Builtins.maplist(tmp) { |ml| Ops.get_string(ml, 0, "") },
-            "iface"   => Ops.get_string(c, "dev_name", ""),
-            "macaddr" => Ops.get_string(
-              c,
-              ["resource", "hwaddr", 0, "addr"],
-              ""
-            )
-          }
-          Builtins.y2milestone("GetOffloadItems cinf:%1", r)
-          deep_copy(r)
-        end # maplist(cards)
-
-        idx = 0
-        Builtins.foreach(@offload) do |l|
-          mod = Convert.convert(
-            Builtins.sort(Ops.get_list(l, 2, [])),
-            :from => "list",
-            :to   => "list <string>"
-          )
-          if Ops.greater_than(Builtins.size(mod), 0)
-            Builtins.foreach(hw_mods) do |hw|
-              if Ops.greater_than(
-                Builtins.size(
-                  Builtins::Multiset.intersection(
-                    mod,
-                    Convert.convert(
-                      Builtins.sort(Ops.get_list(hw, "modules", [])),
-                      :from => "list",
-                      :to   => "list <string>"
-                    )
-                  )
-                ),
-                0
-              )
-                Builtins.y2milestone("GetOffloadItems l:%1", l)
-                Builtins.y2milestone("GetOffloadItems valid:%1", hw)
-                Ops.set(
-                  @offload_valid,
-                  idx,
-                  Builtins.add(
-                    Ops.get(@offload_valid, idx, []),
-                    [
-                      Ops.get_string(hw, "iface", ""),
-                      Ops.get_string(hw, "macaddr", ""),
-                      Ops.add(
-                        Ops.add(Ops.get_string(hw, "iface", ""), "-"),
-                        Ops.get_string(l, [3, 0], "")
-                      )
-                    ]
-                  )
-                )
-              end
-            end
-          end
-          idx = Ops.add(idx, 1)
-        end
-        offload_res = {}
-        cmd = ""
-        Builtins.foreach(@offload_valid) do |i2, eth|
-          Ops.set(
-            @offload_valid,
-            i2,
-            Builtins.filter(
-              Convert.convert(eth, :from => "list", :to => "list <list>")
-            ) do |l|
-              cmd = "#{OFFLOAD_SCRIPT} #{Ops.get_string(l, 0, "").shellescape} | grep ..:..:..:.." # grep for lines containing MAC address
-              Builtins.y2milestone("GetOffloadItems cmd:%1", cmd)
-              out = Convert.to_map(
-                SCR.Execute(path(".target.bash_output"), cmd)
-              )
-              # Example for output if offload is supported on interface:
-              # cmd: iscsi_offload eth2
-              # out: $["exit":0, "stderr":"", "stdout":"00:00:c9:b1:bc:7f ip \n"]
-              result = SCR.Execute(
-                path(".target.bash_output"),
-                "#{OFFLOAD_SCRIPT} #{Ops.get_string(l, 0, "").shellescape}"
-              )
-              Builtins.y2milestone(
-                "GetOffloadItems iscsi_offload out:%1",
-                result
-              )
-              Ops.set(offload_res, Ops.get_string(l, 0, ""), {})
-              Ops.set(
-                offload_res,
-                [Ops.get_string(l, 0, ""), "exit"],
-                Ops.get_integer(out, "exit", 1)
-              )
-              sl = []
-              if Ops.get_integer(out, "exit", 1) == 0
-                sl = Builtins.splitstring(
-                  Ops.get_string(out, "stdout", ""),
-                  " \n"
-                )
-                Ops.set(
-                  offload_res,
-                  [Ops.get_string(l, 0, ""), "hwaddr"],
-                  Ops.get(sl, 0, "")
-                )
-                Ops.set(
-                  offload_res,
-                  [Ops.get_string(l, 0, ""), "ntype"],
-                  Ops.get(sl, 1, "")
-                )
-              end
-              Ops.get_integer(out, "exit", 1) == 0 &&
-                Ops.greater_than(Builtins.size(Ops.get(sl, 0, "")), 0)
-            end
-          )
-        end
-        Builtins.y2milestone("GetOffloadItems offload_res:%1", offload_res)
-        Builtins.y2milestone("GetOffloadItems offload_valid:%1", @offload_valid)
-        Builtins.foreach(@offload_valid) do |i2, eth|
-          Ops.set(
-            @offload_valid,
-            i2,
-            Builtins.maplist(
-              Convert.convert(eth, :from => "list", :to => "list <list>")
-            ) do |l|
-              Ops.set(
-                l,
-                1,
-                Ops.get_string(
-                  offload_res,
-                  [Ops.get_string(l, 0, ""), "hwaddr"],
-                  ""
-                )
-              )
-              deep_copy(l)
-            end
-          )
-        end
-        Builtins.y2milestone("GetOffloadItems offload_valid:%1", @offload_valid)
-        Builtins.foreach(@offload_valid) do |i2, eth|
-          Ops.set(
-            @offload_valid,
-            i2,
-            Builtins.maplist(eth) do |l|
-              cmd = "LC_ALL=POSIX /usr/bin/ifconfig " + Ops.get_string(l, 0, "").shellescape # FIXME: ifconfig is deprecated
-              Builtins.y2milestone("GetOffloadItems cmd:%1", cmd)
-              out = SCR.Execute(path(".target.bash_output"), cmd)
-              Builtins.y2milestone("GetOffloadItems out:%1", out)
-              # Search for lines containing "init addr", means IPv4 address.
-              # Regarding the IPv6 support there are no changes needed here because
-              # the IP address is not used farther.
-              line = Ops.get(
-                Builtins.filter(
-                  Builtins.splitstring(Ops.get_string(out, "stdout", ""), "\n")
-                ) { |ln| Builtins.search(ln, "inet addr:") != nil },
-                0,
-                ""
-              )
-              Builtins.y2milestone("GetOffloadItems line:%1", line)
-              ipaddr = "unknown"
-              if Ops.greater_than(Builtins.size(line), 0)
-                line = Builtins.substring(
-                  line,
-                  Ops.add(Builtins.search(line, "inet addr:"), 10)
-                )
-                Builtins.y2milestone("GetOffloadItems line:%1", line)
-                ipaddr = Builtins.substring(
-                  line,
-                  0,
-                  Builtins.findfirstof(line, " \t")
-                )
-              end
-              l = Builtins.add(l, ipaddr)
-              deep_copy(l)
-            end
-          )
-        end
-        Builtins.y2milestone("GetOffloadItems offload_valid:%1", @offload_valid)
+        InitOffloadValid()
       end
+
       entries = {}
-      Builtins.foreach(@offload_valid) do |i2, eth|
-        Builtins.foreach(
-          Convert.convert(eth, :from => "list", :to => "list <list>")
-        ) do |l|
-          if Ops.greater_than(Builtins.size(Ops.get_string(l, 0, "")), 0)
-            s = Ops.get_string(l, 0, "")
-            if Ops.greater_than(Builtins.size(Ops.get_string(l, 1, "")), 0)
-              s = Ops.add(Ops.add(s, " - "), Ops.get_string(l, 1, ""))
-            end
-            s = Ops.add(
-              Ops.add(s, " - "),
-              Ops.get_string(@offload, [i2, 1], "")
-            )
-            Ops.set(entries, Ops.get_string(l, 2, ""), s)
-          end
+      @offload_valid.each do |i, cards|
+        cards.each do |card|
+          next if card[0].nil? || card[0].empty?
+
+          entries[card[2]] = card_label(card, @offload[i][1])
         end
       end
       Builtins.y2milestone("GetOffloadItems entries:%1", entries)
+
       @iface_eth = Builtins.sort(Builtins.maplist(entries) { |e, _val| e })
       Builtins.y2milestone("GetOffloadItems eth:%1", @iface_eth)
       if init
@@ -1512,28 +1355,18 @@ module Yast
         Builtins.y2milestone("GetOffloadItems offload_card:%1", @offload_card)
       end
       ret = [
-        Item(
-          Id(Ops.get_string(@offload, [0, 0], "")),
-          Ops.get_string(@offload, [0, 1], ""),
-          @offload_card == Ops.get_string(@offload, [0, 0], "")
-        )
+        # Entry for "default"
+        Item(Id(@offload[0][0]), @offload[0][1], @offload_card == @offload[0][0])
       ]
-      if Ops.greater_than(Builtins.size(@offload_valid), 0)
-        ret = Builtins.add(
-          ret,
-          Item(
-            Id(Ops.get_string(@offload, [1, 0], "")),
-            Ops.get_string(@offload, [1, 1], ""),
-            @offload_card == Ops.get_string(@offload, [1, 0], "")
-          )
+      if @offload_valid.any?
+        # Entry for "all"
+        ret << Item(
+          Id(@offload[1][0]), @offload[1][1], @offload_card == @offload[1][0]
         )
       end
-      ret = Convert.convert(
-        Builtins.merge(ret, Builtins.maplist(@iface_eth) do |e|
-          Item(Id(e), Ops.get(entries, e, ""), @offload_card == e)
-        end),
-        :from => "list",
-        :to   => "list <term>"
+      # Entries for the valid cards
+      ret.concat(
+        @iface_eth.map { |e| Item(Id(e), entries[e], @offload_card == e) }
       )
       Builtins.y2milestone("GetOffloadItems ret:%1", ret)
       deep_copy(ret)
@@ -1672,6 +1505,172 @@ module Yast
     publish :function => :GetDiscoveryCmd, :type => "string (string, string, map)"
     publish :function => :getCurrentNodeValues, :type => "map <string, any> ()"
     publish :function => :iBFT?, :type => "boolean (map <string, any>)"
+
+  private
+
+    def InitOffloadValid
+      @offload_valid = potential_offload_cards
+      card_names = @offload_valid.values.flatten(1).map(&:first)
+      offload_res = configure_offload_engines(card_names)
+
+      # Filter only those cards for which we have a hwaddr value in offload_res
+      @offload_valid.values.each do |cards|
+        cards.select! do |card|
+          card_res = offload_res[card[0]]
+          card_res["exit"].zero? && card_res["hwaddr"]
+        end
+      end
+      Builtins.y2milestone("GetOffloadItems offload_res:%1", offload_res)
+      Builtins.y2milestone("GetOffloadItems offload_valid:%1", @offload_valid)
+
+      # Sync the MAC with the hwaddr value from offload_res
+      @offload_valid.values.each do |cards|
+        cards.each do |card|
+          dev_name = card[0]
+          card[1] = offload_res[dev_name]["hwaddr"]
+        end
+      end
+      Builtins.y2milestone("GetOffloadItems offload_valid:%1", @offload_valid)
+
+      @offload_valid.values.each do |cards|
+        cards.each do |card|
+          card << ip_addr(card[0])
+        end
+      end
+      Builtins.y2milestone("GetOffloadItems offload_valid:%1", @offload_valid)
+    end
+
+    # List of modules for the given card description
+    #
+    # The card description must be a hash in the format returned by the
+    # probe.netcard agent (ie. libhd, a.k.a. hwinfo).
+    #
+    # Such a netcard hash contains a "drivers" entry which is an array in which
+    # every element represents a driver.
+    #
+    # Such a driver is represented by a hash with the following structure:
+    # {
+    #   "active"   => [Boolean] whether the corresponding modules are already loaded
+    #   "modprobe" => [Boolean] whether modprobe or insmod is to be used for loading
+    #   "modules   => [Array<Array<String>>] list of modules, with this structure:
+    #                 [ [<modname1>, <modargs1>], [<modname2>, <modargs2>], ... ]
+    # }
+    #
+    # @param card [Hash] description of a netcard as returned by the probe.netcard agent
+    # @return [Array<String>] names of modules
+    def netcard_modules(card)
+      card["drivers"].flat_map { |d| d["modules"].map(&:first) }
+    end
+
+    # Cards in the system that match with the types described by @offload
+    #
+    # return [Hash] cards grouped by type, in the same format used by @offload_valid
+    #   (with a small exception, the cards don't include a field for the IP address)
+    def potential_offload_cards
+      # Store into hw_mods information about all the cards in the system
+      cards = SCR.Read(path(".probe.netcard"))
+      hw_mods = cards.map do |c|
+        Builtins.y2milestone("GetOffloadItems card:%1", c)
+        hw_mod = {
+          "modules" => netcard_modules(c),
+          "iface"   => c["dev_name"] || "",
+          "macaddr" => Ops.get_string(c, ["resource", "hwaddr", 0, "addr"], "")
+        }
+        Builtins.y2milestone("GetOffloadItems cinf:%1", hw_mod)
+        hw_mod
+      end
+
+      result = {}
+      @offload.each.with_index do |offload_entry, idx|
+        modules = offload_entry[2]
+        # Ignore this offload entry if it does not specify any module to do the match
+        next if modules.empty?
+
+        hw_mods.each do |hw|
+          # Ignore this card unless it has some module in common with the offload entry
+          next if (modules & hw["modules"]).empty?
+
+          Builtins.y2milestone("GetOffloadItems l:%1", offload_entry)
+          Builtins.y2milestone("GetOffloadItems valid:%1", hw)
+          result[idx] ||= []
+          result[idx] << [
+            hw["iface"],
+            hw["macaddr"], # In fact, this is going to be overwritten at a later point
+            "#{hw["iface"]}-#{offload_entry[3].first}"
+          ]
+        end
+      end
+
+      result
+    end
+
+    # Configures iSCSI offload engines for the given cards
+    #
+    # Tries to create an open-iscsi interface definition for each of the given cards.
+    #
+    # @param cards [Array<String>] list of interface names
+    # @return [Hash{String => Hash}] results of the operation, keys are the names of the interfaces
+    #   and values the corresponding result as a hash with three fields: "exit" (0 means the
+    #   definition was created), "hwaddr" and "ntype".
+    def configure_offload_engines(cards)
+      offload_res = {}
+
+      cards.each do |dev_name|
+        cmd = "#{OFFLOAD_SCRIPT} #{dev_name.shellescape} | grep ..:..:..:.." # grep for lines containing MAC address
+        Builtins.y2milestone("GetOffloadItems cmd:%1", cmd)
+        out = SCR.Execute(path(".target.bash_output"), cmd)
+        # Example for output if offload is supported on interface:
+        # cmd: iscsi_offload eth2
+        # out: $["exit":0, "stderr":"", "stdout":"00:00:c9:b1:bc:7f ip \n"]
+        cmd2 = "#{OFFLOAD_SCRIPT} #{dev_name.shellescape}"
+        result = SCR.Execute(path(".target.bash_output"), cmd2)
+        Builtins.y2milestone("GetOffloadItems iscsi_offload out:%1", result)
+
+        offload_res[dev_name] = {}
+        offload_res[dev_name]["exit"] = out["exit"]
+        next unless out["exit"].zero?
+
+        sl = Builtins.splitstring(out["stdout"], " \n")
+        offload_res[dev_name]["hwaddr"] = sl[0]
+        offload_res[dev_name]["ntype"] = sl[1]
+      end
+
+      offload_res
+    end
+
+    # Current IP address of the given network interface
+    def ip_addr(dev_name)
+      cmd = "LC_ALL=POSIX /usr/bin/ifconfig #{dev_name.shellescape}" # FIXME: ifconfig is deprecated
+      Builtins.y2milestone("GetOffloadItems cmd:%1", cmd)
+      out = SCR.Execute(path(".target.bash_output"), cmd)
+      Builtins.y2milestone("GetOffloadItems out:%1", out)
+
+      # Search for lines containing "init addr", means IPv4 address.
+      # Regarding the IPv6 support there are no changes needed here because
+      # the IP address is not used farther.
+      line = out["stdout"].split("\n").find do |ln|
+        Builtins.search(ln, "inet addr:") != nil
+      end
+      line ||= ""
+      Builtins.y2milestone("GetOffloadItems line:%1", line)
+
+      ipaddr = "unknown"
+      if !line.empty?
+        line = Builtins.substring(line, Builtins.search(line, "inet addr:") + 10)
+        Builtins.y2milestone("GetOffloadItems line:%1", line)
+        ipaddr = Builtins.substring(line, 0, Builtins.findfirstof(line, " \t"))
+      end
+
+      ipaddr
+    end
+
+    def card_label(card, type_label)
+      dev_name = card[0]
+      hwaddr = card[1]
+      hwaddr = nil if hwaddr&.empty?
+
+      [dev_name, hwaddr, type_label].compact.join(" - ")
+    end
   end
 
   IscsiClientLib = IscsiClientLibClass.new

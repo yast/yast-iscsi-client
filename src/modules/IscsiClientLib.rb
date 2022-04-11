@@ -36,6 +36,17 @@ module Yast
     # Script to configure iSCSI offload engines for use with open-iscsi
     OFFLOAD_SCRIPT = "/sbin/iscsi_offload".freeze
 
+    # Driver modules that depend on the iscsiuio service/socket
+    #
+    # @see #iscsiuio_relevant?
+    #
+    # The modules match with the ones specified as the fourth element of the relevant entries
+    # at @offload.
+    #
+    # @return [Array<String>]
+    ISCSIUIO_MODULES = ["bnx2i", "qedi"].freeze
+    private_constant :ISCSIUIO_MODULES
+
     def main
       textdomain "iscsi-client"
 
@@ -301,7 +312,8 @@ module Yast
       status_uio = socketEnabled?(@iscsiuio_socket)
       status = Service.Enabled("iscsi")
       log.info "Start at boot enabled for iscsid.socket: #{status_d}, iscsi: #{status}, iscsiuio.socket: #{status_uio}"
-      return status_d && status && status_uio
+      log.info "Is iscsiuio relevant? #{iscsiuio_relevant?}"
+      return status_d && status && !(iscsiuio_relevant? && !status_uio)
     end
 
     # set accessor for service status
@@ -309,15 +321,22 @@ module Yast
     # NOTE: this can handle the iscsid and iscsiuio sockets only if {#getServiceStatus} has been
     # called before. Not sure if that method interdependency is intentional (looks dangerous).
     def SetStartService(status)
-      log.info "Set start at boot for iscsid.socket, iscsiuio.socket and iscsi.service to #{status}"
+      msg =
+        if iscsiuio_relevant?
+          "Set start at boot for iscsid.socket, iscsiuio.socket and iscsi.service to #{status}"
+        else
+          "Set start at boot for iscsid.socket and iscsi.service to #{status}"
+        end
+      log.info msg
+
       if status == true
         Service.Enable("iscsi")
         socketEnable(@iscsid_socket)
-        socketEnable(@iscsiuio_socket)
+        socketEnable(@iscsiuio_socket) if iscsiuio_relevant?
       else
         Service.Disable("iscsi")
         socketDisable(@iscsid_socket)
-        socketDisable(@iscsiuio_socket)
+        socketDisable(@iscsiuio_socket) if iscsiuio_relevant?
       end
 
       nil
@@ -1400,6 +1419,13 @@ module Yast
       deep_copy(ret)
     end
 
+    # Modules to use for all the cards detected in the system and that support hardware
+    # offloading, no matter whether those cards are indeed configured
+    #
+    # The module to use for each card is determined by the fourth element of the
+    # corresponding entry at @offload.
+    #
+    # @return [Array<String>]
     def GetOffloadModules
       GetOffloadItems() if @offload_valid == nil
       modules = []
@@ -1488,6 +1514,16 @@ module Yast
       command = GetAdmCmd(command)
       Builtins.y2milestone("GetDiscoveryCmd %1", command)
       command
+    end
+
+    # Whether the system contains any offload card that would need the iscsiuio user-space
+    # I/O driver (see bsc#1194432)
+    #
+    # No matter where the card is configured or not
+    #
+    # @return [Boolean]
+    def iscsiuio_relevant?
+      (ISCSIUIO_MODULES & GetOffloadModules()).any?
     end
 
     publish :variable => :sessions, :type => "list <string>"

@@ -55,13 +55,6 @@ module Yast
       @iface_file = {}
       @iface_eth = []
 
-      # status of iscsi.service
-      @iscsi_service_stat = false
-      # status of iscsid.socket
-      @iscsid_socket_stat = false
-      # status of iscsiuio.socket
-      @iscsiuio_socket_stat = false
-
       # Content of the main configuration file (/etc/iscsi/iscsid.conf)
       #
       # Due to the way YaST ini-agent works, this variable follows the structure
@@ -1092,22 +1085,22 @@ module Yast
         @iscsid_socket = Yast2::Systemd::Socket.find!("iscsid")
         @iscsiuio_socket = Yast2::Systemd::Socket.find!("iscsiuio")
 
-        @iscsi_service_stat = Service.active?("iscsi")
-        @iscsid_socket_stat = socketActive?(@iscsid_socket)
-        @iscsiuio_socket_stat = socketActive?(@iscsiuio_socket)
+        iscsi_service_stat = Service.active?("iscsi")
+        iscsid_socket_stat = socketActive?(@iscsid_socket)
+        iscsiuio_socket_stat = socketActive?(@iscsiuio_socket)
 
-        log.info "Status of iscsi.service: #{@iscsi_service_stat}, iscsid.socket: #{@iscsid_socket_stat}, iscsiuio.socket: #{@iscsiuio_socket_stat}"
+        log.info "Status of iscsi.service: #{iscsi_service_stat}, iscsid.socket: #{iscsid_socket_stat}, iscsiuio.socket: #{iscsiuio_socket_stat}"
 
         # if not running, start iscsi.service, iscsid.socket and iscsiuio.socket
-        if !@iscsid_socket_stat
+        if !iscsid_socket_stat
           Service.Stop("iscsid") if Service.active?("iscsid")
           log.error "Cannot start iscsid.socket" if !socketStart(@iscsid_socket)
         end
-        if !@iscsiuio_socket_stat
+        if !iscsiuio_socket_stat
           Service.Stop("iscsiuio") if Service.active?("iscsiuio")
           log.error "Cannot start iscsiuio.socket" if !socketStart(@iscsiuio_socket)
         end
-        if !@iscsi_service_stat && !Service.Start("iscsi")
+        if !iscsi_service_stat && !Service.Start("iscsi")
           log.error "Cannot start iscsi.service"
         end
       end

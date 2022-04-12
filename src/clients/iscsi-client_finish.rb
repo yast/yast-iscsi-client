@@ -76,7 +76,7 @@ module Yast
         # write open-iscsi database of automatic connected targets
         WFM.Execute(
           path(".local.bash"),
-          "/usr/bin/test -d /etc/iscsi/ && " \
+          "test -d /etc/iscsi/ && " \
             "mkdir -p #{Installation.destdir.shellescape}/etc/iscsi && " \
             "cp -a /etc/iscsi/* #{Installation.destdir.shellescape}/etc/iscsi/"
         )

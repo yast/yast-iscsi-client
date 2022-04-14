@@ -111,7 +111,6 @@ module Yast
       Builtins.y2milestone("enabling iscsiuio socket and service")
       socket = Yast2::Systemd::Socket.find("iscsiuio")
       socket.enable if socket
-      Service.Enable("iscsiuio")
     end
   end
 end

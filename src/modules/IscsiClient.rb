@@ -80,7 +80,7 @@ module Yast
       #   do not smell very well and the user might be very carefull on the
       #   'after reboot' selection having to choose correctly for enabling the
       #   desired option (bsc#1160606).
-      @services ||= Yast2::CompoundService.new(system_services)
+      @services ||= Yast2::CompoundService.new(*system_services)
     end
 
     # Abort function

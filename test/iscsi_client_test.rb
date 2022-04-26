@@ -10,6 +10,11 @@ describe Yast::IscsiClient do
 
   before do
     allow(Yast2::SystemService).to receive(:find).with(anything).and_return(service)
+
+    stub_const("Yast::Service", double)
+    allow(Yast::Service).to receive(:Start).with(anything)
+    allow(Yast::Service).to receive(:Stop).with(anything)
+    allow(Yast::Service).to receive(:Enabled).with(anything).and_return(false)
   end
 
   let(:service) { instance_double(Yast2::SystemService, save: true, is_a?: true) }

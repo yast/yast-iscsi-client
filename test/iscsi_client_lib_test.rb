@@ -9,6 +9,8 @@ describe Yast::IscsiClientLib do
 
   before do
     subject.main
+    stub_const("Yast::Service", double)
+    allow(Yast::Service).to receive(:Start).with(anything)
   end
 
   describe "#getServiceStatus" do

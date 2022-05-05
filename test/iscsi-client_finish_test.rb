@@ -16,10 +16,16 @@ describe Yast::IscsiClientFinishClient do
 
       allow(Yast::IscsiClientLib).to receive(:sessions).and_return session
       allow(Yast::IscsiClientLib).to receive(:iscsiuio_relevant?).and_return iscsiuio
+      allow(Yast2::Systemd::Socket).to receive(:find)
+      allow(Yast2::Systemd::Socket).to receive(:find)
+        .with("iscsiuio")
+        .and_return(iscsiuio_socket)
     end
 
     let(:args) { ["Write"] }
     let(:session) { false }
+    let(:iscsiuio) { false }
+    let(:iscsiuio_socket) { nil }
 
     context "if there are no active iSCSI sessions" do
       let(:session) { [] }
@@ -37,23 +43,42 @@ describe Yast::IscsiClientFinishClient do
       let(:session) { ["session0", "session1"] }
 
       context "and iscsiuio may be relevant in this system" do
-        let(:session) { true }
+        let(:iscsiuio) { true }
 
         context "and there is a systemd unit for the iscsiuio socket" do
+          let(:iscsiuio_socket) { instance_double(Yast2::Systemd::Socket, enable: true) }
+
           it "enables iscsi service and the iscsiuio socket" do
+            expect(Yast::Service).to receive(:Enable).with("iscsid")
+            expect(Yast::Service).to receive(:Enable).with("iscsi")
+            expect(iscsiuio_socket).to receive(:enable)
+
+            subject.main
           end
         end
 
         context "but there is no systemd unit for the iscsiuio socket" do
-          it "enables iscsi service and the iscsiuio service" do
+          let(:iscsiuio_socket) { nil }
+
+          it "enables iscsi service but not the iscsiuio service" do
+            expect(Yast::Service).to receive(:Enable).with("iscsid")
+            expect(Yast::Service).to receive(:Enable).with("iscsi")
+            expect(iscsiuio_socket).to_not receive(:enable)
+
+            subject.main
           end
         end
       end
 
       context "and iscsiuio is not relevant in this system" do
-        let(:session) { false }
+        let(:iscsiuio) { false }
 
-        it "enables iscsi service but not iscsiuio" do
+        it "enables iscsi service but not the iscsiuio service" do
+          expect(Yast::Service).to receive(:Enable).with("iscsid")
+          expect(Yast::Service).to receive(:Enable).with("iscsi")
+          expect(Yast2::Systemd::Socket).to_not receive(:find).with("iscsiuio")
+
+          subject.main
         end
       end
     end

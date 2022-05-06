@@ -63,6 +63,7 @@ describe Yast::IscsiClientFinishClient do
           it "enables iscsi service but not the iscsiuio service" do
             expect(Yast::Service).to receive(:Enable).with("iscsid")
             expect(Yast::Service).to receive(:Enable).with("iscsi")
+            allow_message_expectations_on_nil
             expect(iscsiuio_socket).to_not receive(:enable)
 
             subject.main

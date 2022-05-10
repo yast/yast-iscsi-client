@@ -35,7 +35,7 @@ describe Yast::IscsiClientFinishClient do
         expect(Yast::Service).to_not receive(:Enable)
 
         result = subject.main
-        expect(result).to be_nil 
+        expect(result).to be_nil
       end
     end
 

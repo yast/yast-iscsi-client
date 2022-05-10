@@ -621,6 +621,54 @@ describe Yast::IscsiClientLib do
     end
   end
 
+  describe "#iscsiuio_relevant?" do
+    before do
+      allow(subject).to receive(:GetOffloadModules).and_return modules
+    end
+
+    context "there are no cards in the system supporting offloading" do
+      let(:modules) { [] }
+
+      it "returns false" do
+        expect(subject.iscsiuio_relevant?).to eq false
+      end
+    end
+
+    context "there are cards in the system supporting offloading" do
+      context "but none of them use the bnx2i or qedi modules" do
+        let(:modules) { ["fnic", "cxgb3i"] }
+
+        it "returns false" do
+          expect(subject.iscsiuio_relevant?).to eq false
+        end
+      end
+
+      context "and one of them uses de bnx2i module" do
+        let(:modules) { ["fnic", "cxgb3i", "bnx2i"] }
+
+        it "returns true" do
+          expect(subject.iscsiuio_relevant?).to eq true
+        end
+      end
+
+      context "and one of them uses de qedi module" do
+        let(:modules) { ["qedi"] }
+
+        it "returns true" do
+          expect(subject.iscsiuio_relevant?).to eq true
+        end
+      end
+
+      context "and there are cards using both bnx2i and qedi modules" do
+        let(:modules) { ["qedi", "cxgb3i", "bnx2i"] }
+
+        it "returns true" do
+          expect(subject.iscsiuio_relevant?).to eq true
+        end
+      end
+    end
+  end
+
   describe ".GetOffloadItems" do
     around(:each) do |example|
       # The directory /etc/iscsi/ifaces/ is always scanned to look for interface definitions,

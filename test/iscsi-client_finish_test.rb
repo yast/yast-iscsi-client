@@ -48,9 +48,10 @@ describe Yast::IscsiClientFinishClient do
         context "and there is a systemd unit for the iscsiuio socket" do
           let(:iscsiuio_socket) { instance_double(Yast2::Systemd::Socket, enable: true) }
 
-          it "enables iscsi service and the iscsiuio socket" do
+          it "enables iscsi service and the iscsiuio socket but not the iscsiuio service" do
             expect(Yast::Service).to receive(:Enable).with("iscsid")
             expect(Yast::Service).to receive(:Enable).with("iscsi")
+            expect(Yast::Service).to_not receive(:Enable).with("iscsiuio")
             expect(iscsiuio_socket).to receive(:enable)
 
             subject.main
@@ -60,11 +61,10 @@ describe Yast::IscsiClientFinishClient do
         context "but there is no systemd unit for the iscsiuio socket" do
           let(:iscsiuio_socket) { nil }
 
-          it "enables iscsi service but not the iscsiuio service" do
+          it "enables iscsi service and the iscsiuio service" do
             expect(Yast::Service).to receive(:Enable).with("iscsid")
             expect(Yast::Service).to receive(:Enable).with("iscsi")
-            allow_message_expectations_on_nil
-            expect(iscsiuio_socket).to_not receive(:enable)
+            expect(Yast::Service).to receive(:Enable).with("iscsiuio")
 
             subject.main
           end

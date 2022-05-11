@@ -87,10 +87,7 @@ module Yast
           # enable iscsi and iscsid service
           Service.Enable("iscsid")
           Service.Enable("iscsi")
-          Builtins.y2milestone("enabling iscsiuio socket and service")
-          socket = Yast2::Systemd::Socket.find("iscsiuio")
-          socket.enable if socket
-          Service.Enable("iscsiuio")
+          enable_iscsiuio
         end
       else
         Builtins.y2error("unknown function: %1", @func)
@@ -100,6 +97,24 @@ module Yast
       Builtins.y2debug("ret=%1", @ret)
       Builtins.y2milestone("iscsi-client_finish finished")
       deep_copy(@ret)
+    end
+
+  private
+
+    # Enables the iscsiuio service if needed
+    def enable_iscsiuio
+      if !IscsiClientLib.iscsiuio_relevant?
+        Builtins.y2milestone("iscsiuio is not needed")
+        return
+      end
+
+      Builtins.y2milestone("enabling iscsiuio socket and service")
+      socket = Yast2::Systemd::Socket.find("iscsiuio")
+      if socket
+        socket.enable
+      else
+        Service.Enable("iscsiuio")
+      end
     end
   end
 end

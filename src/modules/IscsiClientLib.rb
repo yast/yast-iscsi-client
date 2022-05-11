@@ -40,6 +40,17 @@ module Yast
     # (bsc#1196086, bsc#1196086)
     OFFLOAD_SCRIPT = "iscsi_offload".freeze
 
+    # Driver modules that depend on the iscsiuio service/socket
+    #
+    # @see #iscsiuio_relevant?
+    #
+    # The modules match with the ones specified as the fourth element of the relevant entries
+    # at @offload.
+    #
+    # @return [Array<String>]
+    ISCSIUIO_MODULES = ["bnx2i", "qedi"].freeze
+    private_constant :ISCSIUIO_MODULES
+
     def main
       textdomain "iscsi-client"
 
@@ -58,13 +69,6 @@ module Yast
       @currentRecord = []
       @iface_file = {}
       @iface_eth = []
-
-      # status of iscsi.service
-      @iscsi_service_stat = false
-      # status of iscsid.socket
-      @iscsid_socket_stat = false
-      # status of iscsiuio.socket
-      @iscsiuio_socket_stat = false
 
       # Content of the main configuration file (/etc/iscsi/iscsid.conf)
       #
@@ -130,6 +134,19 @@ module Yast
       #
       @offload_valid = nil
 
+      # Very likely, these two instance variables should NOT be directly accessed everywhere in
+      # this class. It would be more sane to rely on accessors with memoization like this:
+      #
+      #   def iscsid_socket
+      #     @iscsid_socket ||= Yast2::Systemd::Socket.find!("iscsid")
+      #   end
+      #
+      # Currently there are several methods that seem to rely on these variables been initialized,
+      # which only happens during #getServiceStatus.
+      #
+      # But having sane accessors and breaking those dependencies between method calls would
+      # introduce changes in behavior, so it must be done carefully. Maybe some functionality relies
+      # on the current logic, even if it looks broken by design.
       @iscsid_socket = nil
       @iscsiuio_socket = nil
     end
@@ -290,25 +307,40 @@ module Yast
     end
 
     # get accessor for service status
+    #
+    # NOTE: this is reliable only if {#getServiceStatus} has been called before (since that's
+    # the only way to initialize @iscsid_socket and @iscsiuio_socket). Not sure if that method
+    # interdependency is intentional (looks dangerous).
     def GetStartService
       status_d = socketEnabled?(@iscsid_socket)
       status_uio = socketEnabled?(@iscsiuio_socket)
       status = Service.Enabled("iscsi")
       log.info "Start at boot enabled for iscsid.socket: #{status_d}, iscsi: #{status}, iscsiuio.socket: #{status_uio}"
-      return status_d && status && status_uio
+      log.info "Is iscsiuio relevant? #{iscsiuio_relevant?}"
+      return status_d && status && !(iscsiuio_relevant? && !status_uio)
     end
 
     # set accessor for service status
+    #
+    # NOTE: this can handle the iscsid and iscsiuio sockets only if {#getServiceStatus} has been
+    # called before. Not sure if that method interdependency is intentional (looks dangerous).
     def SetStartService(status)
-      log.info "Set start at boot for iscsid.socket, iscsiuio.socket and iscsi.service to #{status}"
+      msg =
+        if iscsiuio_relevant?
+          "Set start at boot for iscsid.socket, iscsiuio.socket and iscsi.service to #{status}"
+        else
+          "Set start at boot for iscsid.socket and iscsi.service to #{status}"
+        end
+      log.info msg
+
       if status == true
         Service.Enable("iscsi")
         socketEnable(@iscsid_socket)
-        socketEnable(@iscsiuio_socket)
+        socketEnable(@iscsiuio_socket) if iscsiuio_relevant?
       else
         Service.Disable("iscsi")
         socketDisable(@iscsid_socket)
-        socketDisable(@iscsiuio_socket)
+        socketDisable(@iscsiuio_socket) if iscsiuio_relevant?
       end
 
       nil
@@ -1078,12 +1110,15 @@ module Yast
       true
     end
 
-    # FIXME: this method has too much responsibility and it is doing
-    # "unexpected" things according to its name. Ideally, it only must return
-    # the service status without changing the status of related services and
-    # sockets.
+    # Starts iscsi-related services if they are not running
     #
-    # get status of iscsid
+    # As a side effect, it also takes care of initializing the @iscsid_socket and @iscsiuio_socket
+    # instance variables that are basic for other methods to work as expected.
+    #
+    # FIXME: The name gives a totally wrong impression on the method responsibilities and
+    # functionality. It seems to suggest it should simply return the status of the services.
+    #
+    # @return [Boolean] true in all cases, which looks suspicious
     def getServiceStatus
       ret = true
       if Stage.initial
@@ -1096,29 +1131,41 @@ module Yast
         @iscsid_socket = Yast2::Systemd::Socket.find!("iscsid")
         @iscsiuio_socket = Yast2::Systemd::Socket.find!("iscsiuio")
 
-        @iscsi_service_stat = Service.active?("iscsi")
-        @iscsid_socket_stat = socketActive?(@iscsid_socket)
-        @iscsiuio_socket_stat = socketActive?(@iscsiuio_socket)
+        iscsi_service_stat = Service.active?("iscsi")
+        iscsid_socket_stat = socketActive?(@iscsid_socket)
+        iscsiuio_socket_stat = socketActive?(@iscsiuio_socket)
 
-        log.info "Status of iscsi.service: #{@iscsi_service_stat}, iscsid.socket: #{@iscsid_socket_stat}, iscsiuio.socket: #{@iscsiuio_socket_stat}"
+        log.info "Status of iscsi.service: #{iscsi_service_stat}, iscsid.socket: #{iscsid_socket_stat}, iscsiuio.socket: #{iscsiuio_socket_stat}"
 
         # if not running, start iscsi.service, iscsid.socket and iscsiuio.socket
-        if !@iscsid_socket_stat
+        if !iscsid_socket_stat
           Service.Stop("iscsid") if Service.active?("iscsid")
           log.error "Cannot start iscsid.socket" if !socketStart(@iscsid_socket)
         end
-        if !@iscsiuio_socket_stat
+        if !iscsiuio_socket_stat
           Service.Stop("iscsiuio") if Service.active?("iscsiuio")
           log.error "Cannot start iscsiuio.socket" if !socketStart(@iscsiuio_socket)
         end
-        if !@iscsi_service_stat && !Service.Start("iscsi")
+        if !iscsi_service_stat && !Service.Start("iscsi")
           log.error "Cannot start iscsi.service"
         end
       end
       ret
     end
 
-    # set startup status of iscsid
+    # Stops immediately all iscsi-related services and sockets if those services are disabled and
+    # there are no running sessions.
+    #
+    # NOTE: this only works in the installed system, it does nothing during installation.
+    #
+    # NOTE: this is reliable only if {#getServiceStatus} has been called before (since that's
+    # the only way to initialize @iscsid_socket and @iscsiuio_socket). Not sure if that method
+    # interdependency is intentional (looks dangerous).
+    #
+    # FIXME: The name gives a totally wrong impression on the method functionality. This method
+    # is only useful to stop services, it never starts/enables/disables any service.
+    #
+    # @return [Boolean] true in all cases, which looks suspicious
     def setServiceStatus
       ret = true
       # only makes sense in installed system
@@ -1376,6 +1423,13 @@ module Yast
       deep_copy(ret)
     end
 
+    # Modules to use for all the cards detected in the system and that support hardware
+    # offloading, no matter whether those cards are indeed configured
+    #
+    # The module to use for each card is determined by the fourth element of the
+    # corresponding entry at @offload.
+    #
+    # @return [Array<String>]
     def GetOffloadModules
       GetOffloadItems() if @offload_valid == nil
       modules = []
@@ -1464,6 +1518,16 @@ module Yast
       command = GetAdmCmd(command)
       Builtins.y2milestone("GetDiscoveryCmd %1", command)
       command
+    end
+
+    # Whether the system contains any offload card that would need the iscsiuio user-space
+    # I/O driver (see bsc#1194432)
+    #
+    # No matter where the card is configured or not
+    #
+    # @return [Boolean]
+    def iscsiuio_relevant?
+      (ISCSIUIO_MODULES & GetOffloadModules()).any?
     end
 
     publish :variable => :sessions, :type => "list <string>"

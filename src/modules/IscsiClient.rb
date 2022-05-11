@@ -76,17 +76,11 @@ module Yast
     #
     # @return [Yast2::CompundService]
     def services
-      # TODO: Having a combination of services and sockets in a compoud service
+      # TODO: Having a combination of services and sockets in a compound service
       #   do not smell very well and the user might be very carefull on the
       #   'after reboot' selection having to choose correctly for enabling the
       #   desired option (bsc#1160606).
-      @services ||= Yast2::CompoundService.new(
-        Yast2::SystemService.find("iscsid"),
-        Yast2::SystemService.find("iscsiuio"),
-        # It seems that moving it to the end help when iscsid socket is active
-        # and need to be restarted. (bsc#853300, bsc#1160606)
-        Yast2::SystemService.find("iscsi")
-      )
+      @services ||= Yast2::CompoundService.new(*system_services)
     end
 
     # Abort function
@@ -356,6 +350,18 @@ module Yast
     publish :function => :Summary, :type => "list ()"
     publish :function => :Overview, :type => "list ()"
     publish :function => :AutoPackages, :type => "map ()"
+
+  private
+
+    # @see #services
+    def system_services
+      list = [Yast2::SystemService.find("iscsid")]
+      list << Yast2::SystemService.find("iscsiuio") if IscsiClientLib.iscsiuio_relevant?
+      # It seems that moving it to the end helps when iscsid socket is active
+      # and need to be restarted. (bsc#853300, bsc#1160606)
+      list << Yast2::SystemService.find("iscsi")
+      list
+    end
   end
 
   IscsiClient = IscsiClientClass.new

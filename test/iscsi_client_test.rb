@@ -6,7 +6,13 @@ require_relative "../src/modules/IscsiClient"
 Yast.import "IscsiClient"
 
 describe Yast::IscsiClient do
-  subject(:iscsi_client) { described_class }
+  # Due to the tricky way in which YaST modules are implemented, this is needed to reset the
+  # instance variables of the module on every example.
+  subject(:iscsi_client) do
+    klass = Yast::IscsiClientClass.new
+    klass.main
+    klass
+  end
 
   before do
     allow(Yast2::SystemService).to receive(:find).with(anything).and_return(service)
@@ -23,16 +29,39 @@ describe Yast::IscsiClient do
   let(:commandline) { false }
 
   describe "#services" do
-    it "includes iscsi, iscsid, and iscsiuio" do
-      expect(Yast2::SystemService).to receive(:find).with("iscsi")
-      expect(Yast2::SystemService).to receive(:find).with("iscsid")
-      expect(Yast2::SystemService).to receive(:find).with("iscsiuio")
-
-      subject.services
+    before do
+      allow(Yast::IscsiClientLib).to receive(:iscsiuio_relevant?).and_return(iscsiuio)
     end
 
-    it "returns a compound service" do
-      expect(subject.services).to be_a(Yast2::CompoundService)
+    context "if any card in the system needs iscsiuio" do
+      let(:iscsiuio) { true }
+
+      it "includes iscsi, iscsid and iscsiuio" do
+        expect(Yast2::SystemService).to receive(:find).with("iscsi")
+        expect(Yast2::SystemService).to receive(:find).with("iscsid")
+        expect(Yast2::SystemService).to receive(:find).with("iscsiuio")
+
+        subject.services
+      end
+
+      it "returns a compound service" do
+        expect(subject.services).to be_a(Yast2::CompoundService)
+      end
+    end
+
+    context "if there are no cards in the system depending on iscsiuio" do
+      let(:iscsiuio) { false }
+
+      it "includes iscsi and iscsid" do
+        expect(Yast2::SystemService).to receive(:find).with("iscsi")
+        expect(Yast2::SystemService).to receive(:find).with("iscsid")
+
+        subject.services
+      end
+
+      it "returns a compound service" do
+        expect(subject.services).to be_a(Yast2::CompoundService)
+      end
     end
   end
 

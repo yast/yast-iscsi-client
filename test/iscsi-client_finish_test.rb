@@ -20,12 +20,19 @@ describe Yast::IscsiClientFinishClient do
       allow(Yast2::Systemd::Socket).to receive(:find)
         .with("iscsiuio")
         .and_return(iscsiuio_socket)
+
+      # The agent .probe.netcard is used to inspect the network cards in the system, this
+      # intercepts that call and mocks the result based on the scenario we want to simulate
+      allow(Yast::SCR).to receive(:Read).and_call_original
+      allow(Yast::SCR).to receive(:Read).with(Yast::Path.new(".probe.netcard"))
+        .and_return probe_netcard
     end
 
     let(:args) { ["Write"] }
     let(:session) { false }
     let(:iscsiuio) { false }
     let(:iscsiuio_socket) { nil }
+    let(:probe_netcard) { [] }
 
     context "if there are no active iSCSI sessions" do
       let(:session) { [] }

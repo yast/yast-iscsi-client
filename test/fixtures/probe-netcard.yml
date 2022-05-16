@@ -31,3 +31,12 @@
   unique_key: vWuh.VIRhsc57kTD
   vendor: Virtio
   vendor_id: 286740
+- bus: Virtio
+  class_id: 2
+  dev_name: eth1
+  dev_names:
+  - eth1
+  device: Ethernet Card 1
+  device_id: 262146
+  driver: virtio_net
+  driver_module: virtio_net

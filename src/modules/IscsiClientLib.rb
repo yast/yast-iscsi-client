@@ -1626,6 +1626,8 @@ module Yast
     # @param card [Hash] description of a netcard as returned by the probe.netcard agent
     # @return [Array<String>] names of modules
     def netcard_modules(card)
+      return [] unless card.key?("drivers")
+
       card["drivers"].flat_map { |d| d["modules"].map(&:first) }
     end
 

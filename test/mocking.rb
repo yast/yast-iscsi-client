@@ -80,7 +80,7 @@ def mock_ifconfig(dev_name, ipaddr = nil)
 
   if ipaddr
     result["stdout"] << "#{dev_name}: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500\n"
-    result["stdout"] << "      inet #{ipaddr}  netmask 255.255.255.0  broadcast 192.168.0.255\n" if !ipaddr.empty?
+    result["stdout"] << "      inet #{ipaddr}  netmask 255.255.255.0  broadcast 192.168.0.255\n" unless ipaddr.empty?
     result["stdout"] << <<EOF
       RX packets 927138  bytes 920436197 (877.7 MiB)
       TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0

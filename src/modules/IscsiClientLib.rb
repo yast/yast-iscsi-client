@@ -951,7 +951,6 @@ module Yast
         # comparing IPv4 and IPv6
         return false
       end
-
     rescue ArgumentError => e
       Builtins.y2error("Invalid IP address, error: %1", e.to_s)
       false

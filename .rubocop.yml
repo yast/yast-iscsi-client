@@ -25,12 +25,6 @@ Layout/EmptyLineAfterGuardClause:
     - 'src/modules/IscsiClient.rb'
     - 'src/modules/IscsiClientLib.rb'
 
-# Offense count: 1
-# Cop supports --auto-correct.
-Layout/EmptyLinesAroundExceptionHandlingKeywords:
-  Exclude:
-    - 'src/modules/IscsiClientLib.rb'
-
 # Offense count: 12
 # Cop supports --auto-correct.
 # Configuration parameters: EnforcedStyle, IndentationWidth.
@@ -48,12 +42,6 @@ Layout/LineEndStringConcatenationIndentation:
 # URISchemes: http, https
 Layout/LineLength:
   Max: 231
-
-# Offense count: 1
-# Cop supports --auto-correct.
-Layout/SpaceAroundMethodCallOperator:
-  Exclude:
-    - 'test/iscsi_client_lib_test.rb'
 
 # Offense count: 4
 # Cop supports --auto-correct.

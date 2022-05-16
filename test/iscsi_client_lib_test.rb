@@ -557,7 +557,7 @@ describe Yast::IscsiClientLib do
                   "\t\tIface Name: default",
                   "\tPortal: 192.168.10.20:3260,1",
                   "\t\tIface Name: default"]
-        )). to eq(
+        )).to eq(
           [
             "[2620:113:80c0:8080:e051:f9ea:73c7:9171]:3260 iqn.2013-10.de.suse:test_file2 default",
             "10.120.66.182:3260 iqn.2013-10.de.suse:test_file2 default",

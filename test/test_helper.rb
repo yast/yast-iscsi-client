@@ -4,6 +4,9 @@ ENV["Y2DIR"] = y2dirs.unshift(srcdir).join(":")
 
 require "yast"
 require "yast/rspec"
+require "pathname"
+
+FIXTURES_DIR = Pathname.new(__FILE__).dirname.join("fixtures")
 
 # Ensure the tests runs with english locales
 ENV["LC_ALL"] = "en_US.UTF-8"

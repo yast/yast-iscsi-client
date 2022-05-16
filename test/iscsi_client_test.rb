@@ -118,7 +118,7 @@ describe Yast::IscsiClient do
   end
 
   describe "#Write" do
-    let(:netcards) { [] }
+    let(:netcards) { YAML.load_file(FIXTURES_DIR.join("probe-netcard.yml")) }
 
     before do
       allow(Yast::Progress).to receive(:New)

@@ -118,6 +118,8 @@ describe Yast::IscsiClient do
   end
 
   describe "#Write" do
+    let(:netcards) { [] }
+
     before do
       allow(Yast::Progress).to receive(:New)
       allow(Yast::Progress).to receive(:NextStage)
@@ -126,6 +128,9 @@ describe Yast::IscsiClient do
       allow(Yast::Stage).to receive(:initial).and_return(false)
       allow(Yast::Mode).to receive(:auto) { auto }
       allow(Yast::Mode).to receive(:commandline) { commandline }
+      allow(Yast::SCR).to receive(:Read).and_call_original
+      allow(Yast::SCR).to receive(:Read).with(Yast::Path.new(".probe.netcard"))
+        .and_return(netcards)
 
       allow(iscsi_client).to receive(:Abort).and_return(false)
 

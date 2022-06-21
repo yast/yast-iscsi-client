@@ -42,9 +42,24 @@ module Yast
       @bg_finish = false
     end
 
-    # string initiatorname="";
-    # function for run command in background
+    # Runs the given command in background with a timeout of 10 seconds
+    #
+    # - If the command is invalid (eg. not available), it returns an empty array, sets
+    #   @stat to false... and also sets @bg_finish to false, which produces an infinite
+    #   loop at #validateServerLocation. Currently the commands passed to #runInBg are
+    #   always of the form "LC_ALL=posix whatever", which means /bin/sh is instantiated
+    #   thus the command is always found and this case never happens (pure luck).
+    # - In any other case, the method sets @bg_finish to true and returns the stdout of
+    #   the command. Additionally:
+    #   * If the command success, the method sets @stat to true.
+    #   * If the command fails, the method displays the first line of stderr to the user
+    #     and sets @stat to false.
+    #   * It the timeout is reached, the process is killed and the method displays a
+    #     message about the timeout to the user. The value of @stat is not modified.
+    #
+    # @return [Array<String>] each one of the lines of stdout
     def runInBg(command)
+      # NOTE: this method uses the "background" agent, deprecated in favor of "process".
       @bg_finish = false
       Builtins.y2milestone("Start command %1 in background", command)
       stdout = []

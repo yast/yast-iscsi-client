@@ -631,6 +631,12 @@ module Yast
       # targets won't change then (fate #317874, bnc #886796).
       option_new = (@current_tab == "client")
 
+      # The discovery command can take care of loading the needed kernel modules.
+      # But that doesn't work when YaST is running (and thus executing the
+      # discovery command) in a container. So this loads the modules in advance
+      # in a way that works in containers.
+      IscsiClientLib.load_modules
+
       command = IscsiClientLib.GetDiscoveryCmd(ip, port,
         use_fw:   false,
         only_new: option_new)

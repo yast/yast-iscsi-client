@@ -42,55 +42,49 @@ module Yast
       @bg_finish = false
     end
 
-    # string initiatorname="";
-    # function for run command in background
+    # Runs the given command in background with a timeout of 10 seconds
+    #
+    # The method sets @bg_finish to true and returns the stdout of the command.
+    # Additionally:
+    #
+    # - If the command success, the method sets @stat to true.
+    # - If the command fails, the method displays the first line of stderr to the user
+    #   and sets @stat to false.
+    # - It the timeout is reached, the process is killed and the method displays a
+    #   message about the timeout to the user. The value of @stat is not modified.
+    #
+    # @return [Array<String>] each one of the lines of stdout
     def runInBg(command)
       @bg_finish = false
       Builtins.y2milestone("Start command %1 in background", command)
       stdout = []
       return_code = nil
-      started = Convert.to_boolean(
-        SCR.Execute(path(".background.run_output_err"), command)
-      )
-      if !started
-        Builtins.y2error("Cannot run command")
-        @stat = false
-        return []
-      end
+
+      pid = SCR.Execute(path(".process.start_shell"), command)
       time_spent = 0
       cont_loop = true
       script_time_out = 10000
       sleep_step = 20
-      while cont_loop &&
-          Convert.to_boolean(SCR.Read(path(".background.output_open")))
-        if Ops.greater_or_equal(time_spent, script_time_out)
+
+      while cont_loop && SCR.Read(path(".process.running"), pid)
+        if time_spent >= script_time_out
           Popup.Error(_("Command timed out"))
           cont_loop = false
         end
-        time_spent = Ops.add(time_spent, sleep_step)
+        time_spent += sleep_step
         Builtins.sleep(sleep_step)
       end
+
       Builtins.y2milestone("Time spent: %1 msec", time_spent)
-      stdout = Convert.convert(
-        SCR.Read(path(".background.newout")),
-        :from => "any",
-        :to   => "list <string>"
-      )
+      stdout = (SCR.Read(path(".process.read"), pid) || "").split("\n")
       Builtins.y2milestone("Output: %1", stdout)
+
       if cont_loop
-        return_code = Convert.to_integer(SCR.Read(path(".background.status")))
+        return_code = SCR.Read(path(".process.status"), pid).to_i
         Builtins.y2milestone("Return: %1", return_code)
         if return_code != 0
           @stat = false
-          error = Ops.get(
-            Convert.convert(
-              SCR.Read(path(".background.newerr")),
-              :from => "any",
-              :to   => "list <string>"
-            ),
-            0,
-            ""
-          )
+          error = SCR.Read(path(".process.read_line_stderr"), pid)
           Builtins.y2error("Error: %1", error)
           Popup.Error(error)
         else
@@ -98,9 +92,7 @@ module Yast
         end
       else
         # killing the process if it still runs
-        if Convert.to_boolean(SCR.Read(path(".background.output_open")))
-          SCR.Execute(path(".background.kill"), "")
-        end
+        SCR.Execute(path(".process.kill"), pid)
       end
       @bg_finish = true
       deep_copy(stdout)
@@ -638,6 +630,12 @@ module Yast
       # command with option --new. The start-up mode for already connected
       # targets won't change then (fate #317874, bnc #886796).
       option_new = (@current_tab == "client")
+
+      # The discovery command can take care of loading the needed kernel modules.
+      # But that doesn't work when YaST is running (and thus executing the
+      # discovery command) in a container. So this loads the modules in advance
+      # in a way that works in containers.
+      IscsiClientLib.load_modules
 
       command = IscsiClientLib.GetDiscoveryCmd(ip, port,
         use_fw:   false,

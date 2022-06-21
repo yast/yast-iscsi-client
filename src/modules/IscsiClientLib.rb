@@ -1121,7 +1121,7 @@ module Yast
     def getServiceStatus
       ret = true
       if Stage.initial
-        ModuleLoading.Load("iscsi_tcp", "", "", "", false, true)
+        load_modules
         # start daemon manually (systemd not available in inst-sys)
         start_services_initial
       else
@@ -1527,6 +1527,11 @@ module Yast
     # @return [Boolean]
     def iscsiuio_relevant?
       (ISCSIUIO_MODULES & GetOffloadModules()).any?
+    end
+
+    # Loads the kernel modules needed to configure the iscsi client
+    def load_modules
+      ModuleLoading.Load("iscsi_tcp", "", "", "", false, true)
     end
 
     publish :variable => :sessions, :type => "list <string>"

@@ -29,6 +29,7 @@
 # Main file for iscsi-client configuration. Uses all other files.
 
 require "shellwords"
+require "y2iscsi_client/timeout_process"
 
 module Yast
   module IscsiClientWidgetsInclude
@@ -36,66 +37,6 @@ module Yast
       textdomain "iscsi-client"
       Yast.import "IP"
       Yast.import "Arch"
-
-      @stat = false
-      @curr_rec = []
-      @bg_finish = false
-    end
-
-    # Runs the given command in background with a timeout of 10 seconds
-    #
-    # The method sets @bg_finish to true and returns the stdout of the command.
-    # Additionally:
-    #
-    # - If the command success, the method sets @stat to true.
-    # - If the command fails, the method displays the first line of stderr to the user
-    #   and sets @stat to false.
-    # - It the timeout is reached, the process is killed and the method displays a
-    #   message about the timeout to the user. The value of @stat is not modified.
-    #
-    # @return [Array<String>] each one of the lines of stdout
-    def runInBg(command)
-      @bg_finish = false
-      Builtins.y2milestone("Start command %1 in background", command)
-      stdout = []
-      return_code = nil
-
-      pid = SCR.Execute(path(".process.start_shell"), command)
-      time_spent = 0
-      cont_loop = true
-      script_time_out = 10000
-      sleep_step = 20
-
-      while cont_loop && SCR.Read(path(".process.running"), pid)
-        if time_spent >= script_time_out
-          Popup.Error(_("Command timed out"))
-          cont_loop = false
-        end
-        time_spent += sleep_step
-        Builtins.sleep(sleep_step)
-      end
-
-      Builtins.y2milestone("Time spent: %1 msec", time_spent)
-      stdout = (SCR.Read(path(".process.read"), pid) || "").split("\n")
-      Builtins.y2milestone("Output: %1", stdout)
-
-      if cont_loop
-        return_code = SCR.Read(path(".process.status"), pid).to_i
-        Builtins.y2milestone("Return: %1", return_code)
-        if return_code != 0
-          @stat = false
-          error = SCR.Read(path(".process.read_line_stderr"), pid)
-          Builtins.y2error("Error: %1", error)
-          Popup.Error(error)
-        else
-          @stat = true
-        end
-      else
-        # killing the process if it still runs
-        SCR.Execute(path(".process.kill"), pid)
-      end
-      @bg_finish = true
-      deep_copy(stdout)
     end
 
     # validation for authentication dialog entry
@@ -623,8 +564,6 @@ module Yast
       # temporarily write authentication data to /etc/iscsi/iscsi.conf
       IscsiClientLib.saveConfig(user_in, pass_in, user_out, pass_out)
 
-      @bg_finish = false
-
       # Check @current_tab (dialogs.rb) here. If it's "client", i.e. the
       # 'Add' button at 'Connected Targets' is used, create discovery
       # command with option --new. The start-up mode for already connected
@@ -640,24 +579,19 @@ module Yast
       command = IscsiClientLib.GetDiscoveryCmd(ip, port,
         use_fw:   false,
         only_new: option_new)
-      trg_list = runInBg(command)
-      until @bg_finish
-
-      end
-      if Builtins.size(trg_list) == 0
+      success, trg_list = Y2IscsiClient::TimeoutProcess.run(command)
+      if trg_list.empty?
         command = IscsiClientLib.GetDiscoveryCmd(ip, port,
           use_fw:   true,
           only_new: option_new)
-        trg_list = runInBg(command)
-        until @bg_finish
-
-        end
+        success, trg_list = Y2IscsiClient::TimeoutProcess.run(command)
       end
+
       IscsiClientLib.targets = IscsiClientLib.ScanDiscovered(trg_list)
       # restore saved config
       IscsiClientLib.oldConfig
 
-      @stat
+      success
     end
 
     # ********************* discovered table *******************
@@ -734,7 +668,6 @@ module Yast
         Ops.get(params, 1, ""),
         Ops.get(params, 2, "default")
       ]
-      #    params = curr_rec;
       if Ops.get_string(event, "EventReason", "") == "Activated"
         # connect new target
         if Ops.get(event, "ID") == :connect

@@ -1499,22 +1499,24 @@ module Yast
     def GetDiscoveryCmd(ip, port, use_fw: false, only_new: false)
       Builtins.y2milestone("GetDiscoveryCmd ip:%1 port:%2 fw:%3 only new:%4",
         ip, port, use_fw, only_new)
-      command = "-m discovery -P 1"
+      command = ["/usr/sbin/iscsiadm", "-m", "discovery", "-P", "1"]
       isns_info = useISNS
       if isns_info["use"]
-        command << " -t isns -p #{ip}:#{port}"
+        command << "-t" << "isns"
       else
         ifs = GetDiscIfaces()
         Builtins.y2milestone("ifs=%1", ifs)
-        ifs = Builtins.maplist(ifs) { |s| Ops.add("-I ", s) }
+        ifs = ifs.each_with_object([]) { |s, res| res << "-I" << s }
         Builtins.y2milestone("ifs=%1", ifs)
         tgt = "st"
         tgt = "fw" if use_fw
-        command << " -t #{tgt} #{ifs.join(" ")} -p #{ip}:#{port}"
+        command << "-t" << tgt
+        command.concat(ifs)
       end
-      command << " -o new" if only_new
 
-      command = GetAdmCmd(command)
+      command << "-p" << "#{ip}:#{port}"
+      command << "-o" << "new" if only_new
+
       Builtins.y2milestone("GetDiscoveryCmd %1", command)
       command
     end

@@ -51,8 +51,10 @@ module Yast
 
       Yast.include include_target, "iscsi-client/helps.rb"
       Yast.include include_target, "iscsi-client/widgets.rb"
+    end
 
-      @widgets = {
+    def widgets
+      @widgets ||= {
         "auto_start_up"    => service_widget.cwm_definition,
         "isns"             => {
           "widget"            => :custom,
@@ -304,8 +306,10 @@ module Yast
           "help"          => Ops.get_string(@HELPS, "ibft_table", "")
         }
       }
+    end
 
-      @tabs_descr = {
+    def tabs_descr
+      @tabs_descr ||= {
         # service status dialog
         "general"    => {
           "header"       => _("Service"),
@@ -368,7 +372,7 @@ module Yast
     # main tabbed dialog
     def GlobalDialog
       if Stage.initial
-        Ops.set(@tabs_descr, ["general", "widget_names"], ["initiator_name"])
+        Ops.set(tabs_descr, ["general", "widget_names"], ["initiator_name"])
       end
       caption = _("iSCSI Initiator Overview")
 
@@ -381,8 +385,8 @@ module Yast
       widget_descr = {
         "tab" => CWMTab.CreateWidget(
           "tab_order"    => tab_order,
-          "tabs"         => @tabs_descr,
-          "widget_descr" => @widgets,
+          "tabs"         => tabs_descr,
+          "widget_descr" => widgets,
           "initial_tab"  => Stage.initial ? "general" : @current_tab,
           "tab_help"     => _("<h1>iSCSI Initiator</h1>")
         )
@@ -419,7 +423,7 @@ module Yast
     def DiscAuthDialog(return_to)
       @current_tab = return_to
       caption = _("iSCSI Initiator Discovery") # bug #148963 _("iSCSI Target Login");
-      w = CWM.CreateWidgets(["server_location", "discovery_auth"], @widgets)
+      w = CWM.CreateWidgets(["server_location", "discovery_auth"], widgets)
       contents = VBox(
         VStretch(),
         HBox(
@@ -457,7 +461,7 @@ module Yast
     def TargetsDialog
       @current_tab = "client"
       caption = _("iSCSI Initiator Discovery")
-      w = CWM.CreateWidgets(["targets_table"], @widgets)
+      w = CWM.CreateWidgets(["targets_table"], widgets)
       contents = VBox(
         HBox(HSpacing(1), VBox(Ops.get_term(w, [0, "widget"]) { VSpacing(1) }), HSpacing(
                                                                                   1
@@ -482,7 +486,7 @@ module Yast
     def ConnAuthDialog(return_to)
       @current_tab = return_to
       caption = _("iSCSI Initiator Discovery")
-      w = CWM.CreateWidgets(["startup", "conn_auth"], @widgets)
+      w = CWM.CreateWidgets(["startup", "conn_auth"], widgets)
 
       contents = VBox(
         VStretch(),

@@ -33,8 +33,6 @@ BuildRequires:  yast2-devtools >= 4.4.0
 BuildRequires:  yast2-packager
 BuildRequires:  rubygem(%{rb_default_ruby_abi}:rspec)
 BuildRequires:  rubygem(%rb_default_ruby_abi:yast-rake)
-Requires:       iscsiuio
-Requires:       open-iscsi
 # Yast2::Systemd::Socket
 Requires:       yast2 >= 4.1.3
 Requires:       yast2-packager

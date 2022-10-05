@@ -1496,6 +1496,7 @@ module Yast
       nil
     end
 
+    # @return [Array<String>]
     def GetDiscoveryCmd(ip, port, use_fw: false, only_new: false)
       Builtins.y2milestone("GetDiscoveryCmd ip:%1 port:%2 fw:%3 only new:%4",
         ip, port, use_fw, only_new)
@@ -1576,7 +1577,6 @@ module Yast
     publish :function => :GetOffloadItems, :type => "list <term> ()"
     publish :function => :GetOffloadModules, :type => "list <string> ()"
     publish :function => :LoadOffloadModules, :type => "list <string> ()"
-    publish :function => :GetDiscoveryCmd, :type => "string (string, string, map)"
     publish :function => :getCurrentNodeValues, :type => "map <string, any> ()"
     publish :function => :iBFT?, :type => "boolean (map <string, any>)"
 

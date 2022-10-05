@@ -16,26 +16,31 @@ describe Y2IscsiClient::TimeoutProcess do
     end
 
     context "when command failed" do
-      it "shows error popup" do
-        expect(Yast::Popup).to receive(:Error)
+      # a command that produces stdout AND stderr AND fails
+      let(:command) { ["sh", "-c", "echo Copying data; echo >&2 Giving up; false"] }
+      it "shows error popup with its stderr" do
+        expect(Yast::Popup).to receive(:Error).with("Giving up\n")
 
-        described_class.run(["false"])
+        described_class.run(command)
       end
 
-      it "returns false and its stderr" do
-        expect(described_class.run(["false"])).to eq([false, []])
+      it "returns false and its stdout" do
+        expect(described_class.run(command)).to eq([false, ["Copying data"]])
       end
     end
 
     context "when command runs after timeout" do
-      it "shows error popup" do
+      # a command that produces stdout AND stderr AND takes a long time
+      let(:command) { ["sh", "-c", "echo Copying data; echo >&2 Mars is too far; sleep 999"] }
+
+      it "shows generic error popup" do
         expect(Yast::Popup).to receive(:Error).with("Command timed out")
 
-        described_class.run(["sleep", "10"], timeout: 1)
+        described_class.run(command, seconds: 1)
       end
 
-      it "returns false and its stderr" do
-        expect(described_class.run(["sleep", "10"], timeout: 1)).to eq([false, []])
+      it "returns false and its stdout" do
+        expect(described_class.run(command, seconds: 1)).to eq([false, ["Copying data"]])
       end
     end
   end

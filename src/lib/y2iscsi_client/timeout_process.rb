@@ -19,7 +19,7 @@ module Y2IscsiClient
 
       # pass kill-after to ensure that command really dies even if ignore TERM
       stdout, stderr, exit_status = Yast::Execute.on_target!(
-        "/usr/bin/timeout", "--kill-after=5s", "#{seconds}s",
+        "timeout", "--kill-after=5s", "#{seconds}s",
         *command, stdout: :capture, stderr: :capture,
         allowed_exitstatus: 0..255, env: { "LC_ALL" => "POSIX" }
       )

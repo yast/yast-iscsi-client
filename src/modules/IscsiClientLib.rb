@@ -1500,7 +1500,7 @@ module Yast
     def GetDiscoveryCmd(ip, port, use_fw: false, only_new: false)
       Builtins.y2milestone("GetDiscoveryCmd ip:%1 port:%2 fw:%3 only new:%4",
         ip, port, use_fw, only_new)
-      command = ["/usr/sbin/iscsiadm", "-m", "discovery", "-P", "1"]
+      command = ["iscsiadm", "-m", "discovery", "-P", "1"]
       isns_info = useISNS
       if isns_info["use"]
         command << "-t" << "isns"

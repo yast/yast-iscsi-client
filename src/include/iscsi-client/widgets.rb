@@ -218,53 +218,8 @@ module Yast
       event = deep_copy(event)
       address = Convert.to_string(UI.QueryWidget(:isns_address, :Value))
       port = Convert.to_string(UI.QueryWidget(:isns_port, :Value))
-      found_addr = false
-      found_port = false
-      tmp_config = []
 
-      Builtins.foreach(IscsiClientLib.getConfig) do |row|
-        if Ops.get_string(row, "name", "") == "isns.address"
-          Ops.set(row, "value", address)
-          found_addr = true
-        end
-        if Ops.get_string(row, "name", "") == "isns.port"
-          Ops.set(row, "value", port)
-          found_port = true
-        end
-        if (Ops.get_string(row, "name", "") == "isns.address" ||
-            Ops.get_string(row, "name", "") == "isns.port") &&
-            Ops.greater_than(Builtins.size(address), 0) &&
-            Ops.greater_than(Builtins.size(port), 0) ||
-            Ops.get_string(row, "name", "") != "isns.address" &&
-                Ops.get_string(row, "name", "") != "isns.port"
-          tmp_config = Builtins.add(tmp_config, row)
-        end
-      end
-      if Ops.greater_than(Builtins.size(address), 0) &&
-          Ops.greater_than(Builtins.size(port), 0)
-        if !found_addr
-          tmp_config = Builtins.add(
-            tmp_config,
-            "name"    => "isns.address",
-            "value"   => address,
-            "kind"    => "value",
-            "type"    => 1,
-            "comment" => ""
-          )
-        end
-        if !found_port
-          tmp_config = Builtins.add(
-            tmp_config,
-            "name"    => "isns.port",
-            "value"   => port,
-            "kind"    => "value",
-            "type"    => 1,
-            "comment" => ""
-          )
-        end
-      end
-
-      IscsiClientLib.setConfig(tmp_config)
+      IscsiClientLib.setISNSConfig(address, port)
       IscsiClientLib.oldConfig
       nil
     end

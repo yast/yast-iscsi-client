@@ -24,6 +24,7 @@
 require "yast"
 require "yast2/systemd/socket"
 require "ipaddr"
+require "y2iscsi_client/config"
 
 require "shellwords"
 
@@ -107,14 +108,8 @@ module Yast
       @iface_eth = []
 
       # Content of the main configuration file (/etc/iscsi/iscsid.conf)
-      #
-      # Due to the way YaST ini-agent works, this variable follows the structure
-      # {"kind"=>"section", "type"=>-1, "value"=> Array<Hash> }
-      # in which that latter array of hashes represents the relevant entries in the
-      # configuration file.
-      #
       # Use {#getConfig} and {#setConfig} to deal with its content in a convenient way.
-      @config = {}
+      @config = Y2IscsiClient::Config.new
 
       # iBFT (iSCSI Boot Firmware Table)
       @ibft = nil
@@ -384,19 +379,14 @@ module Yast
 
     # Current configuration
     #
-    # Returns an array with all the entries of the configuration, each entry
-    # represented by hash that follows the structure of the YaST init-agent.
-    # See {#createMap}
+    # returns an array with all the entries of the configuration, each entry
+    # represented by hash that follows the structure of the yast init-agent.
     #
     # @return [Array<Hash>]
     def getConfig
       # use cache if available
-      if @config.empty?
-        @config = SCR.Read(path(".etc.iscsid.all"))
-        Builtins.y2debug("read config %1", @config)
-      end
-
-      @config.fetch("value", [])
+      @config.read if @config.empty?
+      @config.entries
     end
 
     # Updates the in-memory representation of the configuration
@@ -405,7 +395,7 @@ module Yast
     #
     # @param new_config [Array<Hash>]
     def setConfig(new_config)
-      @config["value"] = deep_copy(new_config)
+      @config.entries = deep_copy(new_config)
       nil
     end
 
@@ -428,9 +418,7 @@ module Yast
     # write temporary changed old config
     def oldConfig
       Builtins.y2milestone("Store temporary config %1", @config)
-      SCR.Write(path(".etc.iscsid.all"), @config)
-      SCR.Write(path(".etc.iscsid"), nil)
-
+      @config.save
       nil
     end
 
@@ -468,109 +456,18 @@ module Yast
       deep_copy(auth)
     end
 
-    # create map from given map in format needed by ini-agent
-    def createMap(old_map, comments)
-      old_map = deep_copy(old_map)
-      comments = deep_copy(comments)
-      comment = ""
-      Builtins.foreach(comments) do |row|
-        comment = Builtins.sformat("%1%2", comment, row)
-      end
-      {
-        "name"    => Ops.get_string(old_map, "KEY", ""),
-        "value"   => Ops.get_string(old_map, "VALUE", ""),
-        "kind"    => "value",
-        "type"    => 1,
-        "comment" => comment
-      }
-    end
-
-    # Modifies the value of the entry with the given name, creating a new entry if none exists
-    #
-    # @param old_list [Array<Hash>] list of maps in the format used by ini-agent (see {#createMap})
-    # @param key [String] name of the entry
-    # @param value [Object] new value for the entry
-    # @return [Array<Hash>] modified list of maps
-    def setOrAdd(old_list, key, value)
-      new_list = deep_copy(old_list)
-
-      element = new_list.find { |row| row["name"] == key }
-      if element
-        element["value"] = value
-      else
-        new_list << createMap({ "KEY" => key, "VALUE" => value }, [])
-      end
-
-      new_list
-    end
-
-    # Deletes the entry with the given key
-    #
-    # @param old_list [Array<Hash>] list of maps in the format used by ini-agent (see {#createMap})
-    # @param key [String] name of the entry to be deleted
-    # @return [Array<Hash>] modified list of maps
-    def delete(old_list, key)
-      Builtins.y2milestone("Delete record for %1", key)
-      deep_copy(old_list).reject { |row| row["name"] == key }
-    end
-
     # temporary change config for discovery authentication
     def saveConfig(user_in, pass_in, user_out, pass_out)
       Builtins.y2milestone("Save config")
       tmp_conf = deep_copy(@config)
-      tmp_val = tmp_conf["value"] || []
 
-      if (specified = !user_in.empty? && !pass_in.empty?)
-        tmp_val = setOrAdd(
-          tmp_val,
-          "discovery.sendtargets.auth.authmethod",
-          "CHAP"
-        )
-        tmp_val = setOrAdd(
-          tmp_val,
-          "discovery.sendtargets.auth.username_in",
-          user_in
-        )
-        tmp_val = setOrAdd(
-          tmp_val,
-          "discovery.sendtargets.auth.password_in",
-          pass_in
-        )
-      else
-        tmp_val = delete(tmp_val, "discovery.sendtargets.auth.username_in")
-        tmp_val = delete(tmp_val, "discovery.sendtargets.auth.password_in")
-      end
-
-      if (specified = !user_out.empty? && !pass_out.empty?)
-        tmp_val = setOrAdd(
-          tmp_val,
-          "discovery.sendtargets.auth.authmethod",
-          "CHAP"
-        )
-        tmp_val = setOrAdd(
-          tmp_val,
-          "discovery.sendtargets.auth.username",
-          user_out
-        )
-        tmp_val = setOrAdd(
-          tmp_val,
-          "discovery.sendtargets.auth.password",
-          pass_out
-        )
-      else
-        tmp_val = delete(tmp_val, "discovery.sendtargets.auth.username")
-        tmp_val = delete(tmp_val, "discovery.sendtargets.auth.password")
-      end
-
-      if user_in.empty? && user_out.empty?
-        tmp_val = delete(tmp_val, "discovery.sendtargets.auth.authmethod")
-      end
-
-      Ops.set(tmp_conf, "value", tmp_val)
-      SCR.Write(path(".etc.iscsid.all"), tmp_conf)
-      SCR.Write(path(".etc.iscsid"), nil)
-
+      tmp_conf.set_discovery_auth(user_in, pass_in, user_out, pass_out)
+      tmp_conf.save
       nil
+    end
+
+    def setISNSConfig(address, port)
+      @config.set_isns(address, port)
     end
 
     # Called for data (output) of commands:
@@ -1599,6 +1496,7 @@ module Yast
     publish :function => :oldConfig, :type => "void ()"
     publish :function => :getNode, :type => "map <string, any> ()"
     publish :function => :saveConfig, :type => "void (string, string, string, string)"
+    publish :function => :setISNSConfig, :type => "void (string, string)"
     publish :function => :ScanDiscovered, :type => "list <string> (list <string>)"
     publish :function => :getDiscovered, :type => "list <string> ()"
     publish :function => :start_services_initial, :type => "void ()"

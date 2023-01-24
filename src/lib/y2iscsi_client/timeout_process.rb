@@ -3,7 +3,7 @@ require "yast2/execute"
 
 Yast.import "Popup"
 
-# yast2 iscsi client specific namespace
+# Namespace for the YaST2 iSCSI client
 module Y2IscsiClient
   # Runner class that execute command with given timeout
   module TimeoutProcess

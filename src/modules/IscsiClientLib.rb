@@ -51,6 +51,41 @@ module Yast
     ISCSIUIO_MODULES = ["bnx2i", "qedi"].freeze
     private_constant :ISCSIUIO_MODULES
 
+    # Documentation for attributes that are initialized at #main
+
+    # @!attribute sessions
+    #   All connected nodes found via #readSessions
+    #
+    #   In Open-iscsi, the term "node" refers to a portal on a target
+    #
+    #   Each session is represented by a string of the form "portal target iface"
+    #
+    #   @return [Array<String>] ex. ["192.168.122.47:3260 iqn.2022-12.com.example:3dafafa2 default"]
+
+    # @!attribute discovered
+    # Entries in the local nodes database, populated via #getDiscovered
+    #
+    # Each node is represented by a string of the same form than in {#sessions}
+    #
+    # @return [Array<String>]
+
+    # @!attribute targets
+    #   List of nodes found by the latest discovery
+    #
+    #   Each target is represented by a string of the same form than in {#sessions}
+    #
+    #   @return [Array<String>]
+
+    # @!attribute currentRecord
+    #   Node used as a target for most operations offered by the IscsiClientLib module
+    #
+    #   Consists on an array in which the first element is the portal, the second is the target
+    #   and the third is the iSCSI interface (ie. similar to the strings in {#sessions},
+    #   {#discovered} or {#targets} but using an array instead of a space-separated string).
+    #
+    #   @return [Array<String>]
+
+    # Constructor
     def main
       textdomain "iscsi-client"
 
@@ -63,6 +98,7 @@ module Yast
       Yast.import "String"
       Yast.import "Arch"
 
+      # For information about these variables, see the YARDoc documentation above
       @sessions = []
       @discovered = []
       @targets = []
@@ -594,7 +630,8 @@ module Yast
       deep_copy(ret)
     end
 
-    # get all discovered targets
+    # Read all discovered targets from the local nodes database, storing the result in the
+    # {#discovered} attribute
     def getDiscovered
       @discovered = []
       retcode = SCR.Execute(path(".target.bash_output"), GetAdmCmd("-m node -P 1"))
@@ -635,7 +672,7 @@ module Yast
       nil
     end
 
-    # get all connected targets
+    # Get all connected targets storing the result in the #sessions attribute
     def readSessions
       Builtins.y2milestone("reading current settings")
       retcode = SCR.Execute(path(".target.bash_output"), GetAdmCmd("-m session -P 1"))
@@ -1034,12 +1071,16 @@ module Yast
       ret
     end
 
+    # Logs into the targets specified by iBFT
     def autoLogOn
       ret = true
       log.info "begin of autoLogOn function"
       if !getiBFT.empty?
         result = SCR.Execute(path(".target.bash_output"), GetAdmCmd("-m fw -l"))
         ret = false if result["exit"] != 0
+
+        # Note that fw discovery does not store persistent records in the node or discovery DB,
+        # so this is likely only done for reporting purposes (writing the info to the YaST logs)
         log.info "Autologin into iBFT : #{result}"
         result = SCR.Execute(path(".target.bash_output"), GetAdmCmd("-m discovery -t fw"))
         log.info "iBFT discovery: #{result}"

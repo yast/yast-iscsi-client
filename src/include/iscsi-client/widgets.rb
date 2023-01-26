@@ -282,6 +282,7 @@ module Yast
         0
       )
         UI.ChangeWidget(:initiator_name, :Enabled, false)
+        # Not sure if there is such a widget called :write
         UI.ChangeWidget(:write, :Enabled, false)
       end
 
@@ -342,6 +343,7 @@ module Yast
         IscsiClientLib.writeInitiatorName(
           Convert.to_string(UI.QueryWidget(:initiator_name, :Value))
         )
+        # Isn't this redundant with the code at IscsiClientLib.writeInitiatorName?
         if Stage.initial
           IscsiClientLib.restart_iscsid_initial
         else
@@ -533,7 +535,7 @@ module Yast
         ip = "[#{ip}]" # brackets needed around IPv6
       end
 
-      # store /etc/iscsi/iscsi.conf
+      # Store the content of /etc/iscsi/iscsi.conf into memory
       IscsiClientLib.getConfig
 
       auth_none = Convert.to_boolean(UI.QueryWidget(Id(:auth_none), :Value))
@@ -588,7 +590,7 @@ module Yast
       end
 
       IscsiClientLib.targets = IscsiClientLib.ScanDiscovered(trg_list)
-      # restore saved config
+      # Restore into iscsi.conf the configuration previously saved in memory
       IscsiClientLib.oldConfig
 
       success

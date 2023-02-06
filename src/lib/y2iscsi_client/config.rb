@@ -52,27 +52,25 @@ module Y2IscsiClient
 
     # Modifies the needed entries in order to set the given configuration for discovery
     # authentication
-    def set_discovery_auth(user_in, pass_in, user_out, pass_out)
-      if (!user_in.empty? && !pass_in.empty?)
+    #
+    # @param auth [Authentication]
+    def set_discovery_auth(auth) # rubocop:disable Naming/AccessorMethodName
+      if auth.chap?
         self.entries = set_or_add(entries, "#{DISCOVERY_AUTH}.authmethod", "CHAP")
-        self.entries = set_or_add(entries, "#{DISCOVERY_AUTH}.username_in", user_in)
-        self.entries = set_or_add(entries, "#{DISCOVERY_AUTH}.password_in", pass_in)
+        self.entries = set_or_add(entries, "#{DISCOVERY_AUTH}.username", auth.username)
+        self.entries = set_or_add(entries, "#{DISCOVERY_AUTH}.password", auth.password)
       else
-        self.entries = delete(entries, "#{DISCOVERY_AUTH}.username_in")
-        self.entries = delete(entries, "#{DISCOVERY_AUTH}.password_in")
-      end
-
-      if (!user_out.empty? && !pass_out.empty?)
-        self.entries = set_or_add(entries, "#{DISCOVERY_AUTH}.authmethod", "CHAP")
-        self.entries = set_or_add(entries, "#{DISCOVERY_AUTH}.username", user_out)
-        self.entries = set_or_add(entries, "#{DISCOVERY_AUTH}.password", pass_out)
-      else
+        self.entries = delete(entries, "#{DISCOVERY_AUTH}.authmethod")
         self.entries = delete(entries, "#{DISCOVERY_AUTH}.username")
         self.entries = delete(entries, "#{DISCOVERY_AUTH}.password")
       end
 
-      if user_in.empty? && user_out.empty?
-        self.entries = delete(entries, "#{DISCOVERY_AUTH}.authmethod")
+      if auth.by_initiator?
+        self.entries = set_or_add(entries, "#{DISCOVERY_AUTH}.username_in", auth.username_in)
+        self.entries = set_or_add(entries, "#{DISCOVERY_AUTH}.password_in", auth.password_in)
+      else
+        self.entries = delete(entries, "#{DISCOVERY_AUTH}.username_in")
+        self.entries = delete(entries, "#{DISCOVERY_AUTH}.password_in")
       end
     end
 

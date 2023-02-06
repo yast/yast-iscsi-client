@@ -12,9 +12,10 @@ module Y2IscsiClient
 
     # @param [Array<String>] command as list of arguments
     # @param [Integer] seconds timeout for command
+    # @param silent [Boolean] whether interaction with the user must be avoided
     # @return [Array(Boolean, Array<String>)] return pair of boolean if command
     #   succeed and stdout lines without ending newline
-    def self.run(command, seconds: 10)
+    def self.run(command, seconds: 10, silent: false)
       textdomain "iscsi-client"
 
       # pass kill-after to ensure that command really dies even if ignore TERM
@@ -28,10 +29,10 @@ module Y2IscsiClient
       case exit_status
       when 0 then [true, output]
       when 124, (128 + 9)
-        Yast::Popup.Error(_("Command timed out"))
+        Yast::Popup.Error(_("Command timed out")) unless silent
         [false, output]
       else
-        Yast::Popup.Error(stderr)
+        Yast::Popup.Error(stderr) unless silent
         [false, output]
       end
     end

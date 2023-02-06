@@ -29,7 +29,7 @@
 # Main file for iscsi-client configuration. Uses all other files.
 
 require "shellwords"
-require "y2iscsi_client/timeout_process"
+require "y2iscsi_client/authentication"
 
 module Yast
   module IscsiClientWidgetsInclude
@@ -498,57 +498,25 @@ module Yast
       pass_in = Builtins.tostring(UI.QueryWidget(Id(:pass_in), :Value))
       user_out = Builtins.tostring(UI.QueryWidget(Id(:user_out), :Value))
       pass_out = Builtins.tostring(UI.QueryWidget(Id(:pass_out), :Value))
-      auth_in = !auth_none && Ops.greater_than(Builtins.size(user_in), 0) &&
-        Ops.greater_than(Builtins.size(pass_in), 0)
-      auth_out = !auth_none && Ops.greater_than(Builtins.size(user_out), 0) &&
-        Ops.greater_than(Builtins.size(pass_out), 0)
 
-      if auth_none
-        user_in = ""
-        pass_in = ""
-        user_out = ""
-        pass_out = ""
+      auth = Y2IscsiClient::Authentication.new
+      if !auth_none
+        if !user_in.empty? && !pass_in.empty?
+          auth.username_in = user_in
+          auth.password_in = pass_in
+        end
+        if !user_out.empty? && !pass_out.empty?
+          auth.username = user_out
+          auth.password = pass_out
+        end
       end
-      if !auth_in
-        user_in = ""
-        pass_in = ""
-      end
-      if !auth_out
-        user_out = ""
-        pass_out = ""
-      end
-
-      # temporarily write authentication data to /etc/iscsi/iscsi.conf
-      IscsiClientLib.saveConfig(user_in, pass_in, user_out, pass_out)
 
       # Check @current_tab (dialogs.rb) here. If it's "client", i.e. the
       # 'Add' button at 'Connected Targets' is used, create discovery
       # command with option --new. The start-up mode for already connected
       # targets won't change then (fate #317874, bnc #886796).
       option_new = (@current_tab == "client")
-
-      # The discovery command can take care of loading the needed kernel modules.
-      # But that doesn't work when YaST is running (and thus executing the
-      # discovery command) in a container. So this loads the modules in advance
-      # in a way that works in containers.
-      IscsiClientLib.load_modules
-
-      command = IscsiClientLib.GetDiscoveryCmd(ip, port,
-        use_fw:   false,
-        only_new: option_new)
-      success, trg_list = Y2IscsiClient::TimeoutProcess.run(command)
-      if trg_list.empty?
-        command = IscsiClientLib.GetDiscoveryCmd(ip, port,
-          use_fw:   true,
-          only_new: option_new)
-        success, trg_list = Y2IscsiClient::TimeoutProcess.run(command)
-      end
-
-      IscsiClientLib.targets = IscsiClientLib.ScanDiscovered(trg_list)
-      # Restore into iscsi.conf the configuration previously saved in memory
-      IscsiClientLib.oldConfig
-
-      success
+      IscsiClientLib.discover(ip, port, auth, only_new: option_new)
     end
 
     # ********************* discovered table *******************

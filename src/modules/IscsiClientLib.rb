@@ -2,7 +2,7 @@
 
 # |***************************************************************************
 # |
-# | Copyright (c) [2012-2022] SUSE LLC
+# | Copyright (c) [2012-2023] SUSE LLC
 # | All Rights Reserved.
 # |
 # | This program is free software; you can redistribute it and/or
@@ -25,6 +25,8 @@ require "yast"
 require "yast2/systemd/socket"
 require "ipaddr"
 require "y2iscsi_client/config"
+require "y2iscsi_client/timeout_process"
+require "y2iscsi_client/authentication"
 
 require "shellwords"
 
@@ -456,14 +458,66 @@ module Yast
       deep_copy(auth)
     end
 
-    # temporary change config for discovery authentication
+    # @see #save_auth_config
+    #
+    # Offered for backwards compatibility
     def saveConfig(user_in, pass_in, user_out, pass_out)
+      values = {
+        "username_in" => user_in, "password_in" => pass_in,
+        "username" => user_out, "password" => pass_out
+      }
+      auth = Y2IscsiClient::Authentication.new_from_legacy(values)
+      save_auth_config(auth)
+    end
+
+    # Temporary change config for discovery authentication
+    #
+    # Writes the authentication settings to the iscsid.conf file without altering the memory
+    # representation of that file that is stored at @config. That makes possible to undo the
+    # changes in the file later by calling {#oldConfig}.
+    #
+    # @param auth [Authentication] authentication settings to use for discovery operations
+    def save_auth_config(auth)
       Builtins.y2milestone("Save config")
       tmp_conf = deep_copy(@config)
 
-      tmp_conf.set_discovery_auth(user_in, pass_in, user_out, pass_out)
+      tmp_conf.set_discovery_auth(auth)
       tmp_conf.save
       nil
+    end
+
+    # Executes an iSCSI discovery using Send Targets and stores the result (the found
+    # nodes) at {#targets}.
+    #
+    # The discovery operation will update the local send_targets database, so a subsequent
+    # call to {#getDiscovered} would report the discovered nodes in addition to the previously
+    # known ones.
+    #
+    # @return [Boolean] whether the discovery operation succeeded and {#targets} contains a
+    #   valid result
+    def discover(host, port, auth, only_new: false, silent: false)
+      # temporarily write authentication data to /etc/iscsi/iscsi.conf
+      save_auth_config(auth)
+
+      # The discovery command can take care of loading the needed kernel modules.
+      # But that doesn't work when YaST is running (and thus executing the
+      # discovery command) in a container. So this loads the modules in advance
+      # in a way that works in containers.
+      load_modules
+
+      command = GetDiscoveryCmd(host, port, only_new: only_new, use_fw: false)
+      success, trg_list = Y2IscsiClient::TimeoutProcess.run(command, silent: silent)
+
+      if trg_list.empty?
+        command = GetDiscoveryCmd(host, port, only_new: only_new, use_fw: true)
+        success, trg_list = Y2IscsiClient::TimeoutProcess.run(command, silent: silent)
+      end
+
+      self.targets = ScanDiscovered(trg_list)
+      # Restore into iscsi.conf the configuration previously saved in memory
+      oldConfig
+
+      success
     end
 
     def setISNSConfig(address, port)

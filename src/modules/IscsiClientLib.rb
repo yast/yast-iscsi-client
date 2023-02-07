@@ -782,7 +782,12 @@ module Yast
       ret
     end
 
-    # delete deiscovered target from database
+    # Logout from the target (ie. remove the corresponding session)
+    #
+    # This does not delete the target from nodes database. The name of the method is plain wrong
+    # for historical reasons.
+    #
+    # To delete a record from the database of discovered targets, see {#removeRecord} instead.
     def deleteRecord
       ret = true
       Builtins.y2milestone("Delete record %1", @currentRecord)
@@ -807,6 +812,26 @@ module Yast
 
       readSessions
       ret
+    end
+
+    # Delete the current node from the database of discovered targets
+    #
+    # It does not check whether the node is connected. Bear in mind iscsiadm manpage states the
+    # following. "Delete should not be used on a running session. If it is iscsiadm will stop the
+    # session and then delete the record."
+    def removeRecord
+      result = SCR.Execute(
+        path(".target.bash_output"),
+        GetAdmCmd(
+          Builtins.sformat(
+            "-m node -T %1 -p %2 -I %3 --op=delete",
+            Ops.get(@currentRecord, 1, "").shellescape,
+            Ops.get(@currentRecord, 0, "").shellescape,
+            Ops.get(@currentRecord, 2, "").shellescape
+          )
+        )
+      )
+      Builtins.y2milestone(result.inspect)
     end
 
     # Get info about current iSCSI node

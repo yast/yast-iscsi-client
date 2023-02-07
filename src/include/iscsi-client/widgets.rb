@@ -619,16 +619,7 @@ module Yast
         # delete connected item
         if Ops.get(event, "ID") == :delete
           if params == [] || !IscsiClientLib.connected(true)
-            cmd = IscsiClientLib.GetAdmCmd(
-              Builtins.sformat(
-                "-m node -T %1 -p %2 -I %3 --op=delete",
-                Ops.get(params, 1, "").shellescape,
-                Ops.get(params, 0, "").shellescape,
-                Ops.get(params, 2, "").shellescape
-              )
-            )
-            result = SCR.Execute(path(".target.bash_output"), cmd, {})
-            Builtins.y2milestone(result.inspect)
+            IscsiClientLib.removeRecord
             IscsiClientLib.readSessions
             initDiscoveredTable("")
             if selected != nil

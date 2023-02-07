@@ -1048,6 +1048,14 @@ module Yast
       ret
     end
 
+    # Perform an iSCSI login operation into the specified target
+    #
+    # Modifies {#currentRecord}
+    # @see #login_into_current
+    #
+    # @param target [Hash{String => String}] a hash with the mandatory keys "portal", "target" and
+    #   "iface" and with the optional "authmethod", "username", "username_in", "password" and
+    #   "password_in".
     def loginIntoTarget(target)
       target = deep_copy(target)
       @currentRecord = [
@@ -1055,28 +1063,23 @@ module Yast
         Ops.get_string(target, "target", ""),
         Ops.get_string(target, "iface", "")
       ]
-      if Ops.get_string(target, "authmethod", "None") != "None"
-        user_in = Ops.get_string(target, "username_in", "")
-        pass_in = Ops.get_string(target, "password_in", "")
-        if Ops.greater_than(Builtins.size(user_in), 0) &&
-            Ops.greater_than(Builtins.size(pass_in), 0)
-          setValue("node.session.auth.username_in", user_in)
-          setValue("node.session.auth.password_in", pass_in)
-        else
-          setValue("node.session.auth.username_in", "")
-          setValue("node.session.auth.password_in", "")
-        end
-        user_out = Ops.get_string(target, "username", "")
-        pass_out = Ops.get_string(target, "password", "")
-        if Ops.greater_than(Builtins.size(user_out), 0) &&
-            Ops.greater_than(Builtins.size(pass_out), 0)
-          setValue("node.session.auth.username", user_out)
-          setValue("node.session.auth.password", pass_out)
-          setValue("node.session.auth.authmethod", "CHAP")
-        else
-          setValue("node.session.auth.username", "")
-          setValue("node.session.auth.password", "")
-          setValue("node.session.auth.authmethod", "None")
+
+      auth = Y2IscsiClient::Authentication.new_from_legacy(target)
+      login_into_current(auth)
+    end
+
+    # Perform an iSCSI login operation into the node described at {#currentRecord}
+    #
+    # @param auth [Y2IscsiClient::Authentication] auth information for the login operation
+    # @param silent [Boolean] whether visual error reporting should be suppressed
+    def login_into_current(auth, silent: false)
+      if auth.chap?
+        setValue("node.session.auth.authmethod", "CHAP")
+        setValue("node.session.auth.username", auth.username)
+        setValue("node.session.auth.password", auth.password)
+        if auth.by_initiator?
+          setValue("node.session.auth.username_in", auth.username_in)
+          setValue("node.session.auth.password_in", auth.password_in)
         end
       else
         setValue("node.session.auth.authmethod", "None")
@@ -1087,12 +1090,13 @@ module Yast
         GetAdmCmd(
           Builtins.sformat(
             "-m node -I %3 -T %1 -p %2 --login",
-            Ops.get_string(target, "target", "").shellescape,
-            Ops.get_string(target, "portal", "").shellescape,
-            Ops.get_string(target, "iface", "").shellescape
+            Ops.get(@currentRecord, 1, "").shellescape,
+            Ops.get(@currentRecord, 0, "").shellescape,
+            Ops.get(@currentRecord, 2, "").shellescape
           )
         )
       )
+
       Builtins.y2internal("output %1", output)
 
       # Only log the fact that the session is already present (not an error at all)
@@ -1102,8 +1106,11 @@ module Yast
       # Report a warning (not an error) if login failed for other reasons
       # (also related to bsc#981693, warning popups usually are skipped)
       elsif output["exit"] != 0
-        Report.Warning(_("Target connection failed.\n") +
-                        output["stderr"] || "")
+        if silent
+          Builtins.y2milestone("Target connection failed %1", output["stderr"] || "")
+        else
+          Report.Warning(_("Target connection failed.\n") + output["stderr"] || "")
+        end
       end
 
       setStartupStatus("onboot") if !Mode.autoinst

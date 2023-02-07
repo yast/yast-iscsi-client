@@ -953,7 +953,14 @@ module Yast
         @currentRecord,
         check_ip
       )
-      ret = false
+      !!find_session(check_ip)
+    end
+
+    # Find the current record in the list of sessions
+    #
+    # @param check_ip [Boolean] whether the ip address must be considered in the comparison
+    # @return [String, nil] corresponding entry from #sessions or nil if not found
+    def find_session(check_ip)
       Builtins.foreach(@sessions) do |row|
         ip_ok = true
         list_row = Builtins.splitstring(row, " ")
@@ -973,11 +980,11 @@ module Yast
         if Ops.get(list_row, 1, "") == Ops.get(@currentRecord, 1, "") &&
             Ops.get(list_row, 2, "") == Ops.get(@currentRecord, 2, "") &&
             ip_ok
-          ret = true
-          raise Break
+          return row
         end
       end
-      ret
+
+      nil
     end
 
     # change startup status (manual/onboot) for target

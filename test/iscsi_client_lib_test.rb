@@ -983,4 +983,93 @@ describe Yast::IscsiClientLib do
       end
     end
   end
+
+  describe ".connected" do
+    before do
+      Yast::IscsiClientLib.sessions = [
+        "192.168.1.10:3260 iqn.2022-12.com.example:2b0b2b2b default",
+        "192.168.1.11:3260 iqn.2023-12.com.example:2a0a2a3a default"
+      ]
+    end
+
+    context "if check_ip is true" do
+      let(:check_ip) { true }
+
+      it "returns true if address, port, target name and interface match with a session" do
+        Yast::IscsiClientLib.currentRecord = [
+          "192.168.1.10:3260", "iqn.2022-12.com.example:2b0b2b2b", "default"
+        ]
+        expect(Yast::IscsiClientLib.connected(check_ip)).to eq true
+      end
+
+      it "returns false if only address, target name and interface match with a session" do
+        Yast::IscsiClientLib.currentRecord = [
+          "192.168.1.10:6666", "iqn.2022-12.com.example:2b0b2b2b", "default"
+        ]
+        expect(Yast::IscsiClientLib.connected(check_ip)).to eq false
+      end
+
+      it "returns false if only port, target name and interface match with a session" do
+        Yast::IscsiClientLib.currentRecord = [
+          "192.168.1.20:3260", "iqn.2022-12.com.example:2b0b2b2b", "default"
+        ]
+        expect(Yast::IscsiClientLib.connected(check_ip)).to eq false
+      end
+
+      it "returns false if only address, port and interface match with a session" do
+        Yast::IscsiClientLib.currentRecord = [
+          "192.168.1.10:3260", "iqn.2021-11.com.example:1b0b1b2b", "default"
+        ]
+        expect(Yast::IscsiClientLib.connected(check_ip)).to eq false
+      end
+
+      it "returns false if only address, port and target name match with a session" do
+        Yast::IscsiClientLib.currentRecord = [
+          "192.168.1.10:3260", "iqn.2022-12.com.example:2b0b2b2b", "eth0"
+        ]
+        expect(Yast::IscsiClientLib.connected(check_ip)).to eq false
+      end
+    end
+
+    context "if check_ip is false" do
+      let(:check_ip) { false }
+
+      it "returns true if address, port, target name and interface match with a session" do
+        Yast::IscsiClientLib.currentRecord = [
+          "192.168.1.10:3260", "iqn.2022-12.com.example:2b0b2b2b", "default"
+        ]
+        expect(Yast::IscsiClientLib.connected(check_ip)).to eq true
+      end
+
+      # If check_ip is false, the port is not checked
+      it "returns true if only address, target name and interface match with a session" do
+        Yast::IscsiClientLib.currentRecord = [
+          "192.168.1.10:6666", "iqn.2022-12.com.example:2b0b2b2b", "default"
+        ]
+        expect(Yast::IscsiClientLib.connected(check_ip)).to eq true
+      end
+
+      # If check_ip is false, the address is not checked
+      it "returns true if only port, target name and interface match with a session" do
+        Yast::IscsiClientLib.currentRecord = [
+          "192.168.1.20:3260", "iqn.2022-12.com.example:2b0b2b2b", "default"
+        ]
+        expect(Yast::IscsiClientLib.connected(check_ip)).to eq true
+      end
+
+      it "returns false if only address, port and interface match with a session" do
+        Yast::IscsiClientLib.currentRecord = [
+          "192.168.1.10:3260", "iqn.2021-11.com.example:1b0b1b2b", "default"
+        ]
+        expect(Yast::IscsiClientLib.connected(check_ip)).to eq false
+      end
+
+      it "returns false if only address, port and target name match with a session" do
+        Yast::IscsiClientLib.currentRecord = [
+          "192.168.1.10:3260", "iqn.2022-12.com.example:2b0b2b2b", "eth0"
+        ]
+        expect(Yast::IscsiClientLib.connected(check_ip)).to eq false
+      end
+    end
+  end
 end

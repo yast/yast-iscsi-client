@@ -760,7 +760,7 @@ module Yast
     end
 
     # check initiatorname if exist, if no - create it
-    def checkInitiatorName
+    def checkInitiatorName(silent: false)
       ret = true
       file = "/etc/iscsi/initiatorname.iscsi"
       name_from_bios = getiBFT["iface.initiatorname"] || ""
@@ -809,14 +809,16 @@ module Yast
         )
         if Ops.greater_than(Builtins.size(name_from_bios), 0) &&
             name_from_bios != @initiatorname
-          Popup.Warning(
-            _(
-              "InitiatorName from iBFT and from <tt>/etc/iscsi/initiatorname.iscsi</tt>\n" \
-                "differ. The old initiator name will be replaced by the value of iBFT and a \n" \
-                "backup created. If you want to use a different initiator name, change it \n" \
-                "in the BIOS.\n"
+          if !silent
+            Popup.Warning(
+              _(
+                "InitiatorName from iBFT and from <tt>/etc/iscsi/initiatorname.iscsi</tt>\n" \
+                  "differ. The old initiator name will be replaced by the value of iBFT and a \n" \
+                  "backup created. If you want to use a different initiator name, change it \n" \
+                  "in the BIOS.\n"
+              )
             )
-          )
+          end
           Builtins.y2milestone(
             "replacing old name %1 by name %2 from iBFT",
             @initiatorname,

@@ -1072,4 +1072,31 @@ describe Yast::IscsiClientLib do
       end
     end
   end
+
+  describe ".removeRecord" do
+    before do
+      Yast::IscsiClientLib.currentRecord = [
+        "192.168.1.20:3260", "iqn.2022-12.com.example:2b0b2b2b", "default"
+      ]
+
+      allow(Yast::SCR).to receive(:Execute).with(Yast::Path.new(".target.bash_output"), anything)
+        .and_return("exit" => exit_code, "stdout" => "", "stderr" => "")
+    end
+
+    context "if iscsiadm exit code is 0" do
+      let(:exit_code) { 0 }
+
+      it "returns true" do
+        expect(Yast::IscsiClientLib.removeRecord).to eq true
+      end
+    end
+
+    context "if iscsiadm exit code is different from 0" do
+      let(:exit_code) { 1 }
+
+      it "returns true" do
+        expect(Yast::IscsiClientLib.removeRecord).to eq false
+      end
+    end
+  end
 end

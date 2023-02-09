@@ -788,6 +788,9 @@ module Yast
     # for historical reasons.
     #
     # To delete a record from the database of discovered targets, see {#removeRecord} instead.
+    #
+    # @return [Boolean] false if the logout operation reports any error or true if it succeeds (note
+    #   {#sessions} gets refreshed in the latter case)
     def deleteRecord
       ret = true
       Builtins.y2milestone("Delete record %1", @currentRecord)
@@ -819,7 +822,11 @@ module Yast
     # It does not check whether the node is connected. Bear in mind iscsiadm manpage states the
     # following. "Delete should not be used on a running session. If it is iscsiadm will stop the
     # session and then delete the record."
+    #
+    # @return [Boolean] whether the operation succeeded with no incidences
     def removeRecord
+      Builtins.y2milestone("Remove record %1", @currentRecord)
+
       result = SCR.Execute(
         path(".target.bash_output"),
         GetAdmCmd(
@@ -832,6 +839,7 @@ module Yast
         )
       )
       Builtins.y2milestone(result.inspect)
+      result["exit"].zero?
     end
 
     # Get info about current iSCSI node
@@ -1091,12 +1099,14 @@ module Yast
 
       auth = Y2IscsiClient::Authentication.new_from_legacy(target)
       login_into_current(auth)
+      true
     end
 
     # Perform an iSCSI login operation into the node described at {#currentRecord}
     #
     # @param auth [Y2IscsiClient::Authentication] auth information for the login operation
     # @param silent [Boolean] whether visual error reporting should be suppressed
+    # @return [Boolean] whether the operation succeeded with no incidences
     def login_into_current(auth, silent: false)
       if auth.chap?
         setValue("node.session.auth.authmethod", "CHAP")
@@ -1110,6 +1120,7 @@ module Yast
         setValue("node.session.auth.authmethod", "None")
       end
 
+      ret = true
       output = SCR.Execute(
         path(".target.bash_output"),
         GetAdmCmd(
@@ -1128,6 +1139,7 @@ module Yast
       # to avoid a popup for AutoYaST install (bsc#981693)
       if output["exit"] == 15
         Builtins.y2milestone("Session already present %1", output["stderr"] || "")
+        ret = false
       # Report a warning (not an error) if login failed for other reasons
       # (also related to bsc#981693, warning popups usually are skipped)
       elsif output["exit"] != 0
@@ -1136,10 +1148,13 @@ module Yast
         else
           Report.Warning(_("Target connection failed.\n") + output["stderr"] || "")
         end
+        ret = false
       end
 
-      setStartupStatus("onboot") if !Mode.autoinst
-      true
+      if !Mode.autoinst
+        ret = setStartupStatus("onboot") && ret
+      end
+      ret
     end
 
     # Starts iscsi-related services if they are not running

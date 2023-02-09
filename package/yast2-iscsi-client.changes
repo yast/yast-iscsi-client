@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Feb 10 16:29:34 UTC 2023 - Ancor Gonzalez Sosa <ancor@suse.com>
+
+- Expose all core functionality from IscsiClientLib, with options
+  to suppress usage of pop-ups (related t gh#yast/d-installer#402).
+
+-------------------------------------------------------------------
 Fri Feb 10 15:41:21 UTC 2023 - Ancor Gonzalez Sosa <ancor@suse.com>
 
 - Finish client: copy the content of both /etc/iscsi and

@@ -918,6 +918,17 @@ module Yast
       status
     end
 
+    # Default startup status (manual/onboot/automatic) for newly created sessions
+    #
+    # @see #setStartupStatus
+    # @see #loginIntoTarget
+    #
+    # @return [String]
+    def default_startup_status
+      # Based on bnc#400610
+      "onboot"
+    end
+
     # update authentication value
     def setValue(name, value)
       rec = @currentRecord
@@ -1108,7 +1119,7 @@ module Yast
       # nowadays in YaST is to set the status twice with no benefit, first to "onboot" and then to
       # the value specified by the user. Nevertheless, we decided to keep the line to not alter the
       # behavior of loginIntoTarget, which is part of the module API.
-      setStartupStatus("onboot") if !Mode.autoinst
+      setStartupStatus(default_startup_status) if !Mode.autoinst
       true
     end
 

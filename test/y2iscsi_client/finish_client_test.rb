@@ -8,38 +8,101 @@ describe Y2IscsiClient::FinishClient do
     before do
       Yast::Installation.destdir = "/mnt"
       allow(Yast::IscsiClientLib).to receive(:sessions).and_return sessions
-      allow(File).to receive(:directory?).with("/etc/iscsi").and_return config_exists
+      allow(File).to receive(:directory?).with("/etc/iscsi").and_return etc_exists
+      allow(File).to receive(:directory?).with("/var/lib/iscsi").and_return var_exists
     end
 
     let(:sessions) { [] }
-    let(:config_exists) { false }
+    let(:etc_exists) { false }
+    let(:var_exists) { false }
 
     context "if there is an /etc/iscsi directory in the int-sys" do
-      let(:config_exists) { true }
+      let(:etc_exists) { true }
 
-      it "copies the content of /etc/iscsi to the target system" do
-        expect(Yast::Execute).to receive(:locally!) do |*args|
-          expect(args.join(" "))
-            .to eq "mkdir -p /mnt/etc/iscsi && cp -a /etc/iscsi/* /mnt/etc/iscsi/"
+      context "and there is also a /var/lib/iscsi directory" do
+        let(:var_exists) { true }
+
+        it "copies the content of both directories to the target system" do
+          expect(Yast::Execute).to receive(:locally!) do |*args|
+            expect(args.join(" "))
+              .to eq "mkdir -p /mnt/etc/iscsi && cp -a /etc/iscsi/* /mnt/etc/iscsi/"
+          end
+          expect(Yast::Execute).to receive(:locally!) do |*args|
+            expect(args.join(" "))
+              .to eq "mkdir -p /mnt/var/lib/iscsi && cp -a /var/lib/iscsi/* /mnt/var/lib/iscsi/"
+          end
+
+          subject.write
         end
-
-        subject.write
       end
 
-      it "fails gracefully (no exception or crash) if copying /etc/iscsi fails" do
-        allow(Yast::Execute).to receive(:locally!).with(any_args, "/mnt/etc/iscsi/")
-          .and_raise Cheetah::ExecutionFailed.new("cmd", 1, "", "Something went wrong")
+      context "but there is no /var/lib/iscsi directory" do
+        let(:var_exists) { false }
 
-        expect { subject.write }.to_not raise_error
+        it "copies the content of /etc/iscsi to the target system" do
+          expect(Yast::Execute).to receive(:locally!) do |*args|
+            expect(args.join(" "))
+              .to eq "mkdir -p /mnt/etc/iscsi && cp -a /etc/iscsi/* /mnt/etc/iscsi/"
+          end
+
+          subject.write
+        end
+
+        it "does not copy /var/lib/iscsi" do
+          allow(Yast::Execute).to receive(:locally!) do |*args|
+            expect(args).to_not include "/mnt/var/lib/iscsi"
+            expect(args).to_not include "/var/lib/iscsi/*"
+          end
+
+          subject.write
+        end
       end
     end
 
     context "if there is no /etc/iscsi directory in the int-sys" do
-      let(:config_exists) { false }
+      let(:etc_exists) { false }
 
-      it "does not copy any file" do
-        expect(Yast::Execute).to_not receive(:locally!)
-        subject.write
+      context "but there is a /var/lib/iscsi directory" do
+        let(:var_exists) { true }
+
+        it "copies the content of /var/lib/iscsi to the target system" do
+          expect(Yast::Execute).to receive(:locally!) do |*args|
+            expect(args.join(" "))
+              .to eq "mkdir -p /mnt/var/lib/iscsi && cp -a /var/lib/iscsi/* /mnt/var/lib/iscsi/"
+          end
+
+          subject.write
+        end
+
+        it "does not copy /etc/iscsi" do
+          allow(Yast::Execute).to receive(:locally!) do |*args|
+            expect(args).to_not include "/mnt/etc/iscsi"
+            expect(args).to_not include "/etc/iscsi/*"
+          end
+
+          subject.write
+        end
+      end
+
+      context "and there is no /var/lib/iscsi directory either" do
+        let(:var_exists) { false }
+
+        it "does not copy any file" do
+          expect(Yast::Execute).to_not receive(:locally!)
+          subject.write
+        end
+      end
+    end
+
+    context "if there are directories to be copied to the target system" do
+      let(:etc_exists) { true }
+      let(:var_exists) { true }
+
+      it "fails gracefully (no exception or crash) if copying fails" do
+        allow(Yast::Execute).to receive(:locally!).with(any_args, "cp", "-a", anything, anything)
+          .and_raise Cheetah::ExecutionFailed.new("cmd", 1, "", "Something went wrong")
+
+        expect { subject.write }.to_not raise_error
       end
     end
 

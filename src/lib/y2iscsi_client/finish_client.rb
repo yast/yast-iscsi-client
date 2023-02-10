@@ -57,14 +57,23 @@ module Y2IscsiClient
 
     # Copies open-iscsi configuration and databases to the target system
     def copy_configuration
-      return unless File.directory?("/etc/iscsi")
+      copy_directory("/etc/iscsi")
+      copy_directory("/var/lib/iscsi")
+    end
+
+    # Copies the content of the given directory to the target system only if the
+    # directory exists in the int-sys
+    #
+    # @param dir [String] path of the directory to copy
+    def copy_directory(dir)
+      return unless File.directory?(dir)
 
       Yast::Execute.locally!(
-        "mkdir", "-p", "#{Yast::Installation.destdir}/etc/iscsi", "&&",
-        "cp", "-a", "/etc/iscsi/*", "#{Installation.destdir}/etc/iscsi/"
+        "mkdir", "-p", File.join(Yast::Installation.destdir, dir), "&&",
+        "cp", "-a", File.join(dir, "*"), File.join(Installation.destdir, dir, "/")
       )
     rescue Cheetah::ExecutionFailed
-      log.error "Failed to copy the iSCSI configuration"
+      log.error "Failed to copy the iSCSI configuration from #{dir}"
     end
 
     # Enables all needed open-iscsi sockets and services

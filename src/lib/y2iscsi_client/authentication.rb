@@ -1,5 +1,3 @@
-require "yast"
-
 # |***************************************************************************
 # |
 # | Copyright (c) [2023] SUSE LLC
@@ -22,6 +20,7 @@ require "yast"
 # |
 # |***************************************************************************
 
+require "yast"
 require "yast2/secret_attributes"
 
 module Y2IscsiClient

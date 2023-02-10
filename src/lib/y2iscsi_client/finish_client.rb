@@ -78,32 +78,54 @@ module Y2IscsiClient
 
     # Enables all needed open-iscsi sockets and services
     def enable
-      return if Yast::IscsiClientLib.sessions.empty?
-
-      log.info "Enabling iscsi and iscsid service/socket"
-      socket = Yast2::Systemd::Socket.find("iscsid")
-      socket&.enable
-
-      # enable iscsi and iscsid service
-      Yast::Service.Enable("iscsid")
-      Yast::Service.Enable("iscsi")
+      enable_iscsid
+      enable_iscsi
       enable_iscsiuio
     end
 
-    # Enables the iscsiuio service if needed
+    # Enables the iscsid socket (or service) if needed
+    def enable_iscsid
+      return unless sessions?
+
+      enable_socket_or_service("iscsid")
+    end
+
+    # Enables the iscsi service if needed
+    def enable_iscsi
+      return unless sessions?
+
+      Yast::Service.Enable("iscsi")
+    end
+
+    # Enables the iscsiuio socket (or service) if needed
     def enable_iscsiuio
-      if !Yast::IscsiClientLib.iscsiuio_relevant?
+      if !sessions? || !Yast::IscsiClientLib.iscsiuio_relevant?
         log.info "iscsiuio is not needed"
         return
       end
 
-      log.info "enabling iscsiuio socket or service"
-      socket = Yast2::Systemd::Socket.find("iscsiuio")
+      enable_socket_or_service("iscsiuio")
+    end
+
+    # Enables the socket with the given name or the corresponding service if the socket
+    # does not exist
+    #
+    # @param name [String]
+    def enable_socket_or_service(name)
+      log.info "Enabling #{name} service/socket"
+      socket = Yast2::Systemd::Socket.find(name)
       if socket
         socket.enable
       else
-        Yast::Service.Enable("iscsiuio")
+        Yast::Service.Enable(name)
       end
+    end
+
+    # Whether there is any active iSCSI session
+    #
+    # @return [Boolean]
+    def sessions?
+      Yast::IscsiClientLib.sessions.any?
     end
   end
 end

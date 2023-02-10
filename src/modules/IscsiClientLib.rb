@@ -2,7 +2,7 @@
 
 # |***************************************************************************
 # |
-# | Copyright (c) [2012-2022] SUSE LLC
+# | Copyright (c) [2012-2023] SUSE LLC
 # | All Rights Reserved.
 # |
 # | This program is free software; you can redistribute it and/or
@@ -24,6 +24,9 @@
 require "yast"
 require "yast2/systemd/socket"
 require "ipaddr"
+require "y2iscsi_client/config"
+require "y2iscsi_client/timeout_process"
+require "y2iscsi_client/authentication"
 
 require "shellwords"
 
@@ -51,6 +54,41 @@ module Yast
     ISCSIUIO_MODULES = ["bnx2i", "qedi"].freeze
     private_constant :ISCSIUIO_MODULES
 
+    # Documentation for attributes that are initialized at #main
+
+    # @!attribute sessions
+    #   All connected nodes found via #readSessions
+    #
+    #   In Open-iscsi, the term "node" refers to a portal on a target
+    #
+    #   Each session is represented by a string of the form "portal target iface"
+    #
+    #   @return [Array<String>] ex. ["192.168.122.47:3260 iqn.2022-12.com.example:3dafafa2 default"]
+
+    # @!attribute discovered
+    # Entries in the local nodes database, populated via #getDiscovered
+    #
+    # Each node is represented by a string of the same form than in {#sessions}
+    #
+    # @return [Array<String>]
+
+    # @!attribute targets
+    #   List of nodes found by the latest discovery
+    #
+    #   Each target is represented by a string of the same form than in {#sessions}
+    #
+    #   @return [Array<String>]
+
+    # @!attribute currentRecord
+    #   Node used as a target for most operations offered by the IscsiClientLib module
+    #
+    #   Consists on an array in which the first element is the portal, the second is the target
+    #   and the third is the iSCSI interface (ie. similar to the strings in {#sessions},
+    #   {#discovered} or {#targets} but using an array instead of a space-separated string).
+    #
+    #   @return [Array<String>]
+
+    # Constructor
     def main
       textdomain "iscsi-client"
 
@@ -63,6 +101,7 @@ module Yast
       Yast.import "String"
       Yast.import "Arch"
 
+      # For information about these variables, see the YARDoc documentation above
       @sessions = []
       @discovered = []
       @targets = []
@@ -71,14 +110,8 @@ module Yast
       @iface_eth = []
 
       # Content of the main configuration file (/etc/iscsi/iscsid.conf)
-      #
-      # Due to the way YaST ini-agent works, this variable follows the structure
-      # {"kind"=>"section", "type"=>-1, "value"=> Array<Hash> }
-      # in which that latter array of hashes represents the relevant entries in the
-      # configuration file.
-      #
       # Use {#getConfig} and {#setConfig} to deal with its content in a convenient way.
-      @config = {}
+      @config = Y2IscsiClient::Config.new
 
       # iBFT (iSCSI Boot Firmware Table)
       @ibft = nil
@@ -348,19 +381,14 @@ module Yast
 
     # Current configuration
     #
-    # Returns an array with all the entries of the configuration, each entry
-    # represented by hash that follows the structure of the YaST init-agent.
-    # See {#createMap}
+    # returns an array with all the entries of the configuration, each entry
+    # represented by hash that follows the structure of the yast init-agent.
     #
     # @return [Array<Hash>]
     def getConfig
       # use cache if available
-      if @config.empty?
-        @config = SCR.Read(path(".etc.iscsid.all"))
-        Builtins.y2debug("read config %1", @config)
-      end
-
-      @config.fetch("value", [])
+      @config.read if @config.empty?
+      @config.entries
     end
 
     # Updates the in-memory representation of the configuration
@@ -369,7 +397,7 @@ module Yast
     #
     # @param new_config [Array<Hash>]
     def setConfig(new_config)
-      @config["value"] = deep_copy(new_config)
+      @config.entries = deep_copy(new_config)
       nil
     end
 
@@ -392,9 +420,7 @@ module Yast
     # write temporary changed old config
     def oldConfig
       Builtins.y2milestone("Store temporary config %1", @config)
-      SCR.Write(path(".etc.iscsid.all"), @config)
-      SCR.Write(path(".etc.iscsid"), nil)
-
+      @config.save
       nil
     end
 
@@ -432,109 +458,70 @@ module Yast
       deep_copy(auth)
     end
 
-    # create map from given map in format needed by ini-agent
-    def createMap(old_map, comments)
-      old_map = deep_copy(old_map)
-      comments = deep_copy(comments)
-      comment = ""
-      Builtins.foreach(comments) do |row|
-        comment = Builtins.sformat("%1%2", comment, row)
-      end
-      {
-        "name"    => Ops.get_string(old_map, "KEY", ""),
-        "value"   => Ops.get_string(old_map, "VALUE", ""),
-        "kind"    => "value",
-        "type"    => 1,
-        "comment" => comment
-      }
-    end
-
-    # Modifies the value of the entry with the given name, creating a new entry if none exists
+    # @see #save_auth_config
     #
-    # @param old_list [Array<Hash>] list of maps in the format used by ini-agent (see {#createMap})
-    # @param key [String] name of the entry
-    # @param value [Object] new value for the entry
-    # @return [Array<Hash>] modified list of maps
-    def setOrAdd(old_list, key, value)
-      new_list = deep_copy(old_list)
-
-      element = new_list.find { |row| row["name"] == key }
-      if element
-        element["value"] = value
-      else
-        new_list << createMap({ "KEY" => key, "VALUE" => value }, [])
-      end
-
-      new_list
-    end
-
-    # Deletes the entry with the given key
-    #
-    # @param old_list [Array<Hash>] list of maps in the format used by ini-agent (see {#createMap})
-    # @param key [String] name of the entry to be deleted
-    # @return [Array<Hash>] modified list of maps
-    def delete(old_list, key)
-      Builtins.y2milestone("Delete record for %1", key)
-      deep_copy(old_list).reject { |row| row["name"] == key }
-    end
-
-    # temporary change config for discovery authentication
+    # Offered for backwards compatibility
     def saveConfig(user_in, pass_in, user_out, pass_out)
+      values = {
+        "username_in" => user_in, "password_in" => pass_in,
+        "username" => user_out, "password" => pass_out
+      }
+      auth = Y2IscsiClient::Authentication.new_from_legacy(values)
+      save_auth_config(auth)
+    end
+
+    # Temporary change config for discovery authentication
+    #
+    # Writes the authentication settings to the iscsid.conf file without altering the memory
+    # representation of that file that is stored at @config. That makes possible to undo the
+    # changes in the file later by calling {#oldConfig}.
+    #
+    # @param auth [Authentication] authentication settings to use for discovery operations
+    def save_auth_config(auth)
       Builtins.y2milestone("Save config")
       tmp_conf = deep_copy(@config)
-      tmp_val = tmp_conf["value"] || []
 
-      if (specified = !user_in.empty? && !pass_in.empty?)
-        tmp_val = setOrAdd(
-          tmp_val,
-          "discovery.sendtargets.auth.authmethod",
-          "CHAP"
-        )
-        tmp_val = setOrAdd(
-          tmp_val,
-          "discovery.sendtargets.auth.username_in",
-          user_in
-        )
-        tmp_val = setOrAdd(
-          tmp_val,
-          "discovery.sendtargets.auth.password_in",
-          pass_in
-        )
-      else
-        tmp_val = delete(tmp_val, "discovery.sendtargets.auth.username_in")
-        tmp_val = delete(tmp_val, "discovery.sendtargets.auth.password_in")
-      end
-
-      if (specified = !user_out.empty? && !pass_out.empty?)
-        tmp_val = setOrAdd(
-          tmp_val,
-          "discovery.sendtargets.auth.authmethod",
-          "CHAP"
-        )
-        tmp_val = setOrAdd(
-          tmp_val,
-          "discovery.sendtargets.auth.username",
-          user_out
-        )
-        tmp_val = setOrAdd(
-          tmp_val,
-          "discovery.sendtargets.auth.password",
-          pass_out
-        )
-      else
-        tmp_val = delete(tmp_val, "discovery.sendtargets.auth.username")
-        tmp_val = delete(tmp_val, "discovery.sendtargets.auth.password")
-      end
-
-      if user_in.empty? && user_out.empty?
-        tmp_val = delete(tmp_val, "discovery.sendtargets.auth.authmethod")
-      end
-
-      Ops.set(tmp_conf, "value", tmp_val)
-      SCR.Write(path(".etc.iscsid.all"), tmp_conf)
-      SCR.Write(path(".etc.iscsid"), nil)
-
+      tmp_conf.set_discovery_auth(auth)
+      tmp_conf.save
       nil
+    end
+
+    # Executes an iSCSI discovery using Send Targets and stores the result (the found
+    # nodes) at {#targets}.
+    #
+    # The discovery operation will update the local send_targets database, so a subsequent
+    # call to {#getDiscovered} would report the discovered nodes in addition to the previously
+    # known ones.
+    #
+    # @return [Boolean] whether the discovery operation succeeded and {#targets} contains a
+    #   valid result
+    def discover(host, port, auth, only_new: false, silent: false)
+      # temporarily write authentication data to /etc/iscsi/iscsi.conf
+      save_auth_config(auth)
+
+      # The discovery command can take care of loading the needed kernel modules.
+      # But that doesn't work when YaST is running (and thus executing the
+      # discovery command) in a container. So this loads the modules in advance
+      # in a way that works in containers.
+      load_modules
+
+      command = GetDiscoveryCmd(host, port, only_new: only_new, use_fw: false)
+      success, trg_list = Y2IscsiClient::TimeoutProcess.run(command, silent: silent)
+
+      if trg_list.empty?
+        command = GetDiscoveryCmd(host, port, only_new: only_new, use_fw: true)
+        success, trg_list = Y2IscsiClient::TimeoutProcess.run(command, silent: silent)
+      end
+
+      self.targets = ScanDiscovered(trg_list)
+      # Restore into iscsi.conf the configuration previously saved in memory
+      oldConfig
+
+      success
+    end
+
+    def setISNSConfig(address, port)
+      @config.set_isns(address, port)
     end
 
     # Called for data (output) of commands:
@@ -594,7 +581,8 @@ module Yast
       deep_copy(ret)
     end
 
-    # get all discovered targets
+    # Read all discovered targets from the local nodes database, storing the result in the
+    # {#discovered} attribute
     def getDiscovered
       @discovered = []
       retcode = SCR.Execute(path(".target.bash_output"), GetAdmCmd("-m node -P 1"))
@@ -635,7 +623,7 @@ module Yast
       nil
     end
 
-    # get all connected targets
+    # Get all connected targets storing the result in the #sessions attribute
     def readSessions
       Builtins.y2milestone("reading current settings")
       retcode = SCR.Execute(path(".target.bash_output"), GetAdmCmd("-m session -P 1"))
@@ -723,7 +711,7 @@ module Yast
     end
 
     # check initiatorname if exist, if no - create it
-    def checkInitiatorName
+    def checkInitiatorName(silent: false)
       ret = true
       file = "/etc/iscsi/initiatorname.iscsi"
       name_from_bios = getiBFT["iface.initiatorname"] || ""
@@ -772,14 +760,16 @@ module Yast
         )
         if Ops.greater_than(Builtins.size(name_from_bios), 0) &&
             name_from_bios != @initiatorname
-          Popup.Warning(
-            _(
-              "InitiatorName from iBFT and from <tt>/etc/iscsi/initiatorname.iscsi</tt>\n" \
-                "differ. The old initiator name will be replaced by the value of iBFT and a \n" \
-                "backup created. If you want to use a different initiator name, change it \n" \
-                "in the BIOS.\n"
+          if !silent
+            Popup.Warning(
+              _(
+                "InitiatorName from iBFT and from <tt>/etc/iscsi/initiatorname.iscsi</tt>\n" \
+                  "differ. The old initiator name will be replaced by the value of iBFT and a \n" \
+                  "backup created. If you want to use a different initiator name, change it \n" \
+                  "in the BIOS.\n"
+              )
             )
-          )
+          end
           Builtins.y2milestone(
             "replacing old name %1 by name %2 from iBFT",
             @initiatorname,
@@ -792,7 +782,15 @@ module Yast
       ret
     end
 
-    # delete deiscovered target from database
+    # Logout from the target (ie. remove the corresponding session)
+    #
+    # This does not delete the target from nodes database. The name of the method is plain wrong
+    # for historical reasons.
+    #
+    # To delete a record from the database of discovered targets, see {#removeRecord} instead.
+    #
+    # @return [Boolean] false if the logout operation reports any error or true if it succeeds (note
+    #   {#sessions} gets refreshed in the latter case)
     def deleteRecord
       ret = true
       Builtins.y2milestone("Delete record %1", @currentRecord)
@@ -817,6 +815,33 @@ module Yast
 
       readSessions
       ret
+    end
+
+    # Delete the current node from the database of discovered targets
+    #
+    # It does not check whether the node is connected. Bear in mind the result in that case is
+    # uncertain. According to our manual tests, if you try to delete a node upon which a session is
+    # based, iscsiadm will refuse the request leaving the node entry in the database intact. On the
+    # other hand iscsiadm manpage states the following. "Delete should not be used on a running
+    # session. If it is iscsiadm will stop the session and then delete the record."
+    #
+    # @return [Boolean] whether the operation succeeded with no incidences
+    def removeRecord
+      Builtins.y2milestone("Remove record %1", @currentRecord)
+
+      result = SCR.Execute(
+        path(".target.bash_output"),
+        GetAdmCmd(
+          Builtins.sformat(
+            "-m node -T %1 -p %2 -I %3 --op=delete",
+            Ops.get(@currentRecord, 1, "").shellescape,
+            Ops.get(@currentRecord, 0, "").shellescape,
+            Ops.get(@currentRecord, 2, "").shellescape
+          )
+        )
+      )
+      Builtins.y2milestone(result.inspect)
+      result["exit"].zero?
     end
 
     # Get info about current iSCSI node
@@ -893,6 +918,17 @@ module Yast
       status
     end
 
+    # Default startup status (manual/onboot/automatic) for newly created sessions
+    #
+    # @see #setStartupStatus
+    # @see #loginIntoTarget
+    #
+    # @return [String]
+    def default_startup_status
+      # Based on bnc#400610
+      "onboot"
+    end
+
     # update authentication value
     def setValue(name, value)
       rec = @currentRecord
@@ -963,7 +999,14 @@ module Yast
         @currentRecord,
         check_ip
       )
-      ret = false
+      !!find_session(check_ip)
+    end
+
+    # Find the current record in the list of sessions
+    #
+    # @param check_ip [Boolean] whether the ip address must be considered in the comparison
+    # @return [String, nil] corresponding entry from #sessions or nil if not found
+    def find_session(check_ip)
       Builtins.foreach(@sessions) do |row|
         ip_ok = true
         list_row = Builtins.splitstring(row, " ")
@@ -983,11 +1026,11 @@ module Yast
         if Ops.get(list_row, 1, "") == Ops.get(@currentRecord, 1, "") &&
             Ops.get(list_row, 2, "") == Ops.get(@currentRecord, 2, "") &&
             ip_ok
-          ret = true
-          raise Break
+          return row
         end
       end
-      ret
+
+      nil
     end
 
     # change startup status (manual/onboot) for target
@@ -1034,12 +1077,16 @@ module Yast
       ret
     end
 
+    # Logs into the targets specified by iBFT
     def autoLogOn
       ret = true
       log.info "begin of autoLogOn function"
       if !getiBFT.empty?
         result = SCR.Execute(path(".target.bash_output"), GetAdmCmd("-m fw -l"))
         ret = false if result["exit"] != 0
+
+        # Note that fw discovery does not store persistent records in the node or discovery DB,
+        # so this is likely only done for reporting purposes (writing the info to the YaST logs)
         log.info "Autologin into iBFT : #{result}"
         result = SCR.Execute(path(".target.bash_output"), GetAdmCmd("-m discovery -t fw"))
         log.info "iBFT discovery: #{result}"
@@ -1047,6 +1094,14 @@ module Yast
       ret
     end
 
+    # Perform an iSCSI login operation into the specified target
+    #
+    # Modifies {#currentRecord}
+    # @see #login_into_current
+    #
+    # @param target [Hash{String => String}] a hash with the mandatory keys "portal", "target" and
+    #   "iface" and with the optional "authmethod", "username", "username_in", "password" and
+    #   "password_in".
     def loginIntoTarget(target)
       target = deep_copy(target)
       @currentRecord = [
@@ -1054,28 +1109,33 @@ module Yast
         Ops.get_string(target, "target", ""),
         Ops.get_string(target, "iface", "")
       ]
-      if Ops.get_string(target, "authmethod", "None") != "None"
-        user_in = Ops.get_string(target, "username_in", "")
-        pass_in = Ops.get_string(target, "password_in", "")
-        if Ops.greater_than(Builtins.size(user_in), 0) &&
-            Ops.greater_than(Builtins.size(pass_in), 0)
-          setValue("node.session.auth.username_in", user_in)
-          setValue("node.session.auth.password_in", pass_in)
-        else
-          setValue("node.session.auth.username_in", "")
-          setValue("node.session.auth.password_in", "")
-        end
-        user_out = Ops.get_string(target, "username", "")
-        pass_out = Ops.get_string(target, "password", "")
-        if Ops.greater_than(Builtins.size(user_out), 0) &&
-            Ops.greater_than(Builtins.size(pass_out), 0)
-          setValue("node.session.auth.username", user_out)
-          setValue("node.session.auth.password", pass_out)
-          setValue("node.session.auth.authmethod", "CHAP")
-        else
-          setValue("node.session.auth.username", "")
-          setValue("node.session.auth.password", "")
-          setValue("node.session.auth.authmethod", "None")
+
+      auth = Y2IscsiClient::Authentication.new_from_legacy(target)
+      login_into_current(auth)
+
+      # This line was added a long time ago (in the context of bnc#400610) when the YaST UI didn't
+      # offer the possibility of specifying the startup mode as part of the login action.
+      # The effect back then was to set "onboot" as the default mode. Likely its only effect
+      # nowadays in YaST is to set the status twice with no benefit, first to "onboot" and then to
+      # the value specified by the user. Nevertheless, we decided to keep the line to not alter the
+      # behavior of loginIntoTarget, which is part of the module API.
+      setStartupStatus(default_startup_status) if !Mode.autoinst
+      true
+    end
+
+    # Perform an iSCSI login operation into the node described at {#currentRecord}
+    #
+    # @param auth [Y2IscsiClient::Authentication] auth information for the login operation
+    # @param silent [Boolean] whether visual error reporting should be suppressed
+    # @return [Boolean] whether the operation succeeded with no incidences
+    def login_into_current(auth, silent: false)
+      if auth.chap?
+        setValue("node.session.auth.authmethod", "CHAP")
+        setValue("node.session.auth.username", auth.username)
+        setValue("node.session.auth.password", auth.password)
+        if auth.by_initiator?
+          setValue("node.session.auth.username_in", auth.username_in)
+          setValue("node.session.auth.password_in", auth.password_in)
         end
       else
         setValue("node.session.auth.authmethod", "None")
@@ -1086,26 +1146,31 @@ module Yast
         GetAdmCmd(
           Builtins.sformat(
             "-m node -I %3 -T %1 -p %2 --login",
-            Ops.get_string(target, "target", "").shellescape,
-            Ops.get_string(target, "portal", "").shellescape,
-            Ops.get_string(target, "iface", "").shellescape
+            Ops.get(@currentRecord, 1, "").shellescape,
+            Ops.get(@currentRecord, 0, "").shellescape,
+            Ops.get(@currentRecord, 2, "").shellescape
           )
         )
       )
+
       Builtins.y2internal("output %1", output)
 
       # Only log the fact that the session is already present (not an error at all)
       # to avoid a popup for AutoYaST install (bsc#981693)
       if output["exit"] == 15
         Builtins.y2milestone("Session already present %1", output["stderr"] || "")
+        return false
       # Report a warning (not an error) if login failed for other reasons
       # (also related to bsc#981693, warning popups usually are skipped)
       elsif output["exit"] != 0
-        Report.Warning(_("Target connection failed.\n") +
-                        output["stderr"] || "")
+        if silent
+          Builtins.y2milestone("Target connection failed %1", output["stderr"] || "")
+        else
+          Report.Warning(_("Target connection failed.\n") + output["stderr"] || "")
+        end
+        return false
       end
 
-      setStartupStatus("onboot") if !Mode.autoinst
       true
     end
 
@@ -1556,6 +1621,7 @@ module Yast
     publish :function => :oldConfig, :type => "void ()"
     publish :function => :getNode, :type => "map <string, any> ()"
     publish :function => :saveConfig, :type => "void (string, string, string, string)"
+    publish :function => :setISNSConfig, :type => "void (string, string)"
     publish :function => :ScanDiscovered, :type => "list <string> (list <string>)"
     publish :function => :getDiscovered, :type => "list <string> ()"
     publish :function => :start_services_initial, :type => "void ()"

@@ -445,20 +445,6 @@ describe Yast::IscsiClientLib do
           {
             "comment" => "",
             "kind"    => "value",
-            "name"    => "discovery.sendtargets.auth.username_in",
-            "type"    => 1,
-            "value"   => "incuser"
-          },
-          {
-            "comment" => "",
-            "kind"    => "value",
-            "name"    => "discovery.sendtargets.auth.password_in",
-            "type"    => 1,
-            "value"   => "incpass"
-          },
-          {
-            "comment" => "",
-            "kind"    => "value",
             "name"    => "discovery.sendtargets.auth.username",
             "type"    => 1,
             "value"   => "outuser"
@@ -469,6 +455,20 @@ describe Yast::IscsiClientLib do
             "name"    => "discovery.sendtargets.auth.password",
             "type"    => 1,
             "value"   => "outpass"
+          },
+          {
+            "comment" => "",
+            "kind"    => "value",
+            "name"    => "discovery.sendtargets.auth.username_in",
+            "type"    => 1,
+            "value"   => "incuser"
+          },
+          {
+            "comment" => "",
+            "kind"    => "value",
+            "name"    => "discovery.sendtargets.auth.password_in",
+            "type"    => 1,
+            "value"   => "incpass"
           }
         ]
       }
@@ -491,6 +491,140 @@ describe Yast::IscsiClientLib do
       expect(Yast::SCR).to receive(:Write)
         .with(etc_iscsid, nil).and_return(true)
       expect(subject.oldConfig).to eq(nil)
+    end
+  end
+
+  describe "#discover" do
+    let(:etc_iscsid_all) { Yast::Path.new ".etc.iscsid.all" }
+    let(:etc_iscsid)     { Yast::Path.new ".etc.iscsid" }
+    let(:host)           { "192.168.1.1" }
+    let(:port)           { "4321" }
+    let(:auth)           { Y2IscsiClient::Authentication.new }
+    let(:initial_config) do
+      {
+        "comment" => "",
+        "file"    => -1,
+        "kind"    => "section",
+        "name"    => "",
+        "type"    => -1,
+        "value"   => [
+          {
+            "kind"  => "value",
+            "name"  => "node.active_cnx",
+            "type"  => 1,
+            "value" => "1"
+          },
+          {
+            "kind"  => "value",
+            "name"  => "discovery.sendtargets.auth.authmethod",
+            "type"  => 1,
+            "value" => "CHAP"
+          }
+        ]
+      }
+    end
+
+    before do
+      allow(Yast::ModuleLoading).to receive(:Load)
+
+      allow(Yast::SCR).to receive(:Read).with(etc_iscsid_all).and_return(initial_config)
+      subject.getConfig
+
+      allow(Yast::SCR).to receive(:Write)
+      allow(Yast::SCR).to receive(:Write)
+      allow(Y2IscsiClient::TimeoutProcess).to receive(:run).and_return [true, []]
+    end
+
+    # Auxiliary function to make sense of the format used by .etc.iscsid.all
+    # @return [Hash]
+    def config_values(data)
+      data.values.last.map { |i| [i["name"], i["value"]] }.to_h
+    end
+
+    it "calls iscsiadm to perform discovery" do
+      expect(Y2IscsiClient::TimeoutProcess).to receive(:run) do |command|
+        expect(command).to start_with(["iscsiadm", "-m", "discovery", "-P", "1"])
+        expect(command).to include "#{host}:#{port}"
+      end.and_return [true, []]
+
+      Yast::IscsiClientLib.discover(host, port, auth)
+    end
+
+    it "passes :silent to TimeoutProcess if silent mode is requested" do
+      expect(Y2IscsiClient::TimeoutProcess).to receive(:run) do |_command, keyword_args|
+        expect(keyword_args[:silent]).to eq true
+      end.and_return [true, []]
+
+      Yast::IscsiClientLib.discover(host, port, auth, silent: true)
+    end
+
+    context "with no discovery authentication" do
+      it "first disables discovery authentication and later restores the initial config" do
+        expect(Yast::SCR).to receive(:Write) do |path, content|
+          expect(path).to eq etc_iscsid_all
+          config_keys = config_values(content).keys
+          expect(config_keys).to_not include("discovery.sendtargets.auth.authmethod")
+          expect(config_keys).to_not include("discovery.sendtargets.auth.username")
+          expect(config_keys).to_not include("discovery.sendtargets.auth.username_in")
+        end.ordered
+        expect(Yast::SCR).to receive(:Write).with(etc_iscsid, nil).ordered
+
+        expect(Yast::SCR).to receive(:Write).with(etc_iscsid_all, initial_config).ordered
+        expect(Yast::SCR).to receive(:Write).with(etc_iscsid, nil).ordered
+
+        Yast::IscsiClientLib.discover(host, port, auth)
+      end
+    end
+
+    context "with discovery authentication by the target" do
+      before do
+        auth.username = "noone"
+        auth.password = "secret"
+      end
+
+      it "first sets discovery authentication and later restores the initial config" do
+        expect(Yast::SCR).to receive(:Write) do |path, content|
+          expect(path).to eq etc_iscsid_all
+          config = config_values(content)
+          expect(config["discovery.sendtargets.auth.authmethod"]).to eq "CHAP"
+          expect(config["discovery.sendtargets.auth.username"]).to eq "noone"
+          expect(config["discovery.sendtargets.auth.password"]).to eq "secret"
+          expect(config.keys).to_not include("discovery.sendtargets.auth.username_in")
+        end.ordered
+        expect(Yast::SCR).to receive(:Write).with(etc_iscsid, nil).ordered
+
+        expect(Yast::SCR).to receive(:Write).with(etc_iscsid_all, initial_config).ordered
+        expect(Yast::SCR).to receive(:Write).with(etc_iscsid, nil).ordered
+
+        Yast::IscsiClientLib.discover(host, port, auth)
+      end
+    end
+
+    context "with bi-directional discovery authentication" do
+      before do
+        auth.username = "noone"
+        auth.password = "secret"
+        auth.username_in = "someone"
+        auth.password_in = "shared secret"
+      end
+
+      it "sets bi-directional discovery authentication and later restores the initial config" do
+        expect(Yast::SCR).to receive(:Write) do |path, content|
+          expect(path).to eq etc_iscsid_all
+          config = config_values(content)
+          expect(config["discovery.sendtargets.auth.authmethod"]).to eq "CHAP"
+          expect(config["discovery.sendtargets.auth.username"]).to eq "noone"
+          expect(config["discovery.sendtargets.auth.password"]).to eq "secret"
+          expect(config["discovery.sendtargets.auth.username_in"]).to eq "someone"
+          expect(config["discovery.sendtargets.auth.password_in"]).to eq "shared secret"
+        end.ordered
+        expect(Yast::SCR).to receive(:Write).with(etc_iscsid, nil).ordered
+
+        expect(Yast::SCR).to receive(:Write).with(etc_iscsid_all, initial_config).ordered
+        expect(Yast::SCR).to receive(:Write).with(etc_iscsid, nil).ordered
+
+        Yast::IscsiClientLib.discover(host, port, auth)
+      end
     end
   end
 
@@ -846,6 +980,122 @@ describe Yast::IscsiClientLib do
             expect(ui_item_id(selected)).to eq "em3-bnx2i"
           end
         end
+      end
+    end
+  end
+
+  describe ".connected" do
+    before do
+      Yast::IscsiClientLib.sessions = [
+        "192.168.1.10:3260 iqn.2022-12.com.example:2b0b2b2b default",
+        "192.168.1.11:3260 iqn.2023-12.com.example:2a0a2a3a default"
+      ]
+    end
+
+    context "if check_ip is true" do
+      let(:check_ip) { true }
+
+      it "returns true if address, port, target name and interface match with a session" do
+        Yast::IscsiClientLib.currentRecord = [
+          "192.168.1.10:3260", "iqn.2022-12.com.example:2b0b2b2b", "default"
+        ]
+        expect(Yast::IscsiClientLib.connected(check_ip)).to eq true
+      end
+
+      it "returns false if only address, target name and interface match with a session" do
+        Yast::IscsiClientLib.currentRecord = [
+          "192.168.1.10:6666", "iqn.2022-12.com.example:2b0b2b2b", "default"
+        ]
+        expect(Yast::IscsiClientLib.connected(check_ip)).to eq false
+      end
+
+      it "returns false if only port, target name and interface match with a session" do
+        Yast::IscsiClientLib.currentRecord = [
+          "192.168.1.20:3260", "iqn.2022-12.com.example:2b0b2b2b", "default"
+        ]
+        expect(Yast::IscsiClientLib.connected(check_ip)).to eq false
+      end
+
+      it "returns false if only address, port and interface match with a session" do
+        Yast::IscsiClientLib.currentRecord = [
+          "192.168.1.10:3260", "iqn.2021-11.com.example:1b0b1b2b", "default"
+        ]
+        expect(Yast::IscsiClientLib.connected(check_ip)).to eq false
+      end
+
+      it "returns false if only address, port and target name match with a session" do
+        Yast::IscsiClientLib.currentRecord = [
+          "192.168.1.10:3260", "iqn.2022-12.com.example:2b0b2b2b", "eth0"
+        ]
+        expect(Yast::IscsiClientLib.connected(check_ip)).to eq false
+      end
+    end
+
+    context "if check_ip is false" do
+      let(:check_ip) { false }
+
+      it "returns true if address, port, target name and interface match with a session" do
+        Yast::IscsiClientLib.currentRecord = [
+          "192.168.1.10:3260", "iqn.2022-12.com.example:2b0b2b2b", "default"
+        ]
+        expect(Yast::IscsiClientLib.connected(check_ip)).to eq true
+      end
+
+      # If check_ip is false, the port is not checked
+      it "returns true if only address, target name and interface match with a session" do
+        Yast::IscsiClientLib.currentRecord = [
+          "192.168.1.10:6666", "iqn.2022-12.com.example:2b0b2b2b", "default"
+        ]
+        expect(Yast::IscsiClientLib.connected(check_ip)).to eq true
+      end
+
+      # If check_ip is false, the address is not checked
+      it "returns true if only port, target name and interface match with a session" do
+        Yast::IscsiClientLib.currentRecord = [
+          "192.168.1.20:3260", "iqn.2022-12.com.example:2b0b2b2b", "default"
+        ]
+        expect(Yast::IscsiClientLib.connected(check_ip)).to eq true
+      end
+
+      it "returns false if only address, port and interface match with a session" do
+        Yast::IscsiClientLib.currentRecord = [
+          "192.168.1.10:3260", "iqn.2021-11.com.example:1b0b1b2b", "default"
+        ]
+        expect(Yast::IscsiClientLib.connected(check_ip)).to eq false
+      end
+
+      it "returns false if only address, port and target name match with a session" do
+        Yast::IscsiClientLib.currentRecord = [
+          "192.168.1.10:3260", "iqn.2022-12.com.example:2b0b2b2b", "eth0"
+        ]
+        expect(Yast::IscsiClientLib.connected(check_ip)).to eq false
+      end
+    end
+  end
+
+  describe ".removeRecord" do
+    before do
+      Yast::IscsiClientLib.currentRecord = [
+        "192.168.1.20:3260", "iqn.2022-12.com.example:2b0b2b2b", "default"
+      ]
+
+      allow(Yast::SCR).to receive(:Execute).with(Yast::Path.new(".target.bash_output"), anything)
+        .and_return("exit" => exit_code, "stdout" => "", "stderr" => "")
+    end
+
+    context "if iscsiadm exit code is 0" do
+      let(:exit_code) { 0 }
+
+      it "returns true" do
+        expect(Yast::IscsiClientLib.removeRecord).to eq true
+      end
+    end
+
+    context "if iscsiadm exit code is different from 0" do
+      let(:exit_code) { 1 }
+
+      it "returns true" do
+        expect(Yast::IscsiClientLib.removeRecord).to eq false
       end
     end
   end

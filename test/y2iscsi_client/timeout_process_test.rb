@@ -18,10 +18,17 @@ describe Y2IscsiClient::TimeoutProcess do
     context "when command failed" do
       # a command that produces stdout AND stderr AND fails
       let(:command) { ["sh", "-c", "echo Copying data; echo >&2 Giving up; false"] }
+
       it "shows error popup with its stderr" do
         expect(Yast::Popup).to receive(:Error).with("Giving up\n")
 
         described_class.run(command)
+      end
+
+      it "does not show any popup if silent mode was requested" do
+        expect(Yast::Popup).to_not receive(:Error)
+
+        described_class.run(command, silent: true)
       end
 
       it "returns false and its stdout" do
@@ -33,10 +40,16 @@ describe Y2IscsiClient::TimeoutProcess do
       # a command that produces stdout AND stderr AND takes a long time
       let(:command) { ["sh", "-c", "echo Copying data; echo >&2 Mars is too far; sleep 999"] }
 
-      it "shows generic error popup" do
+      it "shows generic error popup if silent mode was not requested" do
         expect(Yast::Popup).to receive(:Error).with("Command timed out")
 
         described_class.run(command, seconds: 1)
+      end
+
+      it "does not show any popup if silent mode was requested" do
+        expect(Yast::Popup).to_not receive(:Error)
+
+        described_class.run(command, seconds: 1, silent: true)
       end
 
       it "returns false and its stdout" do

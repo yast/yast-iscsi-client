@@ -29,7 +29,7 @@
 # Main file for iscsi-client configuration. Uses all other files.
 
 require "shellwords"
-require "y2iscsi_client/timeout_process"
+require "y2iscsi_client/authentication"
 
 module Yast
   module IscsiClientWidgetsInclude
@@ -218,53 +218,8 @@ module Yast
       event = deep_copy(event)
       address = Convert.to_string(UI.QueryWidget(:isns_address, :Value))
       port = Convert.to_string(UI.QueryWidget(:isns_port, :Value))
-      found_addr = false
-      found_port = false
-      tmp_config = []
 
-      Builtins.foreach(IscsiClientLib.getConfig) do |row|
-        if Ops.get_string(row, "name", "") == "isns.address"
-          Ops.set(row, "value", address)
-          found_addr = true
-        end
-        if Ops.get_string(row, "name", "") == "isns.port"
-          Ops.set(row, "value", port)
-          found_port = true
-        end
-        if (Ops.get_string(row, "name", "") == "isns.address" ||
-            Ops.get_string(row, "name", "") == "isns.port") &&
-            Ops.greater_than(Builtins.size(address), 0) &&
-            Ops.greater_than(Builtins.size(port), 0) ||
-            Ops.get_string(row, "name", "") != "isns.address" &&
-                Ops.get_string(row, "name", "") != "isns.port"
-          tmp_config = Builtins.add(tmp_config, row)
-        end
-      end
-      if Ops.greater_than(Builtins.size(address), 0) &&
-          Ops.greater_than(Builtins.size(port), 0)
-        if !found_addr
-          tmp_config = Builtins.add(
-            tmp_config,
-            "name"    => "isns.address",
-            "value"   => address,
-            "kind"    => "value",
-            "type"    => 1,
-            "comment" => ""
-          )
-        end
-        if !found_port
-          tmp_config = Builtins.add(
-            tmp_config,
-            "name"    => "isns.port",
-            "value"   => port,
-            "kind"    => "value",
-            "type"    => 1,
-            "comment" => ""
-          )
-        end
-      end
-
-      IscsiClientLib.setConfig(tmp_config)
+      IscsiClientLib.setISNSConfig(address, port)
       IscsiClientLib.oldConfig
       nil
     end
@@ -282,6 +237,7 @@ module Yast
         0
       )
         UI.ChangeWidget(:initiator_name, :Enabled, false)
+        # Not sure if there is such a widget called :write
         UI.ChangeWidget(:write, :Enabled, false)
       end
 
@@ -342,6 +298,7 @@ module Yast
         IscsiClientLib.writeInitiatorName(
           Convert.to_string(UI.QueryWidget(:initiator_name, :Value))
         )
+        # Isn't this redundant with the code at IscsiClientLib.writeInitiatorName?
         if Stage.initial
           IscsiClientLib.restart_iscsid_initial
         else
@@ -533,7 +490,7 @@ module Yast
         ip = "[#{ip}]" # brackets needed around IPv6
       end
 
-      # store /etc/iscsi/iscsi.conf
+      # Store the content of /etc/iscsi/iscsi.conf into memory
       IscsiClientLib.getConfig
 
       auth_none = Convert.to_boolean(UI.QueryWidget(Id(:auth_none), :Value))
@@ -541,57 +498,25 @@ module Yast
       pass_in = Builtins.tostring(UI.QueryWidget(Id(:pass_in), :Value))
       user_out = Builtins.tostring(UI.QueryWidget(Id(:user_out), :Value))
       pass_out = Builtins.tostring(UI.QueryWidget(Id(:pass_out), :Value))
-      auth_in = !auth_none && Ops.greater_than(Builtins.size(user_in), 0) &&
-        Ops.greater_than(Builtins.size(pass_in), 0)
-      auth_out = !auth_none && Ops.greater_than(Builtins.size(user_out), 0) &&
-        Ops.greater_than(Builtins.size(pass_out), 0)
 
-      if auth_none
-        user_in = ""
-        pass_in = ""
-        user_out = ""
-        pass_out = ""
+      auth = Y2IscsiClient::Authentication.new
+      if !auth_none
+        if !user_in.empty? && !pass_in.empty?
+          auth.username_in = user_in
+          auth.password_in = pass_in
+        end
+        if !user_out.empty? && !pass_out.empty?
+          auth.username = user_out
+          auth.password = pass_out
+        end
       end
-      if !auth_in
-        user_in = ""
-        pass_in = ""
-      end
-      if !auth_out
-        user_out = ""
-        pass_out = ""
-      end
-
-      # temporarily write authentication data to /etc/iscsi/iscsi.conf
-      IscsiClientLib.saveConfig(user_in, pass_in, user_out, pass_out)
 
       # Check @current_tab (dialogs.rb) here. If it's "client", i.e. the
       # 'Add' button at 'Connected Targets' is used, create discovery
       # command with option --new. The start-up mode for already connected
       # targets won't change then (fate #317874, bnc #886796).
       option_new = (@current_tab == "client")
-
-      # The discovery command can take care of loading the needed kernel modules.
-      # But that doesn't work when YaST is running (and thus executing the
-      # discovery command) in a container. So this loads the modules in advance
-      # in a way that works in containers.
-      IscsiClientLib.load_modules
-
-      command = IscsiClientLib.GetDiscoveryCmd(ip, port,
-        use_fw:   false,
-        only_new: option_new)
-      success, trg_list = Y2IscsiClient::TimeoutProcess.run(command)
-      if trg_list.empty?
-        command = IscsiClientLib.GetDiscoveryCmd(ip, port,
-          use_fw:   true,
-          only_new: option_new)
-        success, trg_list = Y2IscsiClient::TimeoutProcess.run(command)
-      end
-
-      IscsiClientLib.targets = IscsiClientLib.ScanDiscovered(trg_list)
-      # restore saved config
-      IscsiClientLib.oldConfig
-
-      success
+      IscsiClientLib.discover(ip, port, auth, only_new: option_new)
     end
 
     # ********************* discovered table *******************
@@ -694,16 +619,7 @@ module Yast
         # delete connected item
         if Ops.get(event, "ID") == :delete
           if params == [] || !IscsiClientLib.connected(true)
-            cmd = IscsiClientLib.GetAdmCmd(
-              Builtins.sformat(
-                "-m node -T %1 -p %2 -I %3 --op=delete",
-                Ops.get(params, 1, "").shellescape,
-                Ops.get(params, 0, "").shellescape,
-                Ops.get(params, 2, "").shellescape
-              )
-            )
-            result = SCR.Execute(path(".target.bash_output"), cmd, {})
-            Builtins.y2milestone(result.inspect)
+            IscsiClientLib.removeRecord
             IscsiClientLib.readSessions
             initDiscoveredTable("")
             if selected != nil

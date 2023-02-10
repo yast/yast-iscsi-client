@@ -1101,6 +1101,14 @@ module Yast
 
       auth = Y2IscsiClient::Authentication.new_from_legacy(target)
       login_into_current(auth)
+
+      # This line was added a long time ago (in the context of bnc#400610) when the YaST UI didn't
+      # offer the possibility of specifying the startup mode as part of the login action.
+      # The effect back then was to set "onboot" as the default mode. Likely its only effect
+      # nowadays in YaST is to set the status twice with no benefit, first to "onboot" and then to
+      # the value specified by the user. Nevertheless, we decided to keep the line to not alter the
+      # behavior of loginIntoTarget, which is part of the module API.
+      setStartupStatus("onboot") if !Mode.autoinst
       true
     end
 
@@ -1122,7 +1130,6 @@ module Yast
         setValue("node.session.auth.authmethod", "None")
       end
 
-      ret = true
       output = SCR.Execute(
         path(".target.bash_output"),
         GetAdmCmd(
@@ -1141,7 +1148,7 @@ module Yast
       # to avoid a popup for AutoYaST install (bsc#981693)
       if output["exit"] == 15
         Builtins.y2milestone("Session already present %1", output["stderr"] || "")
-        ret = false
+        return false
       # Report a warning (not an error) if login failed for other reasons
       # (also related to bsc#981693, warning popups usually are skipped)
       elsif output["exit"] != 0
@@ -1150,13 +1157,10 @@ module Yast
         else
           Report.Warning(_("Target connection failed.\n") + output["stderr"] || "")
         end
-        ret = false
+        return false
       end
 
-      if !Mode.autoinst
-        ret = setStartupStatus("onboot") && ret
-      end
-      ret
+      true
     end
 
     # Starts iscsi-related services if they are not running

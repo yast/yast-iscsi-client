@@ -819,9 +819,11 @@ module Yast
 
     # Delete the current node from the database of discovered targets
     #
-    # It does not check whether the node is connected. Bear in mind iscsiadm manpage states the
-    # following. "Delete should not be used on a running session. If it is iscsiadm will stop the
-    # session and then delete the record."
+    # It does not check whether the node is connected. Bear in mind the result in that case is
+    # uncertain. According to our manual tests, if you try to delete a node upon which a session is
+    # based, iscsiadm will refuse the request leaving the node entry in the database intact. On the
+    # other hand iscsiadm manpage states the following. "Delete should not be used on a running
+    # session. If it is iscsiadm will stop the session and then delete the record."
     #
     # @return [Boolean] whether the operation succeeded with no incidences
     def removeRecord

@@ -24,6 +24,7 @@ require "yast"
 require "installation/finish_client"
 require "yast2/systemd/socket"
 require "yast2/execute"
+require "fileutils"
 
 Yast.import "IscsiClientLib"
 Yast.import "Installation"
@@ -68,11 +69,12 @@ module Y2IscsiClient
     def copy_directory(dir)
       return unless File.directory?(dir)
 
-      Yast::Execute.locally!(
-        "mkdir", "-p", File.join(Yast::Installation.destdir, dir), "&&",
-        "cp", "-a", File.join(dir, "*"), File.join(Installation.destdir, dir, "/")
+      log.info "Copying iSCSI configuration from #{dir}"
+      ::FileUtils.mkdir_p(File.join(Yast::Installation.destdir, dir))
+      ::FileUtils.cp_r(
+        Dir[File.join(dir, "*")], File.join(Installation.destdir, dir, "/"), preserve: true
       )
-    rescue Cheetah::ExecutionFailed
+    rescue SystemCallError
       log.error "Failed to copy the iSCSI configuration from #{dir}"
     end
 

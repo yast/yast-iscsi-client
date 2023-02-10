@@ -10,11 +10,15 @@ describe Y2IscsiClient::FinishClient do
       allow(Yast::IscsiClientLib).to receive(:sessions).and_return sessions
       allow(File).to receive(:directory?).with("/etc/iscsi").and_return etc_exists
       allow(File).to receive(:directory?).with("/var/lib/iscsi").and_return var_exists
+      allow(Dir).to receive(:[]).with("/etc/iscsi/*").and_return etc_content
+      allow(Dir).to receive(:[]).with("/var/lib/iscsi/*").and_return var_content
     end
 
     let(:sessions) { [] }
     let(:etc_exists) { false }
     let(:var_exists) { false }
+    let(:etc_content) { ["one", "two"] }
+    let(:var_content) { ["three", "four"] }
 
     context "if there is an /etc/iscsi directory in the int-sys" do
       let(:etc_exists) { true }
@@ -23,14 +27,12 @@ describe Y2IscsiClient::FinishClient do
         let(:var_exists) { true }
 
         it "copies the content of both directories to the target system" do
-          expect(Yast::Execute).to receive(:locally!) do |*args|
-            expect(args.join(" "))
-              .to eq "mkdir -p /mnt/etc/iscsi && cp -a /etc/iscsi/* /mnt/etc/iscsi/"
-          end
-          expect(Yast::Execute).to receive(:locally!) do |*args|
-            expect(args.join(" "))
-              .to eq "mkdir -p /mnt/var/lib/iscsi && cp -a /var/lib/iscsi/* /mnt/var/lib/iscsi/"
-          end
+          expect(::FileUtils).to receive(:mkdir_p).with("/mnt/etc/iscsi")
+          expect(::FileUtils).to receive(:cp_r)
+            .with(etc_content, "/mnt/etc/iscsi/", preserve: true)
+          expect(::FileUtils).to receive(:mkdir_p).with("/mnt/var/lib/iscsi")
+          expect(::FileUtils).to receive(:cp_r)
+            .with(var_content, "/mnt/var/lib/iscsi/", preserve: true)
 
           subject.write
         end
@@ -40,19 +42,15 @@ describe Y2IscsiClient::FinishClient do
         let(:var_exists) { false }
 
         it "copies the content of /etc/iscsi to the target system" do
-          expect(Yast::Execute).to receive(:locally!) do |*args|
-            expect(args.join(" "))
-              .to eq "mkdir -p /mnt/etc/iscsi && cp -a /etc/iscsi/* /mnt/etc/iscsi/"
-          end
+          expect(::FileUtils).to receive(:mkdir_p).with("/mnt/etc/iscsi")
+          expect(::FileUtils).to receive(:cp_r).with(etc_content, "/mnt/etc/iscsi/", preserve: true)
 
           subject.write
         end
 
         it "does not copy /var/lib/iscsi" do
-          allow(Yast::Execute).to receive(:locally!) do |*args|
-            expect(args).to_not include "/mnt/var/lib/iscsi"
-            expect(args).to_not include "/var/lib/iscsi/*"
-          end
+          expect(::FileUtils).to_not receive(:mkdir_p).with("/mnt/var/lib/iscsi")
+          expect(::FileUtils).to_not receive(:cp_r).with(anything, "/mnt/var/lib/iscsi/", any_args)
 
           subject.write
         end
@@ -66,19 +64,16 @@ describe Y2IscsiClient::FinishClient do
         let(:var_exists) { true }
 
         it "copies the content of /var/lib/iscsi to the target system" do
-          expect(Yast::Execute).to receive(:locally!) do |*args|
-            expect(args.join(" "))
-              .to eq "mkdir -p /mnt/var/lib/iscsi && cp -a /var/lib/iscsi/* /mnt/var/lib/iscsi/"
-          end
+          expect(::FileUtils).to receive(:mkdir_p).with("/mnt/var/lib/iscsi")
+          expect(::FileUtils).to receive(:cp_r)
+            .with(var_content, "/mnt/var/lib/iscsi/", preserve: true)
 
           subject.write
         end
 
         it "does not copy /etc/iscsi" do
-          allow(Yast::Execute).to receive(:locally!) do |*args|
-            expect(args).to_not include "/mnt/etc/iscsi"
-            expect(args).to_not include "/etc/iscsi/*"
-          end
+          expect(::FileUtils).to_not receive(:mkdir_p).with("/mnt/etc/iscsi")
+          expect(::FileUtils).to_not receive(:cp_r).with(anything, "/mnt/etc/iscsi/", any_args)
 
           subject.write
         end
@@ -88,7 +83,8 @@ describe Y2IscsiClient::FinishClient do
         let(:var_exists) { false }
 
         it "does not copy any file" do
-          expect(Yast::Execute).to_not receive(:locally!)
+          expect(::FileUtils).to_not receive(:mkdir_p)
+          expect(::FileUtils).to_not receive(:cp_r)
           subject.write
         end
       end
@@ -99,8 +95,8 @@ describe Y2IscsiClient::FinishClient do
       let(:var_exists) { true }
 
       it "fails gracefully (no exception or crash) if copying fails" do
-        allow(Yast::Execute).to receive(:locally!).with(any_args, "cp", "-a", anything, anything)
-          .and_raise Cheetah::ExecutionFailed.new("cmd", 1, "", "Something went wrong")
+        allow(::FileUtils).to receive(:mkdir_p)
+        allow(::FileUtils).to receive(:cp_r).and_raise Errno::ENOENT
 
         expect { subject.write }.to_not raise_error
       end

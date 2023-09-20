@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Sep 19 14:01:12 UTC 2023 - Stefan Hundhammer <shundhammer@suse.com>
+
+- Add support packages on demand (bsc#1214273)
+- 4.5.8
+
+-------------------------------------------------------------------
 Thu Feb 10 16:29:34 UTC 2023 - Ancor Gonzalez Sosa <ancor@suse.com>
 
 - Expose all core functionality from IscsiClientLib, with options

@@ -37,6 +37,8 @@ require "yast2/compound_service"
 
 module Yast
   class IscsiClientClass < Module
+    include Yast::Logger
+
     def main
       textdomain "iscsi-client"
 
@@ -99,23 +101,17 @@ module Yast
 
     # check if package open-iscsi is installed
     def installed_packages
-      # don't check interactively for packages (bnc#367300)
-      # skip it during second stage or when create AY profile
-      return true if Stage.cont || Stage.initial || Mode.config
-      Builtins.y2milestone("Check if open-iscsi package installed")
-      ret = false
-      if !Package.InstallMsg(
-        "open-iscsi",
-        _(
-          "<p>To configure the iSCSI initiator, the <b>%1</b> package must be installed.</p>"
-        ) +
-          _("<p>Install it now?</p>")
-      )
-        Popup.Error(Message.CannotContinueWithoutPackagesInstalled)
-      else
-        ret = true
-      end
-      ret
+      needed_packages = ["open-iscsi"]
+      needed_packages << "iscsiuio" if IscsiClientLib.iscsiuio_relevant?
+      log.info("Needed packages: #{needed_packages}")
+      # Install the packages, if needed. Ask the user for confirmation.
+      # If it fails, warn the user about YaST possibly failing and ask for
+      # confirmation.
+      #
+      # Notice that this takes care of AutoYaST mode and creating an AutoYaST
+      # profile; and during initial installation, it simply adds the packages
+      # to the install set.
+      Package.CheckAndInstallPackagesInteractive(needed_packages)
     end
 
     # Dump the iscsi-client settings to a single map
@@ -202,7 +198,7 @@ module Yast
       return false if false
       Builtins.sleep(sl)
 
-      # check if required package is installed
+      # check if required packages are installed
       return false if !installed_packages
       return false if IscsiClientLib.getiBFT == nil
       # Progress finished

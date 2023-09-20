@@ -1,7 +1,14 @@
 -------------------------------------------------------------------
+Tue Sep 19 14:01:12 UTC 2023 - Stefan Hundhammer <shundhammer@suse.com>
+
+- Add support packages on demand (bsc#1214273)
+- 4.6.1
+
+-------------------------------------------------------------------
 Fri Sep 01 19:57:03 UTC 2023 - Josef Reidinger <jreidinger@suse.com>
 
 - Branch package for SP6 (bsc#1208913)
+- 4.6.0
 
 -------------------------------------------------------------------
 Thu Feb 10 16:29:34 UTC 2023 - Ancor Gonzalez Sosa <ancor@suse.com>

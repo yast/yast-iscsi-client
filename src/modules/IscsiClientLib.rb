@@ -419,7 +419,7 @@ module Yast
 
     # write temporary changed old config
     def oldConfig
-      Builtins.y2milestone("Store temporary config %1", @config)
+      Builtins.y2milestone("Store temporary config")
       @config.save
       nil
     end

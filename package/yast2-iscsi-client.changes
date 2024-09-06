@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Sep 06 07:14:32 UTC 2024 - Ladislav Slezák <lslezak@suse.com>
+
+- Branch package for SP7 (bsc#1230201)
+
+-------------------------------------------------------------------
 Tue May 28 13:05:18 UTC 2024 - Stefan Hundhammer <shundhammer@suse.com>
 
 - Don't leak passwords to the log (bsc#1225432)

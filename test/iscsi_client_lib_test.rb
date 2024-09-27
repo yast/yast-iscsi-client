@@ -709,15 +709,15 @@ describe Yast::IscsiClientLib do
       it "returns data in form of a map " do
         allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
         allow(subject).to receive(:getFirmwareInfo)
-          .and_return("# BEGIN RECORD 2.0-872\n"\
-                     "iface.bootproto = STATIC\n"\
-                     "iface.transport_name = tcp\n"\
-                     "iface.hwaddress = 00:00:c9:b1:bc:7f\n"\
-                     "iface.initiatorname = iqn.2011-05.com.emulex:eraptorrfshoneport1\n"\
-                     "iface.ipaddress = 2620:0113:80c0:8000:000c:0000:0000:04dc\n"\
-                     "node.conn[0].address = 172.0.21.6\n"\
-                     "node.conn[0].port = 3260\n"\
-                     "node.name = iqn.1986-03.com.ibm:sn.135061874\n"\
+          .and_return("# BEGIN RECORD 2.0-872\n" \
+                     "iface.bootproto = STATIC\n" \
+                     "iface.transport_name = tcp\n" \
+                     "iface.hwaddress = 00:00:c9:b1:bc:7f\n" \
+                     "iface.initiatorname = iqn.2011-05.com.emulex:eraptorrfshoneport1\n" \
+                     "iface.ipaddress = 2620:0113:80c0:8000:000c:0000:0000:04dc\n" \
+                     "node.conn[0].address = 172.0.21.6\n" \
+                     "node.conn[0].port = 3260\n" \
+                     "node.name = iqn.1986-03.com.ibm:sn.135061874\n" \
                      "# END RECORD\n")
 
         ibft_data = subject.getiBFT
@@ -917,9 +917,9 @@ describe Yast::IscsiClientLib do
           mock_iscsi_offload("p6p1_1", false)
           mock_iscsi_offload("p6p2_1", true, "34:56:78:90:ab:cd")
 
-          mock_ifconfig("em1")
-          mock_ifconfig("em3")
-          mock_ifconfig("p6p2_1")
+          mock_ip_addr("em1")
+          mock_ip_addr("em3")
+          mock_ip_addr("p6p2_1")
         end
 
         include_examples "returns UI items"
@@ -937,7 +937,7 @@ describe Yast::IscsiClientLib do
           expect(ids).to contain_exactly("default", "all", "em1-bnx2i", "em3-bnx2i", "p6p2_1-qedi")
         end
 
-        context "and ifconfig is not found" do
+        context "and ip is not found" do
           # NOTE: testing the state of internal variables should be out of the scope of unit tests,
           # but we want to prove a point here (see next context right below)
           it "sets the IPs in @offload_valid to 'unknown'" do
@@ -947,11 +947,11 @@ describe Yast::IscsiClientLib do
           end
         end
 
-        context "and ifconfig is found" do
+        context "and ip is found" do
           before do
-            mock_ifconfig("em1",    "192.10.9.8")
-            mock_ifconfig("em3",    "")
-            mock_ifconfig("p6p2_1", "10.11.12.13")
+            mock_ip_addr("em1",    "192.10.9.8/24")
+            mock_ip_addr("em3",    "")
+            mock_ip_addr("p6p2_1", "10.11.12.13/24")
           end
 
           # NOTE: this is likely an unwanted behavior caused by the fact that the code expects the

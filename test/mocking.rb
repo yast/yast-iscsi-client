@@ -22,6 +22,8 @@
 # |
 # |***************************************************************************
 
+require "ipaddr"
+
 # Convenience functions to mock stuff in the unit tests
 
 # Description of a card to be used for mocking
@@ -92,6 +94,44 @@ EOF
   end
 
   mock_bash_out(/ifconfig #{dev_name}/, result)
+end
+
+# Mocks a call to ip addr show done to check the IP of a concrete interface
+#
+# The behavior depends on the value of the 'ipaddr' argument:
+#
+# - If nil it works as if ip is not installed
+# - If blank ("") it works as if the interface has no configured IP.
+# - In other case, it emulates the output of ip address show for a configured card.
+#
+# @param dev_name [String] interface name
+# @param ipaddr [String, nil]
+def mock_ip_addr(dev_name, ipaddr = nil)
+  stdout = stderr = ""
+  exit_code = 0
+
+  if ipaddr
+    stdout << %(1: #{dev_name}: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
+    link/ether a0:b1:c2:d3:f7:ca brd ff:ff:ff:ff:ff:ff
+    altname enp5s0)
+    unless ipaddr.empty?
+      ip = IPAddr.new(ipaddr)
+      stdout << %(    inet #{ip}/#{ip.prefix} brd #{ip.to_range.last} scope global dynamic noprefixroute eth0
+          valid_lft 80637sec preferred_lft 80637sec)
+    end
+    stdout << %(    inet6 fe80::2897:6c42:202:21d7/64 scope link noprefixroute
+        valid_lft forever preferred_lft forever)
+  else
+    exit_code = 127
+    stderr = "No such file or directory - ip\n"
+  end
+
+  result = [stdout, stderr, exit_code]
+  allow(Yast::Execute).to receive(:on_target!).with("ip", "addr", "show", dev_name,
+    stdout:             :capture,
+    stderr:             :capture,
+    allowed_exitstatus: 0..127,
+    env:                { "LC_ALL" => "POSIX" }).and_return(result)
 end
 
 # Mocks a call to "iscsiadm --mode node -P 1"

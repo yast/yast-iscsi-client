@@ -22,6 +22,7 @@
 # |
 # |***************************************************************************
 require "yast"
+require "yast2/execute"
 require "yast2/systemd/socket"
 require "ipaddr"
 require "y2iscsi_client/config"
@@ -701,7 +702,7 @@ module Yast
         Builtins.splitstring(Ops.get(host_fq, 1, "example.com"), ".")
       ) do |item|
         Builtins.y2internal("item %1", item)
-        domain = Builtins.size(domain) == 0 ?
+        domain = (Builtins.size(domain) == 0) ?
           item :
           Builtins.sformat("%1.%2", item, domain)
       end
@@ -1782,26 +1783,25 @@ module Yast
 
     # Current IP address of the given network interface
     def ip_addr(dev_name)
-      cmd = "LC_ALL=POSIX ifconfig #{dev_name.shellescape}" # FIXME: ifconfig is deprecated
-      Builtins.y2milestone("GetOffloadItems cmd:%1", cmd)
-      out = SCR.Execute(path(".target.bash_output"), cmd)
-      Builtins.y2milestone("GetOffloadItems out:%1", out)
+      stdout = Yast::Execute.on_target!("ip", "addr", "show", dev_name,
+        stdout:             :capture,
+        stderr:             :capture,
+        allowed_exitstatus: 0..127,
+        env:                { "LC_ALL" => "POSIX" })[0]
+      log.info "IP Address config for #{dev_name}: #{stdout}"
 
-      # Search for lines containing "init addr", means IPv4 address.
+      # Search for lines containing "inet", means IPv4 address.
       # Regarding the IPv6 support there are no changes needed here because
       # the IP address is not used farther.
-      line = out["stdout"].split("\n").find do |ln|
-        Builtins.search(ln, "inet addr:") != nil
-      end
-      line ||= ""
-      Builtins.y2milestone("GetOffloadItems line:%1", line)
+      address_line = stdout.split("\n").find { |l| l.start_with?(/\s*inet /) } || ""
+      log.info "IP Address Line for #{dev_name}: #{address_line}"
 
       ipaddr = "unknown"
-      if !line.empty?
-        line = Builtins.substring(line, Builtins.search(line, "inet addr:") + 10)
-        Builtins.y2milestone("GetOffloadItems line:%1", line)
-        ipaddr = Builtins.substring(line, 0, Builtins.findfirstof(line, " \t"))
-      end
+
+      return ipaddr if address_line.empty?
+
+      ipaddr = address_line.gsub!(/\s*inet /, "").split.first
+      log.info "IP Address for #{dev_name}: #{ipaddr}"
 
       ipaddr
     end

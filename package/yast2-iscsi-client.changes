@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Fri Sep 27 14:37:24 UTC 2024 - Knut Anderssen <kanderssen@suse.com>
+
+- Fixes for bsc#1228084:
+  - Inst client: Read sessions just after auto login in order to 
+    enable services at the end of the installation if needed 
+  - Finish client: enable iscsiuio.service instead of the socket
+- Use ip for reading the ip address of a given device instead of 
+  the deprecated ifconfig command
+- 4.7.1
+
 Fri Sep 06 07:14:32 UTC 2024 - Ladislav Slezák <lslezak@suse.com>
 
 - Branch package for SP7 (bsc#1230201)

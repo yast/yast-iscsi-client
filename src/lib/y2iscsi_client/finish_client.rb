@@ -106,7 +106,7 @@ module Y2IscsiClient
         return
       end
 
-      enable_socket_or_service("iscsiuio")
+      Yast::Service.Enable("iscsiuio")
     end
 
     # Enables the socket with the given name or the corresponding service if the socket

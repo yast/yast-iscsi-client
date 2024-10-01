@@ -113,14 +113,15 @@ def mock_ip_addr(dev_name, ipaddr = nil)
   if ipaddr
     stdout << %(1: #{dev_name}: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
     link/ether a0:b1:c2:d3:f7:ca brd ff:ff:ff:ff:ff:ff
-    altname enp5s0)
+    altname enp5s0\n)
     unless ipaddr.empty?
-      ip = IPAddr.new(ipaddr)
-      stdout << %(    inet #{ip}/#{ip.prefix} brd #{ip.to_range.last} scope global dynamic noprefixroute eth0
-          valid_lft 80637sec preferred_lft 80637sec)
+      netmask = IPAddr.new(ipaddr)
+      ip = IPAddr.new(ipaddr.split("/").first)
+      stdout << %(    inet #{ip}/#{netmask.prefix} brd #{netmask.to_range.last} scope global dynamic noprefixroute #{dev_name}
+          valid_lft 80637sec preferred_lft 80637sec\n)
     end
     stdout << %(    inet6 fe80::2897:6c42:202:21d7/64 scope link noprefixroute
-        valid_lft forever preferred_lft forever)
+        valid_lft forever preferred_lft forever\n)
   else
     exit_code = 127
     stderr = "No such file or directory - ip\n"

@@ -1800,7 +1800,7 @@ module Yast
 
       return ipaddr if address_line.empty?
 
-      ipaddr = address_line.gsub!(/\s*inet /, "").split.first
+      ipaddr = address_line.gsub!(/\s*inet /, "").split("/").first
       log.info "IP Address for #{dev_name}: #{ipaddr}"
 
       ipaddr

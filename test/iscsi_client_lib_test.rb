@@ -954,12 +954,10 @@ describe Yast::IscsiClientLib do
             mock_ip_addr("p6p2_1", "10.11.12.13/24")
           end
 
-          # NOTE: this is likely an unwanted behavior caused by the fact that the code expects the
-          # output of ifconfig version 1.X, not the one in recent versions of (open)SUSE.
           it "sets the IPs in @offload_valid to 'unknown'" do
             subject.GetOffloadItems
             cards = subject.instance_variable_get("@offload_valid").values.flatten(1)
-            expect(cards.map(&:last)).to eq ["unknown", "unknown", "unknown"]
+            expect(cards.map(&:last)).to eq ["192.10.9.8", "unknown", "10.11.12.13"]
           end
         end
 

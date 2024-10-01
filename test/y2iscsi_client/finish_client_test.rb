@@ -170,73 +170,38 @@ describe Y2IscsiClient::FinishClient do
           allow(Yast2::Systemd::Socket).to receive(:find).with("iscsiuio").and_return(uio_socket)
         end
 
-        context "and there is an iscsiuio socket" do
-          let(:uio_socket) { instance_double(Yast2::Systemd::Socket) }
+        let(:uio_socket) { instance_double(Yast2::Systemd::Socket) }
 
-          context "but the iscsid socket does not exist" do
-            let(:iscsid_socket) { nil }
+        context "but the iscsid socket does not exist" do
+          let(:iscsid_socket) { nil }
 
-            it "enables the iscsid and iscsi services and the iscsiuio socket" do
-              expect(Yast::Service).to receive(:Enable).with("iscsid")
-              expect(Yast::Service).to receive(:Enable).with("iscsi")
-              expect(uio_socket).to receive(:enable)
-              subject.write
-            end
-
-            it "it does not enable the iscsiuio service" do
-              allow(uio_socket).to receive(:enable)
-              expect(Yast::Service).to_not receive(:Enable).with("iscsiuio")
-              subject.write
-            end
+          it "enables the iscsid, iscsi and iscsiuio services" do
+            expect(Yast::Service).to receive(:Enable).with("iscsid")
+            expect(Yast::Service).to receive(:Enable).with("iscsi")
+            expect(Yast::Service).to receive(:Enable).with("iscsiuio")
+            subject.write
           end
 
-          context "and also an iscsid socket" do
-            let(:iscsid_socket) { instance_double(Yast2::Systemd::Socket, enable: true) }
-
-            it "enables the iscsid and iscsiuio sockets and the iscsi service" do
-              expect(Yast::Service).to receive(:Enable).with("iscsi")
-              expect(uio_socket).to receive(:enable)
-              expect(iscsid_socket).to receive(:enable)
-              subject.write
-            end
-
-            it "it does not enable the iscsiuio nor the iscsid services" do
-              allow(uio_socket).to receive(:enable)
-              expect(Yast::Service).to_not receive(:Enable).with("iscsiuio")
-              expect(Yast::Service).to_not receive(:Enable).with("iscsid")
-              subject.write
-            end
+          it "it does not enable the iscsiuio socket" do
+            expect(uio_socket).to_not receive(:enable)
+            subject.write
           end
         end
 
-        context "and there is no iscsiuio socket" do
-          let(:uio_socket) { nil }
+        context "and the iscsid socket exists" do
+          let(:iscsid_socket) { instance_double(Yast2::Systemd::Socket, enable: true) }
 
-          context "nor iscsid socket" do
-            let(:iscsid_socket) { nil }
-
-            it "enables the iscsid, iscsi and iscsiuio services" do
-              expect(Yast::Service).to receive(:Enable).with("iscsid")
-              expect(Yast::Service).to receive(:Enable).with("iscsi")
-              expect(Yast::Service).to receive(:Enable).with("iscsiuio")
-              subject.write
-            end
+          it "enables the iscsid socket and the iscsiuio and iscsi services" do
+            expect(Yast::Service).to receive(:Enable).with("iscsi")
+            expect(Yast::Service).to receive(:Enable).with("iscsiuio")
+            expect(iscsid_socket).to receive(:enable)
+            subject.write
           end
 
-          context "but there is an iscsid socket" do
-            let(:iscsid_socket) { instance_double(Yast2::Systemd::Socket, enable: true) }
-
-            it "enables the iscsi and iscsiuio services and the iscsid socket" do
-              expect(Yast::Service).to receive(:Enable).with("iscsi")
-              expect(Yast::Service).to receive(:Enable).with("iscsiuio")
-              expect(iscsid_socket).to receive(:enable)
-              subject.write
-            end
-
-            it "it does not enable the iscsid service" do
-              expect(Yast::Service).to_not receive(:Enable).with("iscsid")
-              subject.write
-            end
+          it "it does not enable the iscsid services" do
+            allow(Yast::Service).to receive(:Enable).with("iscsiuio")
+            expect(Yast::Service).to_not receive(:Enable).with("iscsid")
+            subject.write
           end
         end
       end

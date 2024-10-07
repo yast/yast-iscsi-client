@@ -76,7 +76,10 @@ module Yast
       # try auto login to target
       auto_login = IscsiClientLib.autoLogOn
       # force a read of sessions in case of auto_login (bsc#1228084)
-      IscsiClientLib.readSessions if auto_login
+      if auto_login
+        IscsiClientLib.readSessions
+        IscsiClientLib.GetOffloadModules(force: true)
+      end
 
       # add package open-iscsi and iscsiuio to installed system
       iscsi_packages = ["open-iscsi", "iscsiuio"]

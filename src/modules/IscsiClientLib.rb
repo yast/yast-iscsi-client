@@ -1495,8 +1495,9 @@ module Yast
     # corresponding entry at @offload.
     #
     # @return [Array<String>]
-    def GetOffloadModules
-      GetOffloadItems() if @offload_valid == nil
+    def GetOffloadModules(force: false)
+      @offload_valid = nil if force
+      GetOffloadItems() if @offload_valid.nil?
       modules = []
       Builtins.foreach(@offload_valid) do |i, _l|
         modules = Convert.convert(

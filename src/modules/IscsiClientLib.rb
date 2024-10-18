@@ -43,6 +43,7 @@ module Yast
     # if the binary is in /sbin or in /usr/sbin (usr-merge in openSUSE!)
     # (bsc#1196086, bsc#1196086)
     OFFLOAD_SCRIPT = "iscsi_offload".freeze
+    DISCOVERY_CMD = "iscsiadm -m discovery -P 1".freeze
 
     # Driver modules that depend on the iscsiuio service/socket
     #
@@ -57,6 +58,15 @@ module Yast
 
     # Documentation for attributes that are initialized at #main
 
+    # @!attribute iface_file
+    #   Entries in the iscsi ifaces file which is initialized by #InitIfaceFile but could be
+    #   modified by other calls like the  configure_offload_engines. Every network interface that 
+    #   supports open-iscsi can have one o more iscsi ifaces associated with it.
+    #
+    #   Each entry associates the iscsi file name with the iscsi iface name which is usually the same.
+    #
+    #   @return [Hash{String => String}] ex. { "bnx2i.9c:dc:71:df:cf:29.ipv4.0" => "bnx2i.9c:dc:71:df:cf:29.ipv4.0"}
+    #
     # @!attribute sessions
     #   All connected nodes found via #readSessions
     #
@@ -252,8 +262,11 @@ module Yast
       @offload_card
     end
 
+    # It selects the given card as the offload one and calls iscsi_offload script if it is
+    # not the selected one also not the default
     def SetOffloadCard(new_card)
-      Builtins.y2milestone("SetOffloadCard:%1 cur:%2", new_card, @offload_card)
+      log.info "SetOffloadCard:#{new_card} cur:#{@offload_card}"
+
       if new_card != @offload_card
         @offload_card = new_card
         CallConfigScript() if new_card != "default"
@@ -271,7 +284,7 @@ module Yast
     #
     def GetAdmCmd(params, do_log = true)
       ret = "LC_ALL=POSIX iscsiadm #{params}"
-      Builtins.y2milestone("GetAdmCmd: #{ret}") if do_log
+      log.info("GetAdmCmd: #{ret}") if do_log
       ret
     end
 
@@ -429,9 +442,9 @@ module Yast
       cmdline = GetAdmCmd(
         Builtins.sformat(
           "-S -m node -I %3 -T %1 -p %2",
-          Ops.get(@currentRecord, 1, "").shellescape,
-          Ops.get(@currentRecord, 0, "").shellescape,
-          Ops.get(@currentRecord, 2, "default").shellescape
+          @currentRecord[1].to_s.shellescape,
+          @currentRecord[0].to_s.shellescape,
+          @currentRecord.fetch(2, "default").shellescape
         )
       )
       cmd = SCR.Execute(path(".target.bash_output"), cmdline)
@@ -531,43 +544,39 @@ module Yast
     #
     # @param data [Array<String>] output of the executed command, one array entry per line
     def ScanDiscovered(data)
-      data = deep_copy(data)
       ret = []
       target = ""
       portal = ""
       iface = ""
       dumped = true
-      Builtins.y2milestone("Got data: %1", data)
+      log.info "Got data: #{data}"
 
       # Each entry starts with Target:, the other two values are optional
       # (except the first entry) and, if missing, are inherited from previous
       # entry. Therefore: Dump whatever is cached on Target: entry and once
       # again at the end. Example input in the test case.
 
-      Builtins.foreach(data) do |row|
-        row = Builtins.substring(row, Builtins.findfirstnotof(row, "\t "), 999)
-        if Builtins.search(row, "Target:") != nil
+      data.each do |r|
+        row = r.strip
+        if row.include? "Target:"
           if !dumped
             # don't add Scope:Link IPv6 address
             ret << "#{portal} #{target} #{iface}" if !portal.start_with?("[fe80:")
           end
-          target = Ops.get(Builtins.splitstring(row, " "), 1, "")
+          target = row.split[1]
           dumped = false
-        elsif Builtins.search(row, "Portal:") != nil
-          if Builtins.search(row, "Current Portal:") != nil
-            portal = Ops.get(Builtins.splitstring(row, " "), 2, "")
-          elsif Builtins.search(row, "Persistent Portal:") != nil
+        elsif row.include? "Portal:"
+          if /[Current|Persistent] Portal:/.match?(row)
             # 'Persistent Portal' overwrites current (is used for login)
-            portal = Ops.get(Builtins.splitstring(row, " "), 2, "")
+            portal = row.split[2]
           else
             # read 'Portal' (from output of -m node)
-            portal = Ops.get(Builtins.splitstring(row, " "), 1, "")
+            portal = row.split[1]
           end
-          pos = Builtins.search(portal, ",")
-          portal = Builtins.substring(portal, 0, pos) if pos != nil
-        elsif Builtins.search(row, "Iface Name:") != nil
-          iface = Ops.get(Builtins.splitstring(row, " "), 2, "")
-          iface = Ops.get(@iface_file, iface, iface)
+          portal = portal.split(",")[0] if portal.include?(",")
+        elsif row.include? "Iface Name:"
+          iface = row.split[2]
+          iface = @iface_file.dig(iface, :name) || iface
           # don't add Scope:Link IPv6 address
           ret << "#{portal} #{target} #{iface}" if !portal.start_with?("[fe80:")
           dumped = true
@@ -578,21 +587,16 @@ module Yast
         ret << "#{portal} #{target} #{iface}" if !portal.start_with?("[fe80:")
       end
 
-      Builtins.y2milestone("ScanDiscovered ret:%1", ret)
-      deep_copy(ret)
+      log.info "ScanDiscovered ret:#{ret}"
+      ret
     end
 
     # Read all discovered targets from the local nodes database, storing the result in the
     # {#discovered} attribute
     def getDiscovered
-      @discovered = []
       retcode = SCR.Execute(path(".target.bash_output"), GetAdmCmd("-m node -P 1"))
-      if Builtins.size(Ops.get_string(retcode, "stderr", "")) == 0
-        @discovered = ScanDiscovered(
-          Builtins.splitstring(Ops.get_string(retcode, "stdout", ""), "\n")
-        )
-      end
-      deep_copy(@discovered)
+      @discovered =
+        retcode["stderr"].to_s.empty? ? ScanDiscovered(retcode["stdout"].to_s.split("\n")) : []
     end
 
     def start_services_initial
@@ -626,15 +630,10 @@ module Yast
 
     # Get all connected targets storing the result in the #sessions attribute
     def readSessions
-      Builtins.y2milestone("reading current settings")
-      retcode = SCR.Execute(path(".target.bash_output"), GetAdmCmd("-m session -P 1"))
-      @sessions = ScanDiscovered(
-        Builtins.splitstring(Ops.get_string(retcode, "stdout", ""), "\n")
-      )
-      Builtins.y2milestone(
-        "Return list from iscsiadm -m session: %1",
-        @sessions
-      )
+      log.info "reading current settings"
+      ret = SCR.Execute(path(".target.bash_output"), GetAdmCmd("-m session -P 1"))
+      @sessions = ScanDiscovered(ret.fetch("stdout", "").split("\n"))
+      log.info "Return list from iscsiadm -m session: #{@sessions}"
       true
     end
 
@@ -801,18 +800,13 @@ module Yast
         GetAdmCmd(
           Builtins.sformat(
             "-m node -I %3 -T %1 -p %2 --logout",
-            Ops.get(@currentRecord, 1, "").shellescape,
-            Ops.get(@currentRecord, 0, "").shellescape,
-            Ops.get(@currentRecord, 2, "default").shellescape
+            @currentRecord[1].to_s.shellescape,
+            @currentRecord[0].to_s.shellescape,
+            @currentRecord.fetch(2, "default").shellescape,
           )
         )
       )
-      if Ops.greater_than(
-        Builtins.size(Ops.get_string(retcode, "stderr", "")),
-        0
-      )
-        return false
-      end
+      return false unless retcode["stderr"].to_s.empty?
 
       readSessions
       ret
@@ -835,9 +829,9 @@ module Yast
         GetAdmCmd(
           Builtins.sformat(
             "-m node -T %1 -p %2 -I %3 --op=delete",
-            Ops.get(@currentRecord, 1, "").shellescape,
-            Ops.get(@currentRecord, 0, "").shellescape,
-            Ops.get(@currentRecord, 2, "").shellescape
+            @currentRecord[1].to_s.shellescape,
+            @currentRecord[0].to_s.shellescape,
+            @currentRecord[2].to_s.shellescape,
           )
         )
       )
@@ -995,11 +989,7 @@ module Yast
 
     # check if given target is connected
     def connected(check_ip)
-      Builtins.y2internal(
-        "check connected status for %1 with IP check:%2",
-        @currentRecord,
-        check_ip
-      )
+      log.info "check connected status for #{@currentRecord} with IP check:#{check_ip}"
       !!find_session(check_ip)
     end
 
@@ -1008,30 +998,18 @@ module Yast
     # @param check_ip [Boolean] whether the ip address must be considered in the comparison
     # @return [String, nil] corresponding entry from #sessions or nil if not found
     def find_session(check_ip)
-      Builtins.foreach(@sessions) do |row|
+      @sessions.find do |row|
         ip_ok = true
-        list_row = Builtins.splitstring(row, " ")
-        Builtins.y2milestone("Session row: %1", list_row)
+        list_row = row.split
+        log.info "Session row: #{list_row}"
         if check_ip
-          session_ip = Ops.get(
-            Builtins.splitstring(Ops.get(list_row, 0, ""), ","),
-            0, ""
-          )
-          current_ip = Ops.get(
-            Builtins.splitstring(Ops.get(@currentRecord, 0, ""), ","),
-            0, ""
-          )
+          session_ip = list_row[0].to_s.split(",")[0].to_s
+          current_ip = @currentRecord[0].to_s.split(",")[0].to_s
           ip_ok = ipEqual?(session_ip, current_ip)
         end
 
-        if Ops.get(list_row, 1, "") == Ops.get(@currentRecord, 1, "") &&
-            Ops.get(list_row, 2, "") == Ops.get(@currentRecord, 2, "") &&
-            ip_ok
-          return row
-        end
+        (list_row[1] == @currentRecord[1]) && (list_row[2] == @currentRecord[2]) && ip_ok
       end
-
-      nil
     end
 
     # change startup status (manual/onboot) for target
@@ -1047,9 +1025,9 @@ module Yast
         GetAdmCmd(
           Builtins.sformat(
             "-m node -I %3 -T %1 -p %2 --op=update --name=node.conn[0].startup --value=%4",
-            Ops.get(@currentRecord, 1, "").shellescape,
-            Ops.get(@currentRecord, 0, "").shellescape,
-            Ops.get(@currentRecord, 2, "default").shellescape,
+            @currentRecord[1].to_s.shellescape,
+            @currentRecord[0].to_s.shellescape,
+            @currentRecord.fetch(2, "default").shellescape,
             status.shellescape
           )
         )
@@ -1065,9 +1043,9 @@ module Yast
           GetAdmCmd(
             Builtins.sformat(
               "-m node -I %3 -T %1 -p %2 --op=update --name=node.startup --value=%4",
-              Ops.get(@currentRecord, 1, "").shellescape,
-              Ops.get(@currentRecord, 0, "").shellescape,
-              Ops.get(@currentRecord, 2, "default").shellescape,
+              @currentRecord[1].to_s.shellescape,
+              @currentRecord[0].to_s.shellescape,
+              @currentRecord.fetch(2, "default").shellescape,
               status.shellescape
             )
           )
@@ -1105,11 +1083,7 @@ module Yast
     #   "password_in".
     def loginIntoTarget(target)
       target = deep_copy(target)
-      @currentRecord = [
-        Ops.get_string(target, "portal", ""),
-        Ops.get_string(target, "target", ""),
-        Ops.get_string(target, "iface", "")
-      ]
+      @currentRecord = [target["portal"].to_s, target["target"].to_s, target["iface"].to_s]
 
       auth = Y2IscsiClient::Authentication.new_from_legacy(target)
       login_into_current(auth)
@@ -1147,9 +1121,9 @@ module Yast
         GetAdmCmd(
           Builtins.sformat(
             "-m node -I %3 -T %1 -p %2 --login",
-            Ops.get(@currentRecord, 1, "").shellescape,
-            Ops.get(@currentRecord, 0, "").shellescape,
-            Ops.get(@currentRecord, 2, "").shellescape
+            @currentRecord[1].to_s.shellescape,
+            @currentRecord[0].to_s.shellescape,
+            @currentRecord[2].to_s.shellescape
           )
         )
       )
@@ -1378,70 +1352,50 @@ module Yast
       ifaces = []
       if retcode["stderr"].empty?
         ScanDiscovered(retcode["stdout"].split("\n")).each do |s|
-          sl = Builtins.splitstring(s, "  ")
-          iface_name = sl[2] || ""
+          iface_name = s.split[2].to_s
           next if iface_name.empty? || ifaces.include?(iface_name)
 
           ifaces << iface_name
         end
       end
-      Builtins.y2milestone("InitOffloadCard ifaces:%1", ifaces)
+      log.info "InitOffloadCard ifaces:#{ifaces}"
       if ifaces.size > 1
         ret = "all"
       elsif @iface_eth.include?(ifaces.first)
         ret = ifaces.first || "default"
       end
-      Builtins.y2milestone("InitOffloadCard ret:%1", ret)
+      log.info "InitOffloadCard ret:#{ret}"
       ret
+    end
+
+    def iface_value(content, field)
+      content.find { |l| l.include? field }.to_s.gsub(/[[:space:]]/,'').split("=")[1]
     end
 
     def InitIfaceFile
       @iface_file = {}
-      files = Convert.convert(
-        SCR.Read(path(".target.dir"), "/etc/iscsi/ifaces"),
-        :from => "any",
-        :to   => "list <string>"
-      )
-      Builtins.y2milestone("InitIfaceFile files:%1", files)
-      if files == nil || Builtins.size(files) == 0
+      files = SCR.Read(path(".target.dir"), "/etc/iscsi/ifaces") || []
+      log.info "InitIfaceFile files: #{files}"
+      if files.empty?
         cmd = GetAdmCmd("-m iface")
         res = SCR.Execute(path(".target.bash_output"), cmd)
-        Builtins.y2milestone("InitIfaceFile cmd:#{cmd}\nres:#{res.inspect}", cmd)
-        files = SCR.Read(path(".target.dir"), "/etc/iscsi/ifaces")
-        Builtins.y2milestone("InitIfaceFile files:%1", files)
+        log.info "InitIfaceFile cmd: #{cmd}\nres: #{res.inspect}"
+        files = SCR.Read(path(".target.dir"), "/etc/iscsi/ifaces") || []
+        log.info "InitIfaceFile files: #{files}"
       end
-      Builtins.foreach(files) do |file|
-        ls = Builtins.splitstring(
-          Convert.to_string(
-            SCR.Read(
-              path(".target.string"),
-              Ops.add("/etc/iscsi/ifaces/", file)
-            )
-          ),
-          "\n"
-        )
-        Builtins.y2milestone("InitIfaceFile file:%1", file)
-        Builtins.y2milestone("InitIfaceFile ls:%1", ls)
-        ls = Builtins.filter(ls) do |l|
-          Builtins.search(l, "iface.iscsi_ifacename") != nil
-        end
-        Builtins.y2milestone("InitIfaceFile ls:%1", ls)
-        if Ops.greater_than(Builtins.size(ls), 0)
-          Ops.set(
-            @iface_file,
-            Ops.get(
-              Builtins.splitstring(
-                Builtins.deletechars(Ops.get(ls, 0, ""), " "),
-                "="
-              ),
-              1,
-              ""
-            ),
-            file
-          )
+      files.each do |file|
+        ls = SCR.Read(path(".target.string"), "/etc/iscsi/ifaces/#{file}").split("\n")
+        log.info "InitIfaceFile file: #{file}\nInitIfaceFile ls: #{ls}"
+        iface_name = ls.find { |l| l.include? "iface.iscsi_ifacename" }.to_s
+        log.info "InitIfaceFile ls: #{iface_name}"
+        unless iface_name.empty?
+          name = iface_name.gsub(/[[:space:]]/,'').split("=")[1]
+          dev_name = iface_value(ls, "iface.net_ifacename")
+          transport = iface_value(ls, "iface.transport")
+          @iface_file[name] = { :name => name, :dev => dev_name, :transport => transport }
         end
       end
-      Builtins.y2milestone("InitIfaceFile iface_file:%1", @iface_file)
+      log.info "InitIfaceFile iface_file: #{@iface_file}"
 
       nil
     end
@@ -1462,13 +1416,13 @@ module Yast
           entries[card[2]] = card_label(card, @offload[i][1])
         end
       end
-      Builtins.y2milestone("GetOffloadItems entries:%1", entries)
+      log.info "GetOffloadItems entries:#{entries}"
 
-      @iface_eth = Builtins.sort(Builtins.maplist(entries) { |e, _val| e })
-      Builtins.y2milestone("GetOffloadItems eth:%1", @iface_eth)
+      @iface_eth = entries.keys.sort
+      log.info "GetOffloadItems eth:#{@iface_eth}"
       if init
         @offload_card = InitOffloadCard()
-        Builtins.y2milestone("GetOffloadItems offload_card:%1", @offload_card)
+        log.info "GetOffloadItems offload_card:#{@offload_card}"
       end
       ret = [
         # Entry for "default"
@@ -1484,8 +1438,8 @@ module Yast
       ret.concat(
         @iface_eth.map { |e| Item(Id(e), entries[e], @offload_card == e) }
       )
-      Builtins.y2milestone("GetOffloadItems ret:%1", ret)
-      deep_copy(ret)
+      log.info "GetOffloadItems ret:#{ret}"
+      ret
     end
 
     # Modules to use for all the cards detected in the system and that support hardware
@@ -1498,83 +1452,82 @@ module Yast
     def GetOffloadModules
       GetOffloadItems() if @offload_valid == nil
       modules = []
-      Builtins.foreach(@offload_valid) do |i, _l|
-        modules = Convert.convert(
-          Builtins.union(modules, Ops.get_list(@offload, [i, 3], [])),
-          :from => "list",
-          :to   => "list <string>"
-        )
-      end
-      Builtins.y2milestone("GetOffloadModules %1", modules)
-      deep_copy(modules)
+      @offload_valid.each { |i, _| modules = modules.union(@offload[i][3]) }
+      log.info "GetOffloadModules #{modules}"
+      modules
     end
 
     def LoadOffloadModules
       mods = GetOffloadModules()
-      Builtins.foreach(mods) do |s|
-        Builtins.y2milestone("Loading module %1", s)
+      mods.each do |s|
+        log.info "Loading module #{s}"
         ModuleLoading.Load(s, "", "", "", false, true)
       end
-      deep_copy(mods)
+      mods
     end
 
+    # It returns a list of iscsi ifaces corresponding to the current offload card selection, "default" will return
+    # an array with the current offload card while all will return an array with all the offlocad valid ifaces
+    #
+    # @return [Array<String>] List os iscsi ifaces for the current offload card selection, ex. ["eth2-bnx2i"]
     def GetDiscIfaces
       ret = []
       if GetOffloadCard() == "all"
-        tl = Builtins.maplist(GetOffloadItems()) do |t|
-          Ops.get_string(Builtins.argsof(t), [0, 0], "")
-        end
-        Builtins.y2milestone("GetDiscIfaces:%1", tl)
-        ret = Builtins.filter(tl) { |s| s != "all" }
+        tl = GetOffloadItems().map {|t| t.params[0][0].to_s }
+        log.info("GetDiscIfaces:#{tl}")
+        ret = tl.select { |s| s != "all" }
       else
         ret = [GetOffloadCard()]
       end
-      Builtins.y2milestone("GetDiscIfaces:%1", ret)
-      deep_copy(ret)
+      log.info("GetDiscIfaces:#{ret}")
+      ret
     end
 
+    # It calls the iscsi_config.sh script for each of the network devices obtained from the @offload_valid variable
+    # and current @offload_card selection
     def CallConfigScript
-      sl = Builtins.filter(GetDiscIfaces()) { |s| s != "default" }
-      Builtins.y2milestone("CallConfigScript list:%1", sl)
-      Builtins.foreach(sl) do |s|
-        hw = []
-        hw = Ops.get(Builtins.maplist(Builtins.filter(@offload_valid) do |_i, eth|
-          Builtins.contains(
-            Builtins.flatten(
-              Convert.convert(eth, :from => "list", :to => "list <list>")
-            ),
-            s
-          )
-        end) { |_i, e| e }, 0, [])
-        Builtins.y2milestone("CallConfigScript hw:%1", hw)
-        hw = Builtins.find(
-          Convert.convert(hw, :from => "list", :to => "list <list>")
-        ) { |l| Ops.get_string(l, 2, "") == s }
-        Builtins.y2milestone("CallConfigScript hw:%1", hw)
+      sl = GetDiscIfaces().select { |s| s != "default" }
+      log.info "CallConfigScript list:#{sl}"
+      sl.each do |s|
+        hw = @offload_valid.select {|_, eth| eth.flatten.include? s }.values[0] || []
+        log.info "CallConfigScript hw:#{hw}"
+        hw = hw.find {|l| l[2] == s}
+        log.info "CallConfigScript hw:#{hw}"
         if hw != nil
-          cmd = "#{OFFLOAD_SCRIPT} #{Ops.get_string(hw, 0, "").shellescape}"
-          Builtins.y2milestone("CallConfigScript cmd:%1", cmd)
+          cmd = "#{OFFLOAD_SCRIPT} #{hw[0].shellescape}"
+          log.info "CallConfigScript cmd:#{cmd}"
           output = SCR.Execute(path(".target.bash_output"), cmd)
-          Builtins.y2milestone("CallConfigScript %1", output)
+          log.info "CallConfigScript #{output}"
         end
       end
 
       nil
     end
 
+    # Obtains the parameters for calling iscsiadm in discovery mode depending on the current
+    # iSNS configuration as well as the parameters given
+    #
+    # ex.
+    #   GetDiscoveryCmd("192.168.0.100", "3260") =>
+    #     ["iscsiadm", "-m", "discovery", "-P", "1", "-t", "st", "-p", "192.168.0.100:3260"]
+    #
+    # @param ip [String] Portal IP address
+    # @param port [String] Portal port number
+    # @param use_fw [Boolean] whether the target should be fw or not
+    # @only_new [Boolean] whether a new record should be created
     # @return [Array<String>]
     def GetDiscoveryCmd(ip, port, use_fw: false, only_new: false)
-      Builtins.y2milestone("GetDiscoveryCmd ip:%1 port:%2 fw:%3 only new:%4",
-        ip, port, use_fw, only_new)
-      command = ["iscsiadm", "-m", "discovery", "-P", "1"]
+      log.info "GetDiscoveryCmd ip:#{ip} port:#{port} fw:#{use_fw} only new:#{only_new}"
+
+      command = DISCOVERY_CMD.split
       isns_info = useISNS
       if isns_info["use"]
         command << "-t" << "isns"
       else
         ifs = GetDiscIfaces()
-        Builtins.y2milestone("ifs=%1", ifs)
+        log.info "ifs=#{ifs}"
         ifs = ifs.each_with_object([]) { |s, res| res << "-I" << s }
-        Builtins.y2milestone("ifs=%1", ifs)
+        log.info "ifs=#{ifs}"
         tgt = "st"
         tgt = "fw" if use_fw
         command << "-t" << tgt
@@ -1584,7 +1537,7 @@ module Yast
       command << "-p" << "#{ip}:#{port}"
       command << "-o" << "new" if only_new
 
-      Builtins.y2milestone("GetDiscoveryCmd %1", command)
+      log.info "GetDiscoveryCmd #{command}"
       command
     end
 
@@ -1661,24 +1614,15 @@ module Yast
           card_res["exit"].zero? && card_res["hwaddr"]
         end
       end
-      Builtins.y2milestone("GetOffloadItems offload_res:%1", offload_res)
-      Builtins.y2milestone("GetOffloadItems offload_valid:%1", @offload_valid)
+      log.info "GetOffloadItems offload_res:#{offload_res}"
+      log.info "GetOffloadItems offload_valid:#{@offload_valid}"
 
       # Sync the MAC with the hwaddr value from offload_res
-      @offload_valid.values.each do |cards|
-        cards.each do |card|
-          dev_name = card[0]
-          card[1] = offload_res[dev_name]["hwaddr"]
-        end
-      end
-      Builtins.y2milestone("GetOffloadItems offload_valid:%1", @offload_valid)
+      @offload_valid.values.each { |cards| cards.each { |c| c[1] = offload_res[c[0]]["hwaddr"] } }
+      log.info "GetOffloadItems offload_valid:#{@offload_valid}"
 
-      @offload_valid.values.each do |cards|
-        cards.each do |card|
-          card << ip_addr(card[0])
-        end
-      end
-      Builtins.y2milestone("GetOffloadItems offload_valid:%1", @offload_valid)
+      @offload_valid.values.each { |cards| cards.each { |c| c << ip_addr(c[0]) } }
+      log.info "GetOffloadItems offload_valid:#{@offload_valid}"
     end
 
     # List of modules for the given card description
@@ -1713,13 +1657,13 @@ module Yast
       # Store into hw_mods information about all the cards in the system
       cards = SCR.Read(path(".probe.netcard"))
       hw_mods = cards.map do |c|
-        Builtins.y2milestone("GetOffloadItems card:%1", c)
+        log.info "GetOffloadItems card:#{c}"
         hw_mod = {
           "modules" => netcard_modules(c),
           "iface"   => c["dev_name"] || "",
           "macaddr" => Ops.get_string(c, ["resource", "hwaddr", 0, "addr"], "")
         }
-        Builtins.y2milestone("GetOffloadItems cinf:%1", hw_mod)
+        log.info "GetOffloadItems cinf:#{hw_mod}"
         hw_mod
       end
 
@@ -1733,8 +1677,8 @@ module Yast
           # Ignore this card unless it has some module in common with the offload entry
           next if (modules & hw["modules"]).empty?
 
-          Builtins.y2milestone("GetOffloadItems l:%1", offload_entry)
-          Builtins.y2milestone("GetOffloadItems valid:%1", hw)
+          log.info "GetOffloadItems l:#{offload_entry}"
+          log.info "GetOffloadItems valid:#{hw}"
           result[idx] ||= []
           result[idx] << [
             hw["iface"],
@@ -1760,14 +1704,14 @@ module Yast
 
       cards.each do |dev_name|
         cmd = "#{OFFLOAD_SCRIPT} #{dev_name.shellescape} | grep ..:..:..:.." # grep for lines containing MAC address
-        Builtins.y2milestone("GetOffloadItems cmd:%1", cmd)
+        log.info  "GetOffloadItems cmd #{cmd}"
         out = SCR.Execute(path(".target.bash_output"), cmd)
         # Example for output if offload is supported on interface:
         # cmd: iscsi_offload eth2
         # out: $["exit":0, "stderr":"", "stdout":"00:00:c9:b1:bc:7f ip \n"]
         cmd2 = "#{OFFLOAD_SCRIPT} #{dev_name.shellescape}"
         result = SCR.Execute(path(".target.bash_output"), cmd2)
-        Builtins.y2milestone("GetOffloadItems iscsi_offload out:%1", result)
+        log.info "GetOffloadItems iscsi_offload out:#{result}"
 
         offload_res[dev_name] = {}
         offload_res[dev_name]["exit"] = out["exit"]
@@ -1788,8 +1732,6 @@ module Yast
         stderr:             :capture,
         allowed_exitstatus: 0..127,
         env:                { "LC_ALL" => "POSIX" })[0]
-      log.info "IP Address config for #{dev_name}: #{stdout}"
-
       # Search for lines containing "inet", means IPv4 address.
       # Regarding the IPv6 support there are no changes needed here because
       # the IP address is not used farther.

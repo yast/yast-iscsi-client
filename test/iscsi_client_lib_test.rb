@@ -690,14 +690,14 @@ describe Yast::IscsiClientLib do
                   "\tPortal: 192.168.20.20:3260,2",
                   "\t\tIface Name: default",
                   "\tPortal: 192.168.10.20:3260,1",
-                  "\t\tIface Name: default"]
+                  "\t\tIface Name: bnx2i.9c:dc:71:df:cf:29.ipv4.0"]
         )).to eq(
           [
             "[2620:113:80c0:8080:e051:f9ea:73c7:9171]:3260 iqn.2013-10.de.suse:test_file2 default",
             "10.120.66.182:3260 iqn.2013-10.de.suse:test_file2 default",
             "[2620:113:80c0:8080:a00:27ff:fe1b:a7fe]:3260 iqn.2013-10.de.suse:test_file2 default",
             "192.168.20.20:3260 iqn.2018-06.de.suse.zeus:01 default",
-            "192.168.10.20:3260 iqn.2018-06.de.suse.zeus:01 default"
+            "192.168.10.20:3260 iqn.2018-06.de.suse.zeus:01 bnx2i.9c:dc:71:df:cf:29.ipv4.0"
           ]
         )
       end

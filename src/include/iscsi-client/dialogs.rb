@@ -90,12 +90,9 @@ module Yast
                 MinWidth(
                   8,
                   ComboBox(
-                    Id(:offload_card),
+                    Id(:iscsi_iface),
                     Opt(:notify),
-                    # prefer to not translate 'Offload' unless there is a well
-                    # known word for this technology (it's special hardware
-                    # shifting load from processor to card)
-                    _("Offload Car&d"),
+                    _("i&SCSI Iface"),
                     []
                   )
                 )
@@ -113,7 +110,7 @@ module Yast
             "symbol (string, map)"
           ),
           "handle"            => fun_ref(
-            method(:handleOffload),
+            method(:handleIface),
             "symbol (string, map)"
           ),
           "help"              => Ops.get_string(@HELPS, "initiator_name", "")

@@ -130,8 +130,10 @@ module Yast
       @initiatorname = ""
       # map used for autoYaST
       @ay_settings = nil
-      # interface type for hardware offloading
+      # iscsi interface for hardware offloading
       @offload_card = "default"
+      # iscsi iface for discovering
+      @iface = "default"
 
       # Types of offload cards
       # [<id>, <label>, <matching_modules>, <load_modules>]
@@ -260,6 +262,14 @@ module Yast
 
     def GetOffloadCard
       @offload_card
+    end
+
+    def selected_iface
+      @iface || "default"
+    end
+
+    def iface=(iface)
+      log.info "Selecting the iface: #{iface} cur:#{@iface}"
     end
 
     # It selects the given card as the offload one and calls iscsi_offload script if it is
@@ -1392,7 +1402,9 @@ module Yast
           name = iface_name.gsub(/[[:space:]]/,'').split("=")[1]
           dev_name = iface_value(ls, "iface.net_ifacename")
           transport = iface_value(ls, "iface.transport")
-          @iface_file[name] = { :name => name, :dev => dev_name, :transport => transport }
+          hwaddress = iface_value(ls, "iface.hwaddress")
+          ipaddress = iface_value(ls, "iface.ipaddress")
+          @iface_file[name] = { :name => name, :dev => dev_name, :transport => transport, :hwaddress => hwaddress, :ip => ipaddress }
         end
       end
       log.info "InitIfaceFile iface_file: #{@iface_file}"
@@ -1400,6 +1412,26 @@ module Yast
       nil
     end
 
+    def default_item
+      Item(Id(@offload[0][0]), @offload[0][1], @iface == @offload[0][0])
+    end
+
+    def all_item
+      Item(Id(@offload[1][0]), @offload[1][1], @iface== @offload[1][0])
+    end
+
+    def iface_items
+      InitIfaceFile() unless @iface_file
+
+      items = [default_item]
+      items << all_item if @iface_file.any?
+
+      @iface_file.each { |n, e| items << Item(Id(n), iface_label(e), @iface == n) }
+    end
+
+    # Return an array of OffloadCard Items
+    #
+    # [Item(Id("default"), "Default", true), Item(Id("all"), "All", false), Item(Id("eth0-bnx2i"), "eth2 - 00:00:00: - bnx2/bnx2x/bnx2i", false)]
     def GetOffloadItems
       init = false
       if @offload_valid.nil?
@@ -1471,16 +1503,9 @@ module Yast
     #
     # @return [Array<String>] List os iscsi ifaces for the current offload card selection, ex. ["eth2-bnx2i"]
     def GetDiscIfaces
-      ret = []
-      if GetOffloadCard() == "all"
-        tl = GetOffloadItems().map {|t| t.params[0][0].to_s }
-        log.info("GetDiscIfaces:#{tl}")
-        ret = tl.select { |s| s != "all" }
-      else
-        ret = [GetOffloadCard()]
-      end
-      log.info("GetDiscIfaces:#{ret}")
-      ret
+      ifaces = @iface == "all" ? @iface_file.keys : [@iface]
+      log.info "GetDiscIfaces:#{ifaces}" 
+      ifaces
     end
 
     # It calls the iscsi_config.sh script for each of the network devices obtained from the @offload_valid variable
@@ -1602,9 +1627,14 @@ module Yast
 
   private
 
+    def bring_up(card_names)
+      card_names.each { |n| Yast::Execute.locally!("ip", "link", "set", "dev", "up", n) }
+    end
+
     def InitOffloadValid
       @offload_valid = potential_offload_cards
       card_names = @offload_valid.values.flatten(1).map(&:first)
+      # bring_up(card_names)
       offload_res = configure_offload_engines(card_names)
 
       # Filter only those cards for which we have a hwaddr value in offload_res
@@ -1746,6 +1776,10 @@ module Yast
       log.info "IP Address for #{dev_name}: #{ipaddr}"
 
       ipaddr
+    end
+
+    def iface_label(data) 
+      [data.name, data.hwaddress, data.transport_name].compact.join(" - ")
     end
 
     def card_label(card, type_label)

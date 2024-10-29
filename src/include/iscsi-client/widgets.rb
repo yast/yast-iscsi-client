@@ -227,15 +227,10 @@ module Yast
     def initInitName(_key)
       Builtins.y2milestone("initiatorname %1", IscsiClientLib.initiatorname)
       UI.ChangeWidget(:initiator_name, :Value, IscsiClientLib.initiatorname)
-      UI.ChangeWidget(:offload_card, :Items, IscsiClientLib.GetOffloadItems)
-      UI.ChangeWidget(:offload_card, :Value, IscsiClientLib.GetOffloadCard)
-      Builtins.y2milestone("OffloadCard %1", IscsiClientLib.GetOffloadCard)
-      if Ops.greater_than(
-        Builtins.size(
-          Ops.get_string(IscsiClientLib.getiBFT, "iSCSI_INITIATOR_NAME", "")
-        ),
-        0
-      )
+      UI.ChangeWidget(:iface, :Items, IscsiClientLib.iface_items)
+      UI.ChangeWidget(:iface, :Value, IscsiClientLib.selected_iface)
+      log.info "Selected Iface: #{IscsiClientLib.selected_iface}"
+      unless IscsiClientLib.getiBFT["iSCSI_INITIATOR_NAME"].to_s.empty?
         UI.ChangeWidget(:initiator_name, :Enabled, false)
         # Not sure if there is such a widget called :write
         UI.ChangeWidget(:write, :Enabled, false)
@@ -290,6 +285,10 @@ module Yast
       end
     end
 
+    def iface_value
+      UI.QueryWidget(:iface, :Value).to_s
+    end
+
     def storeInitName(_key, event)
       event = deep_copy(event)
       if Convert.to_string(UI.QueryWidget(:initiator_name, :Value)) !=
@@ -304,34 +303,17 @@ module Yast
         else
           Service.Restart("iscsid")
         end
-        Builtins.y2milestone(
-          "write initiatorname %1",
-          IscsiClientLib.initiatorname
-        )
+        log.info "write initiatorname #{IscsientLib.initiatorname}"
       end
-      if Convert.to_string(UI.QueryWidget(:offload_card, :Value)) !=
-          IscsiClientLib.GetOffloadCard
-        IscsiClientLib.SetOffloadCard(
-          Convert.to_string(UI.QueryWidget(:offload_card, :Value))
-        )
-        Builtins.y2milestone("OffloadCard %1", IscsiClientLib.GetOffloadCard)
-      end
+      IscsiClientLib.iface = iface_value if iface_value != IscsiClientLib.selected_iface
       nil
     end
 
-    def handleOffload(_key, event)
-      event = deep_copy(event)
-      if event["EventReason"] || "" == "ValueChanged" &&
-          event["ID"] || :none == :offload_card
-        if Convert.to_string(UI.QueryWidget(:offload_card, :Value)) !=
-            IscsiClientLib.GetOffloadCard
-          IscsiClientLib.SetOffloadCard(
-            Convert.to_string(UI.QueryWidget(:offload_card, :Value))
-          )
-          Builtins.y2milestone(
-            "handleOffload OffloadCard %1",
-            IscsiClientLib.GetOffloadCard
-          )
+    def handleIface(_key, event)
+      if event["EventReason"].to_s == "ValueChanged" && event["ID"] == :iface
+        if iface_value != IscsiClientLib.iface
+          IscsiClientLib.iface = iface_value
+          log.info "handleIface iface: #{IscsiClientLib.iface}"
         end
       end
       nil

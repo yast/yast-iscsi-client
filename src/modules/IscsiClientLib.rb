@@ -117,7 +117,7 @@ module Yast
       @discovered = []
       @targets = []
       @currentRecord = []
-      @iface_file = {}
+      @iface_file = nil
       @iface_eth = []
 
       # Content of the main configuration file (/etc/iscsi/iscsid.conf)
@@ -270,19 +270,6 @@ module Yast
 
     def iface=(iface)
       log.info "Selecting the iface: #{iface} cur:#{@iface}"
-    end
-
-    # It selects the given card as the offload one and calls iscsi_offload script if it is
-    # not the selected one also not the default
-    def SetOffloadCard(new_card)
-      log.info "SetOffloadCard:#{new_card} cur:#{@offload_card}"
-
-      if new_card != @offload_card
-        @offload_card = new_card
-        CallConfigScript() if new_card != "default"
-      end
-
-      nil
     end
 
     # Create and return complete iscsciadm command by adding the string
@@ -1263,100 +1250,52 @@ module Yast
       portals = []
       ifaces = []
       ifacepar = ""
-      Builtins.foreach(Ops.get_list(@ay_settings, "targets", [])) do |target|
-        iface = Ops.get_string(target, "iface", "default")
+      @ay_settings.fetch("targets", []).each do |target|
+        iface = target.fetch("iface", "default")
         next if ifaces.include?(iface) # already added
 
         ifacepar << " " unless ifacepar.empty?
         ifacepar << "-I " << iface.shellescape
         ifaces << iface
       end
-      if Ops.greater_than(Builtins.size(Builtins.filter(ifaces) do |s|
-                                          s != "default"
-                                        end), 0)
-        CallConfigScript()
-      end
-      Builtins.foreach(Ops.get_list(@ay_settings, "targets", [])) do |target|
-        if !Builtins.contains(portals, Ops.get_string(target, "portal", ""))
+
+      @ay_settings.fetch("targets", []).each do |target|
+        unless portals.include? target["portal"]
           SCR.Execute(
             path(".target.bash"),
-            GetAdmCmd(
-              Builtins.sformat(
-                "-m discovery %1 -t st -p %2",
-                ifacepar,
-                Ops.get_string(target, "portal", "").shellescape
-              )
-            )
+            GetAdmCmd(%|-m discovery #{ifacepar} -t st -p #{target["portal"].shellescape}|)
           )
-          portals = Builtins.add(portals, Ops.get_string(target, "portal", ""))
+          portals << target["portal"]
         end
       end
-      Builtins.foreach(Ops.get_list(@ay_settings, "targets", [])) do |target|
-        Builtins.y2internal("login into target %1", target)
+      @ay_settings.fetch("targets", []).each do |target|
+        log.info "login into target #{target}"
         loginIntoTarget(target)
-        @currentRecord = [
-          Ops.get_string(target, "portal", ""),
-          Ops.get_string(target, "target", ""),
-          Ops.get_string(target, "iface", "")
-        ]
-        setStartupStatus(Ops.get_string(target, "startup", "manual"))
+        @currentRecord = [target["portal"], target["target"], target["iface"]]
+        setStartupStatus(target.fetch("startup", "manual"))
       end
       true
     end
 
     def Overview
       overview = _("Configuration summary...")
-      if Ops.greater_than(Builtins.size(@ay_settings), 0)
+      unless (@ay_settings || {}).empty?
         overview = ""
-        if Ops.greater_than(
-          Builtins.size(Ops.get_string(@ay_settings, "initiatorname", "")),
-          0
-        )
-          overview = Ops.add(
-            Ops.add(
-              Ops.add(overview, "<p><b>Initiatorname: </b>"),
-              Ops.get_string(@ay_settings, "initiatorname", "")
-            ),
-            "</p>"
-          )
+        initiatorname = @ay_settings.fetch("initiatorname", "")
+        targets = @ay_settings.fetch("targets", [])
+        unless initiatorname.empty?
+          overview << "<p><b>Initiatorname: </b>#{initiatorname}</p>"
         end
-        if Ops.greater_than(
-          Builtins.size(Ops.get_list(@ay_settings, "targets", [])),
-          0
-        )
-          Builtins.foreach(Ops.get_list(@ay_settings, "targets", [])) do |target|
-            overview = Ops.add(
-              Ops.add(
-                Ops.add(
-                  Ops.add(
-                    Ops.add(
-                      Ops.add(
-                        Ops.add(
-                          Ops.add(
-                            Ops.add(overview, "<p>"),
-                            Ops.get_string(target, "portal", "")
-                          ),
-                          ", "
-                        ),
-                        Ops.get_string(target, "target", "")
-                      ),
-                      ", "
-                    ),
-                    Ops.get_string(target, "iface", "")
-                  ),
-                  ", "
-                ),
-                Ops.get_string(target, "startup", "")
-              ),
-              "</p>"
-            )
+        unless targets.empty?
+          targets.each do |t|
+            overview << "<p>#{t["portal"]}, #{t["target"]}, #{t["iface"]}, #{t["startup"]}</p>"
           end
         end
       end
       overview
     end
 
-    def InitOffloadCard
+    def InitIface
       ret = "default"
       retcode = SCR.Execute(path(".target.bash_output"), GetAdmCmd("-m node -P 1"))
       ifaces = []
@@ -1368,14 +1307,14 @@ module Yast
           ifaces << iface_name
         end
       end
-      log.info "InitOffloadCard ifaces:#{ifaces}"
+      log.info "InitIface ifaces:#{ifaces}"
       if ifaces.size > 1
         ret = "all"
-      elsif @iface_eth.include?(ifaces.first)
-        ret = ifaces.first || "default"
+      elsif (@iface_file || {}).keys.include?(ifaces.first)
+        ret = ifaces.first
       end
-      log.info "InitOffloadCard ret:#{ret}"
-      ret
+      log.info "InitIface ret:#{ret}"
+      @iface = ret
     end
 
     def iface_value(content, field)
@@ -1421,57 +1360,16 @@ module Yast
     end
 
     def iface_items
-      InitIfaceFile() unless @iface_file
+      if @iface_file.nil?
+        InitIfaceFile()
+        InitIface()
+      end
 
       items = [default_item]
       items << all_item if @iface_file.any?
 
       @iface_file.each { |n, e| items << Item(Id(n), iface_label(e), @iface == n) }
-    end
-
-    # Return an array of OffloadCard Items
-    #
-    # [Item(Id("default"), "Default", true), Item(Id("all"), "All", false), Item(Id("eth0-bnx2i"), "eth2 - 00:00:00: - bnx2/bnx2x/bnx2i", false)]
-    def GetOffloadItems
-      init = false
-      if @offload_valid.nil?
-        init = true
-        InitIfaceFile()
-        InitOffloadValid()
-      end
-
-      entries = {}
-      @offload_valid.each do |i, cards|
-        cards.each do |card|
-          next if card[0].nil? || card[0].empty?
-
-          entries[card[2]] = card_label(card, @offload[i][1])
-        end
-      end
-      log.info "GetOffloadItems entries:#{entries}"
-
-      @iface_eth = entries.keys.sort
-      log.info "GetOffloadItems eth:#{@iface_eth}"
-      if init
-        @offload_card = InitOffloadCard()
-        log.info "GetOffloadItems offload_card:#{@offload_card}"
-      end
-      ret = [
-        # Entry for "default"
-        Item(Id(@offload[0][0]), @offload[0][1], @offload_card == @offload[0][0])
-      ]
-      if @offload_valid.any?
-        # Entry for "all"
-        ret << Item(
-          Id(@offload[1][0]), @offload[1][1], @offload_card == @offload[1][0]
-        )
-      end
-      # Entries for the valid cards
-      ret.concat(
-        @iface_eth.map { |e| Item(Id(e), entries[e], @offload_card == e) }
-      )
-      log.info "GetOffloadItems ret:#{ret}"
-      ret
+      items
     end
 
     # Modules to use for all the cards detected in the system and that support hardware
@@ -1482,11 +1380,11 @@ module Yast
     #
     # @return [Array<String>]
     def GetOffloadModules
-      GetOffloadItems() if @offload_valid == nil
+      InitOffloadValid() if @offload_valid == nil
       modules = []
-      @offload_valid.each { |i, _| modules = modules.union(@offload[i][3]) }
+      @offload_valid.each { |i, _| modules.concat(@offload[i][3]) }
       log.info "GetOffloadModules #{modules}"
-      modules
+      modules.uniq
     end
 
     def LoadOffloadModules
@@ -1506,27 +1404,6 @@ module Yast
       ifaces = @iface == "all" ? @iface_file.keys : [@iface]
       log.info "GetDiscIfaces:#{ifaces}" 
       ifaces
-    end
-
-    # It calls the iscsi_config.sh script for each of the network devices obtained from the @offload_valid variable
-    # and current @offload_card selection
-    def CallConfigScript
-      sl = GetDiscIfaces().select { |s| s != "default" }
-      log.info "CallConfigScript list:#{sl}"
-      sl.each do |s|
-        hw = @offload_valid.select {|_, eth| eth.flatten.include? s }.values[0] || []
-        log.info "CallConfigScript hw:#{hw}"
-        hw = hw.find {|l| l[2] == s}
-        log.info "CallConfigScript hw:#{hw}"
-        if hw != nil
-          cmd = "#{OFFLOAD_SCRIPT} #{hw[0].shellescape}"
-          log.info "CallConfigScript cmd:#{cmd}"
-          output = SCR.Execute(path(".target.bash_output"), cmd)
-          log.info "CallConfigScript #{output}"
-        end
-      end
-
-      nil
     end
 
     # Obtains the parameters for calling iscsiadm in discovery mode depending on the current
@@ -1587,8 +1464,6 @@ module Yast
     publish :variable => :currentRecord, :type => "list <string>"
     publish :variable => :initiatorname, :type => "string"
     publish :variable => :ay_settings, :type => "map"
-    publish :function => :GetOffloadCard, :type => "string ()"
-    publish :function => :SetOffloadCard, :type => "void (string)"
     publish :function => :GetAdmCmd, :type => "string (string)"
     publish :function => :hidePassword, :type => "map <string, any> (map <string, any>)"
     publish :function => :getiBFT, :type => "map <string, any> ()"
@@ -1619,7 +1494,7 @@ module Yast
     publish :function => :autoyastPrepare, :type => "boolean ()"
     publish :function => :autoyastWrite, :type => "boolean ()"
     publish :function => :Overview, :type => "string ()"
-    publish :function => :GetOffloadItems, :type => "list <term> ()"
+    publish :function => :iface_items, :type => "list <term> ()"
     publish :function => :GetOffloadModules, :type => "list <string> ()"
     publish :function => :LoadOffloadModules, :type => "list <string> ()"
     publish :function => :getCurrentNodeValues, :type => "map <string, any> ()"
@@ -1628,31 +1503,20 @@ module Yast
   private
 
     def bring_up(card_names)
-      card_names.each { |n| Yast::Execute.locally!("ip", "link", "set", "dev", "up", n) }
+      card_names.each { |n| Yast::Execute.locally!("ip", "link", "set", "dev", n, "up") }
     end
 
     def InitOffloadValid
-      @offload_valid = potential_offload_cards
-      card_names = @offload_valid.values.flatten(1).map(&:first)
-      # bring_up(card_names)
-      offload_res = configure_offload_engines(card_names)
-
-      # Filter only those cards for which we have a hwaddr value in offload_res
-      @offload_valid.values.each do |cards|
-        cards.select! do |card|
-          card_res = offload_res[card[0]]
-          card_res["exit"].zero? && card_res["hwaddr"]
-        end
+      if @iface_file.nil?
+        InitIfaceFile()
+        InitIface()
       end
-      log.info "GetOffloadItems offload_res:#{offload_res}"
-      log.info "GetOffloadItems offload_valid:#{@offload_valid}"
 
-      # Sync the MAC with the hwaddr value from offload_res
-      @offload_valid.values.each { |cards| cards.each { |c| c[1] = offload_res[c[0]]["hwaddr"] } }
-      log.info "GetOffloadItems offload_valid:#{@offload_valid}"
-
-      @offload_valid.values.each { |cards| cards.each { |c| c << ip_addr(c[0]) } }
-      log.info "GetOffloadItems offload_valid:#{@offload_valid}"
+      @offload_valid = potential_offload_cards
+      card_names = @offload_valid.values.flatten(1).map {|c| c["iface"] }.uniq
+      bring_up(card_names)
+      log.info "OffloadValid entries#{@offload_valid}"
+      nil
     end
 
     # List of modules for the given card description
@@ -1686,14 +1550,14 @@ module Yast
     def potential_offload_cards
       # Store into hw_mods information about all the cards in the system
       cards = SCR.Read(path(".probe.netcard"))
-      hw_mods = cards.map do |c|
+      hw_mods = cards.select {|c| c["iscsioffload"] }.map do |c|
         log.info "GetOffloadItems card:#{c}"
         hw_mod = {
           "modules" => netcard_modules(c),
           "iface"   => c["dev_name"] || "",
-          "macaddr" => Ops.get_string(c, ["resource", "hwaddr", 0, "addr"], "")
+          "macaddr" => c.dig("resource", "hwaddr", 0, "addr") || ""
         }
-        log.info "GetOffloadItems cinf:#{hw_mod}"
+        log.info "OffloadCards hw:#{hw_mod}"
         hw_mod
       end
 
@@ -1710,11 +1574,7 @@ module Yast
           log.info "GetOffloadItems l:#{offload_entry}"
           log.info "GetOffloadItems valid:#{hw}"
           result[idx] ||= []
-          result[idx] << [
-            hw["iface"],
-            hw["macaddr"], # In fact, this is going to be overwritten at a later point
-            "#{hw["iface"]}-#{offload_entry[3].first}"
-          ]
+          result[idx] << hw
         end
       end
 
@@ -1778,8 +1638,8 @@ module Yast
       ipaddr
     end
 
-    def iface_label(data) 
-      [data.name, data.hwaddress, data.transport_name].compact.join(" - ")
+    def iface_label(data)
+      [data[:name], data[:ip]].compact.join(" - ")
     end
 
     def card_label(card, type_label)

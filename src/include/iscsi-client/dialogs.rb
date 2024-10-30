@@ -90,9 +90,9 @@ module Yast
                 MinWidth(
                   8,
                   ComboBox(
-                    Id(:iscsi_iface),
+                    Id(:iface),
                     Opt(:notify),
-                    _("i&SCSI Iface"),
+                    _("iSCSI I&face"),
                     []
                   )
                 )

@@ -33,6 +33,8 @@ require "y2iscsi_client/authentication"
 
 module Yast
   module IscsiClientWidgetsInclude
+    include Logger
+
     def initialize_iscsi_client_widgets(_include_target)
       textdomain "iscsi-client"
       Yast.import "IP"
@@ -311,9 +313,9 @@ module Yast
 
     def handleIface(_key, event)
       if event["EventReason"].to_s == "ValueChanged" && event["ID"] == :iface
-        if iface_value != IscsiClientLib.iface
+        if iface_value != IscsiClientLib.selected_iface
           IscsiClientLib.iface = iface_value
-          log.info "handleIface iface: #{IscsiClientLib.iface}"
+          log.info "handleIface iface: #{IscsiClientLib.selected_iface}"
         end
       end
       nil

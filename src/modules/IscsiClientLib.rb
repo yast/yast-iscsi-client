@@ -59,9 +59,8 @@ module Yast
     # Documentation for attributes that are initialized at #main
 
     # @!attribute iface_file
-    #   Entries in the iscsi ifaces file which is initialized by #InitIfaceFile but could be
-    #   modified by other calls like the  configure_offload_engines. Every network interface that 
-    #   supports open-iscsi can have one o more iscsi ifaces associated with it.
+    #   Entries in the iscsi ifaces file which is initialized by #InitIfaceFile . Every network
+    #   interface that supports open-iscsi can have one o more iscsi ifaces associated with it.
     #
     #   Each entry associates the iscsi file name with the iscsi iface name which is usually the same.
     #
@@ -171,13 +170,10 @@ module Yast
       #
       # Eg.
       # {
-      #   2 => [ ["eth4", "00:11:22:33:44:55:66", "eth4-bnx2i", "191.212.2.2"] ],
-      #   6 => [
-      #          ["eth0", "00:...:33", "eth0-be2iscsi", "12.16.0.1"],
-      #          ["eth1", "00:...:11", "eth1-be2iscsi", "19.2.20.1"]
-      #        ]
+      #   2 => [ { "iface" => "eth4", "macaddr" =>  "00:11:22:33:44:55:66", "modules" => ["bnx2i"] } ],
+      #   6 => [ { "iface" => "eth0", "macaddr" => "00:....:33", "modules => "be2iscsi" }
+      #          { "iface" => "eth0", "macaddr" => "00:....:11", "modules => "be2iscsi" }]
       # }
-      #
       @offload_valid = nil
 
       # Very likely, these two instance variables should NOT be directly accessed everywhere in
@@ -435,15 +431,9 @@ module Yast
       nil
     end
 
+
     def getNode
-      cmdline = GetAdmCmd(
-        Builtins.sformat(
-          "-S -m node -I %3 -T %1 -p %2",
-          @currentRecord[1].to_s.shellescape,
-          @currentRecord[0].to_s.shellescape,
-          @currentRecord.fetch(2, "default").shellescape
-        )
-      )
+      cmdline = GetAdmCmd("-S -m node -I #{current_iface} -T #{current_target} -p #{current_portal}")
       cmd = SCR.Execute(path(".target.bash_output"), cmdline)
       return {} if Ops.get_integer(cmd, "exit", 0) != 0
       auth = {}
@@ -790,18 +780,11 @@ module Yast
     #   {#sessions} gets refreshed in the latter case)
     def deleteRecord
       ret = true
-      Builtins.y2milestone("Delete record %1", @currentRecord)
+      log.info "Delete record #{@currentRecord}"
 
       retcode = SCR.Execute(
         path(".target.bash_output"),
-        GetAdmCmd(
-          Builtins.sformat(
-            "-m node -I %3 -T %1 -p %2 --logout",
-            @currentRecord[1].to_s.shellescape,
-            @currentRecord[0].to_s.shellescape,
-            @currentRecord.fetch(2, "default").shellescape,
-          )
-        )
+        GetAdmCmd("-m node -I #{current_iface} -T #{current_target} -p #{current_portal} --logout")
       )
       return false unless retcode["stderr"].to_s.empty?
 
@@ -819,20 +802,13 @@ module Yast
     #
     # @return [Boolean] whether the operation succeeded with no incidences
     def removeRecord
-      Builtins.y2milestone("Remove record %1", @currentRecord)
+      log.info "Remove record #{@currentRecord}"
 
       result = SCR.Execute(
         path(".target.bash_output"),
-        GetAdmCmd(
-          Builtins.sformat(
-            "-m node -T %1 -p %2 -I %3 --op=delete",
-            @currentRecord[1].to_s.shellescape,
-            @currentRecord[0].to_s.shellescape,
-            @currentRecord[2].to_s.shellescape,
-          )
-        )
+        GetAdmCmd("-m node -T #{current_target} -p #{current_portal} -I #{current_iface} --op=delete")
       )
-      Builtins.y2milestone(result.inspect)
+      log.info(result.inspect)
       result["exit"].zero?
     end
 
@@ -842,7 +818,7 @@ module Yast
     #                   converted to a hash
     def getCurrentNodeValues
       ret = SCR.Execute(path(".target.bash_output"),
-        GetAdmCmd("-m node -I #{(@currentRecord[2] || "default").shellescape} -T #{(@currentRecord[1] || "").shellescape} -p #{(@currentRecord[0] || "").shellescape}"))
+        GetAdmCmd("-m node -I #{current_iface} -T #{current_target} -p #{current_portal}"))
       return {} if ret["exit"] != 0
 
       nodeInfoToMap(ret["stdout"] || "")
@@ -923,28 +899,24 @@ module Yast
 
     # update authentication value
     def setValue(name, value)
-      rec = @currentRecord
-      Builtins.y2milestone("set %1  for record %2", name, rec)
+      log.info "set #{name} for record #{@currentRecord}"
 
       log = !name.include?("password")
-      cmd = "-m node -I #{(rec[2] || "default").shellescape} -T #{(rec[1] || "").shellescape} -p #{(rec[0] || "").shellescape} --op=update --name=#{name.shellescape}"
+      cmd = "-m node -I #{current_iface} -T #{current_target} -p #{current_portal} --op=update --name=#{name.shellescape}"
 
       command = GetAdmCmd("#{cmd} --value=#{value.shellescape}", log)
       if !log
         value = "*****" if !value.empty?
-        Builtins.y2milestone("AdmCmd:LC_ALL=POSIX iscsiadm #{cmd} --value=#{value}")
+        log.info "AdmCmd:LC_ALL=POSIX iscsiadm #{cmd} --value=#{value}"
       end
 
       ret = true
       retcode = SCR.Execute(path(".target.bash_output"), command)
-      if Ops.greater_than(
-        Builtins.size(Ops.get_string(retcode, "stderr", "")),
-        0
-      )
-        Builtins.y2error("%1", Ops.get_string(retcode, "stderr", ""))
-        ret = false
+      unless retcode["stderr"].to_s.empty?
+        log.error "#{retcode["stderr"]}"
+        return false
       end
-      Builtins.y2milestone("return value %1", ret)
+      log.info "return value #{ret}"
       ret
     end
 
@@ -1011,45 +983,38 @@ module Yast
 
     # change startup status (manual/onboot) for target
     def setStartupStatus(status)
-      Builtins.y2milestone(
-        "Set startup status for %1 to %2",
-        @currentRecord,
-        status
-      )
+      log.info "Set startup status for #{@currentRecord} to #{status}"
       ret = true
       retcode = SCR.Execute(
         path(".target.bash_output"),
         GetAdmCmd(
           Builtins.sformat(
             "-m node -I %3 -T %1 -p %2 --op=update --name=node.conn[0].startup --value=%4",
-            @currentRecord[1].to_s.shellescape,
-            @currentRecord[0].to_s.shellescape,
-            @currentRecord.fetch(2, "default").shellescape,
+            current_target,
+            current_portal,
+            current_iface,
             status.shellescape
           )
         )
       )
-      if Ops.greater_than(
-        Builtins.size(Ops.get_string(retcode, "stderr", "")),
-        0
-      )
-        return false
-      else
+      if retcode["stderr"].to_s.empty?
         retcode = SCR.Execute(
           path(".target.bash_output"),
           GetAdmCmd(
             Builtins.sformat(
               "-m node -I %3 -T %1 -p %2 --op=update --name=node.startup --value=%4",
-              @currentRecord[1].to_s.shellescape,
-              @currentRecord[0].to_s.shellescape,
-              @currentRecord.fetch(2, "default").shellescape,
+              current_target,
+              current_portal,
+              current_iface,
               status.shellescape
             )
           )
         )
+      else
+        ret = false
       end
 
-      Builtins.y2internal("retcode %1", retcode)
+      log.info "retcode #{retcode}"
       ret
     end
 
@@ -1115,14 +1080,7 @@ module Yast
 
       output = SCR.Execute(
         path(".target.bash_output"),
-        GetAdmCmd(
-          Builtins.sformat(
-            "-m node -I %3 -T %1 -p %2 --login",
-            @currentRecord[1].to_s.shellescape,
-            @currentRecord[0].to_s.shellescape,
-            @currentRecord[2].to_s.shellescape
-          )
-        )
+        GetAdmCmd("-m node -I #{current_iface} -T #{current_target} -p #{current_portal} --login")
       )
 
       Builtins.y2internal("output %1", output)
@@ -1501,6 +1459,18 @@ module Yast
     publish :function => :iBFT?, :type => "boolean (map <string, any>)"
 
   private
+
+    def current_target
+      @currentRecord[1].to_s.shellescape
+    end
+
+    def current_portal
+      @currentRecord[0].to_s.shellescape
+    end
+
+    def current_iface
+      @currentRecord.fetch(2, "default").shellescape
+    end
 
     def bring_up(card_names)
       card_names.each { |n| Yast::Execute.locally!("ip", "link", "set", "dev", n, "up") }

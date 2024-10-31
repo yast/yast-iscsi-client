@@ -83,12 +83,12 @@ module Yast
           "widget"            => :custom,
           "custom_widget"     => HBox(
             MinWidth(
-              16,
+              72,
               HBox(
                 # name of iscsi client (/etc/iscsi/initiatorname.iscsi)
                 TextEntry(Id(:initiator_name), _("&Initiator Name")),
                 MinWidth(
-                  8,
+                  36,
                   ComboBox(
                     Id(:iface),
                     Opt(:notify),

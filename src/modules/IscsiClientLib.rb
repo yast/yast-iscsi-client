@@ -431,7 +431,6 @@ module Yast
       nil
     end
 
-
     def getNode
       cmdline = GetAdmCmd("-S -m node -I #{current_iface} -T #{current_target} -p #{current_portal}")
       cmd = SCR.Execute(path(".target.bash_output"), cmdline)
@@ -553,7 +552,7 @@ module Yast
           target = row.split[1]
           dumped = false
         elsif row.include? "Portal:"
-          if /[Current|Persistent] Portal:/.match?(row)
+          if /(Current|Persistent) Portal:/.match?(row)
             # 'Persistent Portal' overwrites current (is used for login)
             portal = row.split[2]
           else
@@ -563,7 +562,7 @@ module Yast
           portal = portal.split(",")[0] if portal.include?(",")
         elsif row.include? "Iface Name:"
           iface = row.split[2]
-          iface = @iface_file.dig(iface, :name) || iface
+          iface = (@iface_file || {}).dig(iface, :name) || iface
           # don't add Scope:Link IPv6 address
           ret << "#{portal} #{target} #{iface}" if !portal.start_with?("[fe80:")
           dumped = true
@@ -901,11 +900,11 @@ module Yast
     def setValue(name, value)
       log.info "set #{name} for record #{@currentRecord}"
 
-      log = !name.include?("password")
+      login = !name.include?("password")
       cmd = "-m node -I #{current_iface} -T #{current_target} -p #{current_portal} --op=update --name=#{name.shellescape}"
 
-      command = GetAdmCmd("#{cmd} --value=#{value.shellescape}", log)
-      if !log
+      command = GetAdmCmd("#{cmd} --value=#{value.shellescape}", login)
+      if !login
         value = "*****" if !value.empty?
         log.info "AdmCmd:LC_ALL=POSIX iscsiadm #{cmd} --value=#{value}"
       end
@@ -913,7 +912,7 @@ module Yast
       ret = true
       retcode = SCR.Execute(path(".target.bash_output"), command)
       unless retcode["stderr"].to_s.empty?
-        log.error "#{retcode["stderr"]}"
+        log.error retcode["stderr"]
         return false
       end
       log.info "return value #{ret}"
@@ -1218,13 +1217,12 @@ module Yast
       end
 
       @ay_settings.fetch("targets", []).each do |target|
-        unless portals.include? target["portal"]
-          SCR.Execute(
-            path(".target.bash"),
-            GetAdmCmd(%|-m discovery #{ifacepar} -t st -p #{target["portal"].shellescape}|)
-          )
-          portals << target["portal"]
-        end
+        next if portals.include? target["portal"]
+        SCR.Execute(
+          path(".target.bash"),
+          GetAdmCmd(%(-m discovery #{ifacepar} -t st -p #{target["portal"].shellescape}))
+        )
+        portals << target["portal"]
       end
       @ay_settings.fetch("targets", []).each do |target|
         log.info "login into target #{target}"
@@ -1276,7 +1274,7 @@ module Yast
     end
 
     def iface_value(content, field)
-      content.find { |l| l.include? field }.to_s.gsub(/[[:space:]]/,'').split("=")[1]
+      content.find { |l| l.include? field }.to_s.gsub(/[[:space:]]/, "").split("=")[1]
     end
 
     def InitIfaceFile
@@ -1293,16 +1291,16 @@ module Yast
       files.each do |file|
         ls = SCR.Read(path(".target.string"), "/etc/iscsi/ifaces/#{file}").split("\n")
         log.info "InitIfaceFile file: #{file}\nInitIfaceFile ls: #{ls}"
+        ls.select! { |l| !l.start_with?(/\s*#/) }
         iface_name = ls.find { |l| l.include? "iface.iscsi_ifacename" }.to_s
         log.info "InitIfaceFile ls: #{iface_name}"
-        unless iface_name.empty?
-          name = iface_name.gsub(/[[:space:]]/,'').split("=")[1]
-          dev_name = iface_value(ls, "iface.net_ifacename")
-          transport = iface_value(ls, "iface.transport")
-          hwaddress = iface_value(ls, "iface.hwaddress")
-          ipaddress = iface_value(ls, "iface.ipaddress")
-          @iface_file[name] = { :name => name, :dev => dev_name, :transport => transport, :hwaddress => hwaddress, :ip => ipaddress }
-        end
+        next if iface_name.empty?
+        name = iface_name.gsub(/[[:space:]]/, "").split("=")[1]
+        dev_name = iface_value(ls, "iface.net_ifacename")
+        transport = iface_value(ls, "iface.transport")
+        hwaddress = iface_value(ls, "iface.hwaddress")
+        ipaddress = iface_value(ls, "iface.ipaddress")
+        @iface_file[name] = { :name => name, :dev => dev_name, :transport => transport, :hwaddress => hwaddress, :ip => ipaddress }
       end
       log.info "InitIfaceFile iface_file: #{@iface_file}"
 
@@ -1314,7 +1312,7 @@ module Yast
     end
 
     def all_item
-      Item(Id(@offload[1][0]), @offload[1][1], @iface== @offload[1][0])
+      Item(Id(@offload[1][0]), @offload[1][1], @iface == @offload[1][0])
     end
 
     def iface_items
@@ -1359,8 +1357,8 @@ module Yast
     #
     # @return [Array<String>] List os iscsi ifaces for the current offload card selection, ex. ["eth2-bnx2i"]
     def GetDiscIfaces
-      ifaces = @iface == "all" ? @iface_file.keys : [@iface]
-      log.info "GetDiscIfaces:#{ifaces}" 
+      ifaces = (@iface == "all") ? @iface_file.keys : [@iface]
+      log.info "GetDiscIfaces:#{ifaces}"
       ifaces
     end
 
@@ -1483,7 +1481,7 @@ module Yast
       end
 
       @offload_valid = potential_offload_cards
-      card_names = @offload_valid.values.flatten(1).map {|c| c["iface"] }.uniq
+      card_names = @offload_valid.values.flatten(1).map { |c| c["iface"] }.uniq
       bring_up(card_names)
       log.info "OffloadValid entries#{@offload_valid}"
       nil
@@ -1520,7 +1518,7 @@ module Yast
     def potential_offload_cards
       # Store into hw_mods information about all the cards in the system
       cards = SCR.Read(path(".probe.netcard"))
-      hw_mods = cards.select {|c| c["iscsioffload"] }.map do |c|
+      hw_mods = cards.select { |c| c["iscsioffload"] }.map do |c|
         log.info "GetOffloadItems card:#{c}"
         hw_mod = {
           "modules" => netcard_modules(c),
@@ -1564,7 +1562,7 @@ module Yast
 
       cards.each do |dev_name|
         cmd = "#{OFFLOAD_SCRIPT} #{dev_name.shellescape} | grep ..:..:..:.." # grep for lines containing MAC address
-        log.info  "GetOffloadItems cmd #{cmd}"
+        log.info "GetOffloadItems cmd #{cmd}"
         out = SCR.Execute(path(".target.bash_output"), cmd)
         # Example for output if offload is supported on interface:
         # cmd: iscsi_offload eth2

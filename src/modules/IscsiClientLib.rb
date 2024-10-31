@@ -1372,7 +1372,7 @@ module Yast
     # @param ip [String] Portal IP address
     # @param port [String] Portal port number
     # @param use_fw [Boolean] whether the target should be fw or not
-    # @only_new [Boolean] whether a new record should be created
+    # @param only_new [Boolean] whether a new record should be created
     # @return [Array<String>]
     def GetDiscoveryCmd(ip, port, use_fw: false, only_new: false)
       log.info "GetDiscoveryCmd ip:#{ip} port:#{port} fw:#{use_fw} only new:#{only_new}"

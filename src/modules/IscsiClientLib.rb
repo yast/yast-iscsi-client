@@ -1214,7 +1214,10 @@ module Yast
         ifacepar << " " unless ifacepar.empty?
         ifacepar << "-I " << iface.shellescape
         ifaces << iface
+      end
 
+      # rubocop:disable Style/CombinableLoops
+      @ay_settings.fetch("targets", []).each do |target|
         next if portals.include? target["portal"]
         SCR.Execute(
           path(".target.bash"),
@@ -1226,6 +1229,7 @@ module Yast
         @currentRecord = [target["portal"], target["target"], target["iface"]]
         setStartupStatus(target.fetch("startup", "manual"))
       end
+      # rubocop:enable Style/CombinableLoops
       true
     end
 

@@ -914,16 +914,16 @@ describe Yast::IscsiClientLib do
       include_examples "returns UI items"
 
       it "includes 'default', 'all' and an entry for each offload card" do
-          items = subject.iface_items
+        items = subject.iface_items
 
-          labels = items.map { |i| ui_item_label(i) }
-          expect(labels).to contain_exactly(
-            "default (Software)", "all", "bnx2i.ab:cd:de:fa:cf:29.ipv4.0 - 192.168.100.29"
-          )
+        labels = items.map { |i| ui_item_label(i) }
+        expect(labels).to contain_exactly(
+          "default (Software)", "all", "bnx2i.ab:cd:de:fa:cf:29.ipv4.0 - 192.168.100.29"
+        )
 
-          ids = items.map { |i| ui_item_id(i) }
-          expect(ids).to contain_exactly("default", "all", "bnx2i.ab:cd:de:fa:cf:29.ipv4.0")
-        end
+        ids = items.map { |i| ui_item_id(i) }
+        expect(ids).to contain_exactly("default", "all", "bnx2i.ab:cd:de:fa:cf:29.ipv4.0")
+      end
     end
 
     context "and no iscsi iface is reported by iscsiadm " do

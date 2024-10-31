@@ -1214,17 +1214,13 @@ module Yast
         ifacepar << " " unless ifacepar.empty?
         ifacepar << "-I " << iface.shellescape
         ifaces << iface
-      end
 
-      @ay_settings.fetch("targets", []).each do |target|
         next if portals.include? target["portal"]
         SCR.Execute(
           path(".target.bash"),
           GetAdmCmd(%(-m discovery #{ifacepar} -t st -p #{target["portal"].shellescape}))
         )
         portals << target["portal"]
-      end
-      @ay_settings.fetch("targets", []).each do |target|
         log.info "login into target #{target}"
         loginIntoTarget(target)
         @currentRecord = [target["portal"], target["target"], target["iface"]]
@@ -1291,7 +1287,7 @@ module Yast
       files.each do |file|
         ls = SCR.Read(path(".target.string"), "/etc/iscsi/ifaces/#{file}").split("\n")
         log.info "InitIfaceFile file: #{file}\nInitIfaceFile ls: #{ls}"
-        ls.select! { |l| !l.start_with?(/\s*#/) }
+        ls.reject! { |l| l.start_with?(/\s*#/) }
         iface_name = ls.find { |l| l.include? "iface.iscsi_ifacename" }.to_s
         log.info "InitIfaceFile ls: #{iface_name}"
         next if iface_name.empty?

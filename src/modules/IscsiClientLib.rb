@@ -1549,40 +1549,6 @@ module Yast
       result
     end
 
-    # Configures iSCSI offload engines for the given cards
-    #
-    # Tries to create an open-iscsi interface definition for each of the given cards.
-    #
-    # @param cards [Array<String>] list of interface names
-    # @return [Hash{String => Hash}] results of the operation, keys are the names of the interfaces
-    #   and values the corresponding result as a hash with three fields: "exit" (0 means the
-    #   definition was created), "hwaddr" and "ntype".
-    def configure_offload_engines(cards)
-      offload_res = {}
-
-      cards.each do |dev_name|
-        cmd = "#{OFFLOAD_SCRIPT} #{dev_name.shellescape} | grep ..:..:..:.." # grep for lines containing MAC address
-        log.info "GetOffloadItems cmd #{cmd}"
-        out = SCR.Execute(path(".target.bash_output"), cmd)
-        # Example for output if offload is supported on interface:
-        # cmd: iscsi_offload eth2
-        # out: $["exit":0, "stderr":"", "stdout":"00:00:c9:b1:bc:7f ip \n"]
-        cmd2 = "#{OFFLOAD_SCRIPT} #{dev_name.shellescape}"
-        result = SCR.Execute(path(".target.bash_output"), cmd2)
-        log.info "GetOffloadItems iscsi_offload out:#{result}"
-
-        offload_res[dev_name] = {}
-        offload_res[dev_name]["exit"] = out["exit"]
-        next unless out["exit"].zero?
-
-        sl = Builtins.splitstring(out["stdout"], " \n")
-        offload_res[dev_name]["hwaddr"] = sl[0]
-        offload_res[dev_name]["ntype"] = sl[1]
-      end
-
-      offload_res
-    end
-
     # Current IP address of the given network interface
     def ip_addr(dev_name)
       stdout = Yast::Execute.on_target!("ip", "addr", "show", dev_name,

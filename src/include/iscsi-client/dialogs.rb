@@ -113,7 +113,7 @@ module Yast
             method(:handleIface),
             "symbol (string, map)"
           ),
-          "help"              => Ops.get_string(@HELPS, "initiator_name", "")
+          "help"              => @HELPS["initiator_name"].to_s
         },
         # table of connected targets
         "connected_table"  => {

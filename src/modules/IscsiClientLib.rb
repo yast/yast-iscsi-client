@@ -266,6 +266,7 @@ module Yast
 
     def iface=(iface)
       log.info "Selecting the iface: #{iface} cur:#{@iface}"
+      @iface = iface
     end
 
     # Create and return complete iscsciadm command by adding the string

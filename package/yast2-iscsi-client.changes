@@ -1,7 +1,7 @@
 -------------------------------------------------------------------
 Thu Oct 31 11:46:26 UTC 2024 - Knut Anderssen <kanderssen@suse.com>
 
-- Fixes for bsc##1231385
+- Fixes for bsc#1231385
    - Do not call iscsi_offload.sh script anymore using the iscsi 
      ifaces created by autoLogOn directly and exposing them in the
      UI instead of the offload card selection.

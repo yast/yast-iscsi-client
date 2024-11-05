@@ -1278,6 +1278,11 @@ module Yast
       content.find { |l| l.include? field }.to_s.gsub(/[[:space:]]/, "").split("=")[1]
     end
 
+    def read_ifaces
+      InitIfaceFile()
+      InitIface()
+    end
+
     def InitIfaceFile
       @iface_file = {}
       files = SCR.Read(path(".target.dir"), "/etc/iscsi/ifaces") || []
@@ -1476,10 +1481,7 @@ module Yast
     end
 
     def InitOffloadValid
-      if @iface_file.nil?
-        InitIfaceFile()
-        InitIface()
-      end
+      read_ifaces if @iface_file.nil?
 
       @offload_valid = potential_offload_cards
       card_names = @offload_valid.values.flatten(1).map { |c| c["iface"] }.uniq

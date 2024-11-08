@@ -265,7 +265,8 @@ module Yast
     end
 
     def iface=(iface)
-      log.info "Selecting the iface: #{iface} cur:#{@iface}"
+      return if @iface == iface
+      log.info "Changing the iface from #{iface} to #{@iface}"
       @iface = iface
     end
 

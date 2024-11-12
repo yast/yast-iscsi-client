@@ -83,19 +83,16 @@ module Yast
           "widget"            => :custom,
           "custom_widget"     => HBox(
             MinWidth(
-              16,
+              72,
               HBox(
                 # name of iscsi client (/etc/iscsi/initiatorname.iscsi)
                 TextEntry(Id(:initiator_name), _("&Initiator Name")),
                 MinWidth(
-                  8,
+                  36,
                   ComboBox(
-                    Id(:offload_card),
+                    Id(:iface),
                     Opt(:notify),
-                    # prefer to not translate 'Offload' unless there is a well
-                    # known word for this technology (it's special hardware
-                    # shifting load from processor to card)
-                    _("Offload Car&d"),
+                    _("iSCSI I&face"),
                     []
                   )
                 )
@@ -113,10 +110,10 @@ module Yast
             "symbol (string, map)"
           ),
           "handle"            => fun_ref(
-            method(:handleOffload),
+            method(:handleIface),
             "symbol (string, map)"
           ),
-          "help"              => Ops.get_string(@HELPS, "initiator_name", "")
+          "help"              => @HELPS["initiator_name"].to_s
         },
         # table of connected targets
         "connected_table"  => {

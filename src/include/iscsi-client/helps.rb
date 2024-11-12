@@ -120,7 +120,10 @@ module Yast
           ),
         "initiator_name" => _(
           "<p><b>Initiator Name</b> is a value from <tt>/etc/iscsi/initiatorname.iscsi</tt>. \nIn case you have iBFT, this value will be added from there and you are only able to change it in the BIOS setup.</p>"
-        ),
+        ) +
+          _(
+            "<p><b>iSCSI Iface</b> allows to select an specific iSCSI iface to be used for discovering targets.</p>"
+          ),
         "isns"           => _(
           "If you want to use <b>iSNS</b> (Internet  Storage  Name Service) for discovering targets instead of the default SendTargets method,\nfill in the IP address of the iSNS server and port. The default port should be 3205.\n"
         ),

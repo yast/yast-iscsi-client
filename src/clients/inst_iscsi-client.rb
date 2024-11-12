@@ -69,12 +69,13 @@ module Yast
       )
       # check initiator name, create if not exists
       IscsiClientLib.checkInitiatorName
-
-      IscsiClientLib.getiBFT
       IscsiClientLib.LoadOffloadModules
+      IscsiClientLib.getiBFT
 
       # try auto login to target
       auto_login = IscsiClientLib.autoLogOn
+      # force a read of ifaces
+      IscsiClientLib.read_ifaces if auto_login
       # force a read of sessions in case of auto_login (bsc#1228084)
       IscsiClientLib.readSessions if auto_login
 

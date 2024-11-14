@@ -252,7 +252,7 @@ module Yast
       #  "yyyy-mm" is the date at which the domain is valid and the identifier
       #  is freely selectable. For further details please check the iSCSI spec.
 
-      i_name = Convert.to_string(UI.QueryWidget(:initiator_name, :Value))
+      i_name = initiator_name_value
 
       # name not changed at all or already saved after checking it
       return true if IscsiClientLib.initiatorname == i_name
@@ -291,21 +291,22 @@ module Yast
       UI.QueryWidget(:iface, :Value).to_s
     end
 
+    def initiator_name_value
+      UI.QueryWidget(:initiator_name, :Value).to_s
+    end
+
     def storeInitName(_key, event)
       event = deep_copy(event)
-      if Convert.to_string(UI.QueryWidget(:initiator_name, :Value)) !=
-          IscsiClientLib.initiatorname
+      if initiator_name_value != IscsiClientLib.initiatorname
         # write initiatorname
-        IscsiClientLib.writeInitiatorName(
-          Convert.to_string(UI.QueryWidget(:initiator_name, :Value))
-        )
+        IscsiClientLib.writeInitiatorName(initiator_name_value)
         # Isn't this redundant with the code at IscsiClientLib.writeInitiatorName?
         if Stage.initial
           IscsiClientLib.restart_iscsid_initial
         else
           Service.Restart("iscsid")
         end
-        log.info "write initiatorname #{IscsientLib.initiatorname}"
+        log.info "write initiatorname #{IscsiClientLib.initiatorname}"
       end
       IscsiClientLib.iface = iface_value if iface_value != IscsiClientLib.selected_iface
       nil

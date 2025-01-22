@@ -333,8 +333,9 @@ module Yast
       if @ibft == nil
         @ibft = {}
 
-        if !Arch.i386 && !Arch.x86_64
-          log.info "Because architecture #{Arch.arch_short} is different from x86, not using iBFT"
+        unless Arch.i386 || Arch.x86_64 || Arch.aarch64 || Arch.arm
+          log.info "iscsi_ibft module is not available for #{Arch.arch_short} Architecture"
+          log.info "not using iBFT"
           return @ibft
         end
         ret = SCR.Execute(path(".target.bash_output"),

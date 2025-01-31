@@ -17,7 +17,7 @@
 
 
 Name:           yast2-iscsi-client
-Version:        4.7.4
+Version:        4.7.5
 Release:        0
 Summary:        YaST2 - iSCSI Client Configuration
 License:        GPL-2.0-only

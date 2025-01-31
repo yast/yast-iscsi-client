@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Jan 31 15:53:50 UTC 2025 - Knut Alejandro Anderssen González <kanderssen@suse.com>
+
+- Do not filter netcard cards by iscsioffload feature as for example
+  it is not present in qede/qedi devices (bsc#1236433).
+- 4.7.5
+
+-------------------------------------------------------------------
 Wed Jan 22 16:31:35 UTC 2025 - Knut Anderssen <kanderssen@suse.com>
 
 - Try to load the iscsi_ibft module in ARM arch as it should be 

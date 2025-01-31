@@ -1523,7 +1523,7 @@ module Yast
     def potential_offload_cards
       # Store into hw_mods information about all the cards in the system
       cards = SCR.Read(path(".probe.netcard"))
-      hw_mods = cards.select { |c| c["iscsioffload"] }.map do |c|
+      hw_mods = cards.map do |c|
         log.info "GetOffloadItems card:#{c}"
         hw_mod = {
           "modules" => netcard_modules(c),

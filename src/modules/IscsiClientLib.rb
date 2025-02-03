@@ -1414,7 +1414,12 @@ module Yast
     #
     # @return [Boolean]
     def iscsiuio_relevant?
-      (ISCSIUIO_MODULES & GetOffloadModules()).any?
+      # qedi devices could not have any network device associated with it therefore reading the
+      # system netcard could be wrong and in that case we will check also the configured iscsi
+      # ifaces (bsc#1236433).
+      configured = (@iface_file || {}).values.map { |i| i[:transport] }.uniq
+
+      (ISCSIUIO_MODULES & (GetOffloadModules() | configured)).any?
     end
 
     # Loads the kernel modules needed to configure the iscsi client

@@ -2,7 +2,7 @@
 
 # |***************************************************************************
 # |
-# | Copyright (c) [2012-2023] SUSE LLC
+# | Copyright (c) [2012-2025] SUSE LLC
 # | All Rights Reserved.
 # |
 # | This program is free software; you can redistribute it and/or
@@ -521,6 +521,19 @@ module Yast
       oldConfig
 
       success
+    end
+
+    # Discovers iSCSI targets from a portal.
+    #
+    # @note This method is required by Agama in order to mimic the AutoYaST behavior while importing
+    #   the iSCSI config.
+    #
+    # @param portal [String]
+    # @param interfaces [Array<String>]
+    def discover_from_portal(portal, interfaces)
+      host, port = portal.split(":")
+      command = GetDiscoveryCmd(host, port, interfaces: interfaces)
+      Yast::Execute.locally!(*command, env: { "LC_ALL" => "POSIX" })
     end
 
     def setISNSConfig(address, port)
@@ -1379,10 +1392,12 @@ module Yast
     #
     # @param ip [String] Portal IP address
     # @param port [String] Portal port number
+    # @param interfaces [Array<String>, nil] Interfaces for discovering. If nil, discover without a
+    #   specific interface.
     # @param use_fw [Boolean] whether the target should be fw or not
     # @param only_new [Boolean] whether a new record should be created
     # @return [Array<String>]
-    def GetDiscoveryCmd(ip, port, use_fw: false, only_new: false)
+    def GetDiscoveryCmd(ip, port, interfaces: nil, use_fw: false, only_new: false)
       log.info "GetDiscoveryCmd ip:#{ip} port:#{port} fw:#{use_fw} only new:#{only_new}"
 
       command = DISCOVERY_CMD.split
@@ -1390,9 +1405,9 @@ module Yast
       if isns_info["use"]
         command << "-t" << "isns"
       else
-        ifs = GetDiscIfaces()
+        ifs = interfaces || GetDiscIfaces()
         log.info "ifs=#{ifs}"
-        ifs = ifs.each_with_object([]) { |s, res| res << "-I" << s }
+        ifs = ifs.map { |i| ["-I", i] }.flatten
         log.info "ifs=#{ifs}"
         tgt = "st"
         tgt = "fw" if use_fw

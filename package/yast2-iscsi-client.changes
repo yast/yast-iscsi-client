@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Jul  3 13:24:33 UTC 2025 - José Iván López González <jlopez@suse.com>
+
+- Avoid exception if discovering from a portal fails (related to
+  bsc#1245171).
+- 5.0.8
+
+-------------------------------------------------------------------
 Wed Jul  2 15:24:46 UTC 2025 - José Iván López González <jlopez@suse.com>
 
 - Add method for discovering from a portal (needed for Agama, see

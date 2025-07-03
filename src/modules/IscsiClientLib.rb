@@ -28,6 +28,7 @@ require "ipaddr"
 require "y2iscsi_client/config"
 require "y2iscsi_client/timeout_process"
 require "y2iscsi_client/authentication"
+require "cheetah"
 
 require "shellwords"
 
@@ -530,10 +531,15 @@ module Yast
     #
     # @param portal [String]
     # @param interfaces [Array<String>]
+    #
+    # @return [Boolean] Whether the discovery action was done.
     def discover_from_portal(portal, interfaces)
       host, port = portal.split(":")
       command = GetDiscoveryCmd(host, port, interfaces: interfaces)
       Yast::Execute.locally!(*command, env: { "LC_ALL" => "POSIX" })
+      true
+    rescue Cheetah::ExecutionFailed
+      false
     end
 
     def setISNSConfig(address, port)

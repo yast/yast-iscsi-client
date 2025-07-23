@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jul 23 10:38:00 UTC 2025 - Stefan Hundhammer <shundhammer@suse.com>
+
+- Ensure to hide passwords (bsc#1246833)
+- 4.7.6
+
+-------------------------------------------------------------------
 Fri Jan 31 15:53:50 UTC 2025 - Knut Alejandro Anderssen González <kanderssen@suse.com>
 
 - Do not filter netcard cards by iscsioffload feature as for example

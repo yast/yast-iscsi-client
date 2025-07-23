@@ -286,7 +286,7 @@ module Yast
     def hidePassword(orig)
       hidden = deep_copy(orig)
       hidden.each do |key, _value|
-        next unless key.include?("PASS")
+        next unless key =~ /pass/i
         hidden[key] = "*****"
       end
       hidden

@@ -5,12 +5,6 @@ Wed Jul 23 10:38:00 UTC 2025 - Stefan Hundhammer <shundhammer@suse.com>
 - 5.0.9
 
 -------------------------------------------------------------------
-Fri Jan 31 15:53:50 UTC 2025 - Knut Alejandro Anderssen González <kanderssen@suse.com>
-
-- Do not filter netcard cards by iscsioffload feature as for example
-  it is not present in qede/qedi devices (bsc#1236433).
-
--------------------------------------------------------------------
 Thu Jul  3 13:24:33 UTC 2025 - José Iván López González <jlopez@suse.com>
 
 - Avoid exception if discovering from a portal fails (related to
@@ -23,6 +17,12 @@ Wed Jul  2 15:24:46 UTC 2025 - José Iván López González <jlopez@suse.com>
 - Add method for discovering from a portal (needed for Agama, see
   bsc#1245171).
 - 5.0.7
+
+-------------------------------------------------------------------
+Fri Jan 31 15:53:50 UTC 2025 - Knut Alejandro Anderssen González <kanderssen@suse.com>
+
+- Do not filter netcard cards by iscsioffload feature as for example
+  it is not present in qede/qedi devices (bsc#1236433).
 
 -------------------------------------------------------------------
 Wed Jan 22 16:31:35 UTC 2025 - Knut Anderssen <kanderssen@suse.com>

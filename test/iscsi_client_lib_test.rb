@@ -1060,4 +1060,23 @@ describe Yast::IscsiClientLib do
       end
     end
   end
+
+  describe "#hidePassword" do
+    let(:orig) do
+      {
+        "node.name"     => "my.node",
+        "harm.less"     => "harmless",
+        "auth.password" => "s3cr3t",
+        "auth.PASSWORD" => "s3cr3t"
+      }
+    end
+
+    it "hides passwords and only passwords" do
+      hidden = Yast::IscsiClientLib.hidePassword(orig)
+
+      expect(hidden["harm.less"]).to eq("harmless")
+      expect(hidden["auth.PASSWORD"]).not_to include("s3cr3t")
+      expect(hidden["auth.password"]).not_to include("s3cr3t")
+    end
+  end
 end

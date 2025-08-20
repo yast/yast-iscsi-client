@@ -1484,16 +1484,24 @@ module Yast
     end
 
     def bring_up(card_names)
+      log.info "Bringing up #{card_names}"
+
       card_names.each { |n| Yast::Execute.locally!("ip", "link", "set", "dev", n, "up") }
     end
 
     def InitOffloadValid
       read_ifaces if @iface_file.nil?
+      card_names = []
 
       @offload_valid = potential_offload_cards
-      card_names = @offload_valid.values.flatten(1).map { |c| c["iface"] }.uniq
-      bring_up(card_names)
-      log.info "OffloadValid entries#{@offload_valid}"
+      @offload_valid.values.flatten(1).each do |card|
+        next if card["iface"].to_s.empty?
+        next if card_names.include? card["iface"]
+        card_names << card["iface"]
+      end
+
+      bring_up(card_names) unless card_names.empty?
+      log.info "OffloadValid entries: #{@offload_valid}"
       nil
     end
 

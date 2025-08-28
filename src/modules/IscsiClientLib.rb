@@ -1046,12 +1046,7 @@ module Yast
       if !getiBFT.empty?
         result = SCR.Execute(path(".target.bash_output"), GetAdmCmd("-m fw -l"))
         ret = false if result["exit"] != 0
-
-        # Note that fw discovery does not store persistent records in the node or discovery DB,
-        # so this is likely only done for reporting purposes (writing the info to the YaST logs)
         log.info "Autologin into iBFT : #{result}"
-        result = SCR.Execute(path(".target.bash_output"), GetAdmCmd("-m discovery -t fw"))
-        log.info "iBFT discovery: #{result}"
       end
       ret
     end

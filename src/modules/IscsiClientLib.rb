@@ -1047,7 +1047,10 @@ module Yast
         result = SCR.Execute(path(".target.bash_output"), GetAdmCmd("-m fw -l"))
         ret = false if result["exit"] != 0
         log.info "Autologin into iBFT : #{result}"
+        # Give iSCSI some time, even if logon was not 100% successful
+        autologon_delay
       end
+      log.info "end of autoLogOn function"
       ret
     end
 
@@ -1616,6 +1619,32 @@ module Yast
       hwaddr = nil if hwaddr&.empty?
 
       [dev_name, hwaddr, type_label].compact.join(" - ")
+    end
+
+    # Method to be called after an iBFT login, to mitigate some known timing issues.
+    #
+    # See bsc#1247711 for some background.
+    #
+    # When this method is called, we are already logged into the iSCSI targets. But device detection
+    # in the kernel is asynchronous and the corresponding iSCSI devices may take some time to appear
+    # in the system. Moreover, there is no guarantee that the devices will all show up. According to
+    # a comment at bsc#1247711: "One or more paths being down is an acceptable situation. They
+    # may/should come up later, but there is no requirement that they be there at any given time".
+    #
+    # That could be a big problem for yast-storage-ng, which expects a complete and stable set of
+    # devices during its probing phase (eg. to properly detect multipath).
+    def autologon_delay
+      log.info "Giving some time to iSCSI"
+      sleep(10)
+      # Execute the following command just for logging purposes, it shows the relationship between
+      # existing sessions and kernel device names. Theoretically it could be used to detect whether
+      # all devices are available before the hard-coded delay of the previous line, but we decided
+      # to keep the code simple.
+      res = SCR.Execute(path(".target.bash_output"), GetAdmCmd("-m session -P3"))
+      log.info "iscsiadm result: #{res}"
+      # Invoking udevadm just in case some of the devices showed up but it is not ready yet.
+      # This probably makes no difference, but it will not hurt either.
+      Yast::Execute.locally("/usr/bin/udevadm", "settle", "--timeout=15")
     end
   end
 

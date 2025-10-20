@@ -1,9 +1,11 @@
 -------------------------------------------------------------------
-Thu Aug 28 17:31:40 UTC 2025 - Ancor Gonzalez Sosa <ancor@suse.com>
+Mon Oct 20 10:16:23 UTC 2025 - Ancor Gonzalez Sosa <ancor@suse.com>
 
 - Do not perform an extra discovery during iBFT login, to prevent
   the creation of problematic records at the node, interface and fw
   databases (bsc#1247711).
+- Introduce a delay after iBFT login, to increase the chances of
+  libstorage-ng to properly detect the new devices (bsc#1247711).
 - 5.0.11
 
 -------------------------------------------------------------------
